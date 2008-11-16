@@ -55,7 +55,7 @@ namespace eval ::ccs {
 	# Версия и автор скрипта
 	variable author		"Buster <buster@ircworld.ru> (c)"
 	variable version	"1.7.2"
-	variable date		"03-Nov-2008"
+	variable date		"16-Nov-2008"
 	
 	variable ccs
 	
