@@ -5,6 +5,7 @@
 ##                                              (http://eggdrop.msk.ru/index.php?section=irc&theme=scripts).
 ## Forum:           http://forum.systemplanet.ru/viewtopic.php?f=3&t=3
 ## sf.net:          http://sourceforge.net/projects/ccs-eggdrop/
+## svn:             https://ccs-script.googlecode.com/svn/trunk/
 ## Тестеры:         Net_Storm, Kein, anaesthesia
 ##################################################################################################################
 # Установка скрипта:
