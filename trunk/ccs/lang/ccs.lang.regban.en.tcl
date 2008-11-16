@@ -32,6 +32,6 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(text,regban,ru,#105) "*** Empty ***"
 	set ccs(text,regban,ru,#106) "--- End of regex bans list ---"
 	set ccs(text,regban,ru,#107) "–егул€рный бан \002ID: %s\002 %s: %s."
-	set ccs(text,regban,ru,#108) "–егул€рное выражение \"\002%s\002\" не €вл€етьс€ корректным."
+	set ccs(text,regban,ru,#108) "Expression \"\002%s\002\" is not a valid regular expression."
 	
 } 
