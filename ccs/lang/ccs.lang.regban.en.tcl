@@ -13,7 +13,7 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(help,ru,regbanlist) {Show the list of all regex-based bans}
 	
 	set ccs(args,ru,regban) {<[-host {rege}] [-server {rege}] [-status {rege}] [-hops number] [-name {rege}]> [options]}
-	set ccs(help,ru,regban) {¬ыставление регул€рного бана}
+	set ccs(help,ru,regban) {Add regex ban}
 	set ccs(help2,ru,regban) {
 		{¬ыставление регул€рного бана. ƒоступные опции:}
 		{  \002-ban [number]\002 - ƒействие бан. ¬озможно указание маски бана, если маска бана не указана, то беретс€ значение по умолчанию дл€ канала.}
@@ -23,14 +23,14 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	}
 	
 	set ccs(args,ru,regunban) {<id>}
-	set ccs(help,ru,regunban) {”даление регул€рного бана}
+	set ccs(help,ru,regunban) {Remove regex ban}
 	
 	set ccs(text,regban,ru,#101) "–егул€рный бан \002ID: %s\002 добавлен: %s."
 	set ccs(text,regban,ru,#102) "–егул€рный бан \002ID: %s\002 удален: %s."
 	set ccs(text,regban,ru,#103) "–егул€рный бан \002ID: %s\002 не существует."
-	set ccs(text,regban,ru,#104) "--- —писок регул€рных банов \002%s\002 ---"
-	set ccs(text,regban,ru,#105) "*** ѕуст ***"
-	set ccs(text,regban,ru,#106) "---  онец списка регул€рных банов ---"
+	set ccs(text,regban,ru,#104) "--- List of the regex bans \002%s\002 ---"
+	set ccs(text,regban,ru,#105) "*** Empty ***"
+	set ccs(text,regban,ru,#106) "--- End of regex bans list ---"
 	set ccs(text,regban,ru,#107) "–егул€рный бан \002ID: %s\002 %s: %s."
 	set ccs(text,regban,ru,#108) "–егул€рное выражение \"\002%s\002\" не €вл€етьс€ корректным."
 	
