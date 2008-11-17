@@ -12,7 +12,7 @@ addlang $modname $modlang \
 if {$ccs(lang,name,$modname,$modlang)} {
 	
 	set ccs(args,ru,update) {(<list> [-cur/-mod/-lang])|(<download> [-type type] [-name name] [-lang lang])|(<update>)}
-	set ccs(help,ru,update) {јвтоматическое обновление скрипта, модулей, €зыков}
+	set ccs(help,ru,update) {јвтоматическое обновление скрипта, модулей, €зыковых файлов}
 	set ccs(help2,ru,update) {
 		{јвтоматическое обновление скрипта, модулей, €зыков.}
 		{\002list\002 - просмотр списка новых версий. ѕри указании \002-cur\002 будут показаны обновлени€ только дл€ установленных  модулей и €зыков; \002-mod\002 - вывод только модулей; \002-lang\002 - вывод только €зыков}
