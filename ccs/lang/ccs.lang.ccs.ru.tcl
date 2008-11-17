@@ -1,4 +1,4 @@
-
+###
 if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]";return}
 
 set modname		"ccs"
