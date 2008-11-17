@@ -1,11 +1,11 @@
 ##################################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.7.1.
+## Version: 1.7.3.
 ## Script's author: Buster (Buster@ircworld.ru) (http://buster-net.ru/index.php?section=irc&theme=scripts).
 ##                                              (http://eggdrop.msk.ru/index.php?section=irc&theme=scripts).
 ## Forum:           http://forum.systemplanet.ru/viewtopic.php?f=3&t=3
 ## sf.net:          http://sourceforge.net/projects/ccs-eggdrop/
-## svn:             https://ccs-script.googlecode.com/svn/trunk/
+## SVN:             svn checkout http://ccs-script.googlecode.com/svn/trunk/ ccs-script-read-only
 ## Тестеры:         Net_Storm, Kein, anaesthesia
 ##################################################################################################################
 # Установка скрипта:
@@ -26,6 +26,7 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ##################################################################################################################
 # Список последних изменений:
+#	v1.7.3
 #	v1.7.2
 # - Для команд работы с сохранением канальных флагов и шаблонов расширен список используемых символов для имени
 #   файла.
@@ -55,8 +56,8 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@ircworld.ru> (c)"
-	variable version	"1.7.2"
-	variable date		"16-Nov-2008"
+	variable version	"1.7.3"
+	variable date		"17-Nov-2008"
 	
 	variable ccs
 	
@@ -860,7 +861,7 @@ namespace eval ::ccs {
 		variable ccs
 		
 		set lcommands [list]
-		foreach _ $ccs(commands) {
+		foreach _ [concat $ccs(commands) $ccs(scr_commands)] {
 			set lalias [list]
 			foreach alias $ccs(alias,$_) {
 				lappend lalias [string map [list %pref_ $ccs(pref_pub)] $alias]
@@ -873,16 +874,19 @@ namespace eval ::ccs {
 		}
 		
 		if {[llength $lcommands] > 0} {
-			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0
+			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0; set par_scr 0
 		} elseif {[string equal -nocase $stext "all"]} {
-			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0
+			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0; set par_scr 0
 		} elseif {[string equal -nocase $stext "limit"]} {
-			set par_access 1; set par_commands 1; set par_group 0; set par_limit 1
+			set par_access 1; set par_commands 1; set par_group 0; set par_limit 1; set par_scr 0
+		} elseif {[string equal -nocase $stext "scr"] || [string equal -nocase $stext "script"] || [string equal -nocase $stext "scripts"]} {
+			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0; set par_scr 1
 		} else {
-			set par_access [regexp -nocase -all -- {-a(?:ccess)?} $stext]
-			set par_commands [regexp -nocase -all -- {-c(?:ommands)?} $stext]
-			set par_group [regexp -nocase -all -- {-g(?:roup)?\ +([\w]+)} $stext -> group]
-			set par_limit [regexp -nocase -all -- {-l(?:imit)?} $stext]
+			set par_access		[regexp -nocase -all -- {-a(?:ccess)?} $stext]
+			set par_commands	[regexp -nocase -all -- {-c(?:ommands)?} $stext]
+			set par_group		[regexp -nocase -all -- {-g(?:roup)?\ +([\w]+)} $stext -> group]
+			set par_limit		[regexp -nocase -all -- {-l(?:imit)?} $stext]
+			set par_scr			[regexp -nocase -all -- {-s(?:cript(?:s)?)?} $stext]
 			if {$par_group && [lsearch $ccs(groups) [string tolower $group]] < 0} \
 				{put_msg [sprintf ccs #177 $group [join $ccs(groups)]] -speed 3; return 0}
 			if {!$par_group && $ccs(help_group)} {put_msg [sprintf ccs #178 [join $ccs(groups)]] -speed 3; return 0}
@@ -891,7 +895,7 @@ namespace eval ::ccs {
 		if {$par_limit && [check_isnull $schan]} {put_msg [sprintf ccs #200] -speed 3; return 0}
 		
 		set find 0
-		if {$par_access || $par_commands || $par_group || $par_limit} {
+		if {$par_access || $par_commands || $par_group || $par_limit || $par_scr} {
 			if {[llength $lcommands] > 0} {
 				foreach _ $lcommands {
 					set lout_text [get_help $_ "pub" $par_access $par_commands [expr [llength $lcommands] == 1]]
@@ -905,7 +909,8 @@ namespace eval ::ccs {
 					}
 				}
 			} else {
-				foreach _ $ccs(commands) {
+				if {$par_scr} {set lcommands $ccs(scr_commands)} else {set lcommands $ccs(commands)}
+				foreach _ $lcommands {
 					if {![use_command $_]} continue
 					if {$par_group && ![string equal -nocase $group $ccs(group,$_)]} continue
 					if {$par_limit && ![check_matchattr $shand $schan $ccs(flags,$_)]} continue
