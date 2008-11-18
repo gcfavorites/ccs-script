@@ -1,12 +1,12 @@
 
-if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"chan"
 set modlang		"en"
 addlang $modname $modlang \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.2.2" \
-				"28-Jul-2008"
+				"1.2.3" \
+				"18-Nov-2008"
 
 if {$ccs(lang,name,$modname,$modlang)} {
 	
@@ -23,7 +23,7 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(help,en,chandel) {Removes \002channel\002 from a bot's chans db}
 	
 	set ccs(args,en,rejoin) {}
-	set ccs(help,en,rejoin) {Tells bot rejoin to the channel.}
+	set ccs(help,en,rejoin) {Tells bot to rejoin the channel.}
 	
 	set ccs(args,en,chanset) {<[+/-]option> [value]}
 	set ccs(help,en,chanset) {Change channel \002options\002 (for example: «+bitch» or «flood-chan 5:10»). Works like partyline's «.chanset» command.}
