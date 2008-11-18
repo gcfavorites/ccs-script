@@ -1,37 +1,36 @@
-if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"regban"
 set modlang		"ru"
 addlang $modname $modlang \
-				"Buster <buster@ircworld.ru> (c)" \
-				"1.2.0" \
-				"16-Jun-2008"
+				"Kein <kein-of@yandex.ru> (c)" \
+				"1.3.0" \
+				"18-Nov-2008"
 
 if {$ccs(lang,name,$modname,$modlang)} {
 	
 	set ccs(args,ru,regbanlist) {}
 	set ccs(help,ru,regbanlist) {Show the list of all regex-based bans}
 	
-	set ccs(args,ru,regban) {<[-host {rege}] [-server {rege}] [-status {rege}] [-hops number] [-name {rege}]> [options]}
+	set ccs(args,ru,regban) {<[-host {regex}] [-server {regex}] [-status {regex}] [-hops number] [-name {regex}]> [options]}
 	set ccs(help,ru,regban) {Add regex ban}
 	set ccs(help2,ru,regban) {
-		{Выставление регулярного бана. Доступные опции:}
-		{  \002-ban [number]\002 - Действие бан. Возможно указание маски бана, если маска бана не указана, то берется значение по умолчанию для канала.}
-		{  \002-kick [{reason}]\002 - Действие кик. Указание причины не обязательно.}
-		{  \002-notify {handle1,handle2 ...} [{text}]\002 - Действие нотис. Отправляется нотис перечисленным хендлам/никам с указанным сообщением. Пользователь должен сидеть на одном из канале, где сидит бот.}
-		{Примечание: если существует выполнимое условие с единственной указанной опцией \002-host\002 то условия с остальными опциями не будут проверяться.}
+		{Add regex ban. Available parameters:}
+		{  \002-ban [number]\002 - Action: \002ban\002. The optional parameter \002[number]\002 allows you to specify banmask template (1-9). If [number] is not specified, the default banmask value will be used.}
+		{  \002-kick [{reason}]\002 - Action: \002kick\002. Reason is the optional.}
+		{  \002-notify {handle1,handle2 ...} [{text}]\002 - Action: \002notice\002. When matching to banmask user joins to the channel - bot will send a notice about that to all specified users (they should be on the same channels where bot is in).}
 	}
 	
 	set ccs(args,ru,regunban) {<id>}
 	set ccs(help,ru,regunban) {Remove regex ban}
 	
-	set ccs(text,regban,ru,#101) "Регулярный бан \002ID: %s\002 добавлен: %s."
-	set ccs(text,regban,ru,#102) "Регулярный бан \002ID: %s\002 удален: %s."
-	set ccs(text,regban,ru,#103) "Регулярный бан \002ID: %s\002 не существует."
-	set ccs(text,regban,ru,#104) "--- List of the regex bans \002%s\002 ---"
+	set ccs(text,regban,ru,#101) "Regex ban with \002ID: %s\002 succesfully added: %s."
+	set ccs(text,regban,ru,#102) "Regex ban with \002ID: %s\002 succesfully removed: %s."
+	set ccs(text,regban,ru,#103) "Regex ban with \002ID: %s\002 does not exist."
+	set ccs(text,regban,ru,#104) "--- List of the regex bans for \002%s\002 ---"
 	set ccs(text,regban,ru,#105) "*** Empty ***"
 	set ccs(text,regban,ru,#106) "--- End of regex bans list ---"
-	set ccs(text,regban,ru,#107) "Регулярный бан \002ID: %s\002 %s: %s."
+	set ccs(text,regban,ru,#107) "Regex ban with \002ID: %s\002 %s: %s."
 	set ccs(text,regban,ru,#108) "Expression \"\002%s\002\" is not a valid regular expression."
 	
 } 

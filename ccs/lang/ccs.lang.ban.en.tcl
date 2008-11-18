@@ -1,17 +1,17 @@
 
-if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"ban"
 set modlang		"en"
 addlang $modname $modlang \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.2.2" \
-				"27-Okt-2008"
+				"1.2.3" \
+				"18-Nov-2008"
 
 if {$ccs(lang,name,$modname,$modlang)} {
 	
 	set ccs(args,en,ban) {<nick/host> [expiry] [reason] [stick]}
-	set ccs(help,en,ban) {Bans (and kicks if user on the chan) a selected \002nick\002 or \002host\002 (nick!ident@host) on the channel . [Expiry] is always minutes, if you not specify [expiry] will be used default value from channel «ban-time» directive. If you specify a \002stick\002, ban will be sticked on the channel.}
+	set ccs(help,en,ban) {Bans (and kicks if matched user on the chan) a selected \002nick\002 or \002host\002 (nick!ident@host) on the channel . [Expiry] is always minutes, if you not specify [expiry] will be used default value from channel «ban-time» directive. If you specify a \002stick\002, ban will be sticked on the channel.}
 	
 	set ccs(args,en,unban) {<host>}
 	set ccs(help,en,unban) {Removes a banned \002host\002 on a channel.}
@@ -37,7 +37,7 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(text,ban,en,#106) "Removed%s ban: \002%s\002."
 	set ccs(text,ban,en,#107) "Ban \002%s\002 on the \002%s\002 does not exist."
 	set ccs(text,ban,en,#108) "Requested"
-	set ccs(text,ban,en,#109) "Adden new \002permanent\002 global%s ban: \037%s\037."
+	set ccs(text,ban,en,#109) "Added new \002permanent\002 global%s ban: \037%s\037."
 	set ccs(text,ban,en,#110) "Added new global%s ban: \037%s\037 on the %s."
 	set ccs(text,ban,en,#111) "Removed global%s ban: \002%s\002"
 	set ccs(text,ban,en,#112) "Global ban \002%s\002 does not exist."
