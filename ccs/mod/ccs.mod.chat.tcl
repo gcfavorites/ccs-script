@@ -2,7 +2,7 @@
 ## Модуль для вызова DCC коннекта от бота. По просьбе vindi ;)
 ##################################################################################################################
 
-if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"chat"
 addmod $modname "Buster <buster@ircworld.ru> (c)" \

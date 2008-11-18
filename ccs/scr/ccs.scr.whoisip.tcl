@@ -1,4 +1,4 @@
-if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set scrname		"whoisip"
 addscr $scrname "Buster <buster@ircworld.ru> (c)" \
@@ -27,7 +27,7 @@ if {$ccs(scr,name,$scrname)} {
 		orgname descr
 	}
 	
-	set ccs(group,whoisip) "chan"
+	set ccs(group,whoisip) "info"
 	set ccs(use_auth,whoisip) 0
 	set ccs(use_chan,whoisip) 0
 	set ccs(flags,whoisip) {-|-}
@@ -38,10 +38,9 @@ if {$ccs(scr,name,$scrname)} {
 	set ccs(use_mode,whoisip) 1
 	
 	set ccs(args,ru,whoisip) {<nick/host/ip/gate/longip>}
-	set ccs(help,ru,whoisip) {Выяснить всю информацию о хосте.}
+	set ccs(help,ru,whoisip) {Выяснить всю информацию о хосте}
 	set ccs(help2,ru,whoisip) {
-		{Выяснить всю информацию о хосте.}
-		{Возможно указание ника, хоста, IP адреса, веб гейта, длинного IP адреса.}
+		{Выяснить всю информацию о хосте. Возможно указание ника, хоста, IP адреса, веб гейта, длинного IP адреса.}
 	}
 	
 	set ccs(text,whoisip,ru,#101) "Не удалось преобразовать данные в IP адрес."

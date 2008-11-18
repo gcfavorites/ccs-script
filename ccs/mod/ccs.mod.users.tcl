@@ -2,6 +2,8 @@
 ## Модуль управления пользователями
 ##################################################################################################################
 
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+
 set modname		"users"
 set modlang		"en"
 addmod $modname "Buster <buster@ircworld.ru> (c)" \
