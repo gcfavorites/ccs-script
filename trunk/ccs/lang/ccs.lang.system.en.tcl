@@ -50,7 +50,7 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(text,system,en,#108) "Server \002%s\002 has been removed from servers list."
 	set ccs(text,system,en,#109) "Server \002%s\002 does not exist."
 	set ccs(text,system,en,#110) "Saving user and chan files..."
-	set ccs(text,system,en,#111) "Reload user and chan files..."
-	set ccs(text,system,en,#112) "Backup user and chan files..."
+	set ccs(text,system,en,#111) "Reloading user and chan files..."
+	set ccs(text,system,en,#112) "Backuping user and chan files..."
 	
 }
