@@ -33,7 +33,7 @@ if {$ccs(lang,name,$modname,$modlang)} {
 		{Valid \002groups\002 are: \002%groups\002. Example usage: \002-l -g mode\002}
 	}
 	
-	set ccs(text,ccs,en,#101) "\002\037Channel ControlScript Help system\037\002. Version: \002v%s \[%s\] by %s\002. Command prefixes: \002pub \"%s\", msg \"%s\", dcc \"%s\"\002, command prefixes for botnet: \002pub \"%s\", msg \"%s\", dcc \"%s\"\002. Для команд помеченных \002\[сhan\]\002 возможно указание канала, помеченных \002\<сhan>\002 указание канала обязательно (только для msg и dcc команд, для pub команд указание канала \037не требуется\037)."
+	set ccs(text,ccs,en,#101) "\002\037Channel Control Script Help system\037\002. Version: \002v%s \[%s\] by %s\002. Command prefixes: \002pub \"%s\", msg \"%s\", dcc \"%s\"\002, command prefixes for botnet: \002pub \"%s\", msg \"%s\", dcc \"%s\"\002. Для команд помеченных \002\[сhan\]\002 возможно указание канала, помеченных \002\<сhan>\002 указание канала обязательно (только для msg и dcc команд, для pub команд указание канала \037не требуется\037)."
 	set ccs(text,ccs,en,#102) "Permission denied (command: \002%s\002, used by: \002%s\002)."
 	set ccs(text,ccs,en,#103) "You're sending requests too fast. Calm down and try again after %s sec(s)."
 	set ccs(text,ccs,ru,#112) "You already recognized as %s. You can't use identification with hostmask update."
