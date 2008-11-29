@@ -6,7 +6,7 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"bots"
 addmod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.1" \
+				"1.2.2" \
 				"10-Jul-2008"
 
 if {$ccs(mod,name,$modname)} {
@@ -195,11 +195,7 @@ if {$ccs(mod,name,$modname)} {
 		if {$dbport != ""} {append address ":$dbport"}
 		if {$duport != ""} {append address "/$duport"}
 		
-		if {[string is space $dhost]} {
-			if {[onchan $dnick]} {
-				set dhost [get_mask "$dnick![getchanhost $dhand]" $ccs(addusermask)]
-			}
-		}
+		if {[string is space $dhost] && [onchan $dnick]} {set dhost [get_mask "$dnick![getchanhost $dnick]" $ccs(addusermask)]}
 		
 		if {![addbot $dnick $address]} {put_msg [sprintf bots #107 $dhost]; return 0}
 		
