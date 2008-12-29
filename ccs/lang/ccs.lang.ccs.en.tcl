@@ -5,13 +5,13 @@ set modname		"ccs"
 set modlang		"en"
 addlang $modname $modlang \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.3.1" \
-				"18-Nov-2008" \
+				"1.3.2" \
+				"29-Dec-2008" \
 				"Language file for $modname module ($modlang)"
 
 if {$ccs(lang,name,$modname,$modlang)} {
 	
-	set ccs(args,en,update) {(<list> [-cur/-mod/-lang])|(<download> [-type type] [-name name] [-lang lang])|(<update>)}
+	set ccs(args,en,update) {(<list> [-type type] [-name name] [-lang lang])|(<download> [-type type] [-name name] [-lang lang])|(<update>)}
 	set ccs(help,en,update) {Check for new version of available scripts/modules.}
 	set ccs(help2,en,update) {
 		{Checks for new available script/module version.}

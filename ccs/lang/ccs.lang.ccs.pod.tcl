@@ -5,13 +5,13 @@ set modname		"ccs"
 set modlang		"pod"
 addlang $modname $modlang \
 				"adium <adium@mail.ru> (c)" \
-				"1.2.4" \
-				"11-Nov-2008" \
+				"1.2.5" \
+				"29-Dec-2008" \
 				"Языковой файл для модуля $modname ($modlang)"
 
 if {$ccs(lang,name,$modname,$modlang)} {
 	
-	set ccs(args,pod,update) {(<list> [-cur/-mod/-lang])|(<download> [-type type] [-name name] [-lang lang])|(<update>)}
+	set ccs(args,pod,update) {(<list> [-type type] [-name name] [-lang lang])|(<download> [-type type] [-name name] [-lang lang])|(<update>)}
 	set ccs(help,pod,update) {Афтоматическайа праверка новых версий, апнавленийе скрипта и модафф. Так же прасмотр и зогруска новых модафф}
 	
 	set ccs(args,pod,help) {[флаги]}
