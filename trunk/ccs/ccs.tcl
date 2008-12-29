@@ -27,6 +27,8 @@
 ##################################################################################################################
 # Список последних изменений:
 #	v1.7.3
+# - Исправлено формирование дефолтной маски при добавление бота
+# - Исправлено использование "*" в команде обновления !ccsupdate и изменен текст помощи.
 #	v1.7.2
 # - Для команд работы с сохранением канальных флагов и шаблонов расширен список используемых символов для имени
 #   файла.
@@ -57,7 +59,7 @@ namespace eval ::ccs {
 	# Версия и автор скрипта
 	variable author		"Buster <buster@ircworld.ru> (c)"
 	variable version	"1.7.3"
-	variable date		"17-Nov-2008"
+	variable date		"29-Dec-2008"
 	
 	variable ccs
 	
@@ -543,29 +545,29 @@ namespace eval ::ccs {
 			default		{put_help; return 0}
 		}
 		
-		set lversion [get_lversion]
-		
 		if {$type == 1} {
 			
-			if {[regexp -nocase -- {-type\s+([[:alpha:],]+)(?:$|\s+)} $stext -> dtype]} {
-				regsub -- {-type\s+([[:alpha:],]+)(?:$|\s+)} $stext {} stext
+			if {[regexp -nocase -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dtype]} {
+				regsub -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
 			} else {
 				set dtype "*"
 			}
 			
-			if {[regexp -nocase -- {-name\s+([[:alpha:],]+)(?:$|\s+)} $stext -> dname]} {
-				regsub -- {-name\s+([[:alpha:],]+)(?:$|\s+)} $stext {} stext
+			if {[regexp -nocase -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dname]} {
+				regsub -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
 			} else {
 				set dname "*"
 			}
 			
-			if {[regexp -nocase -- {-lang\s+([[:alpha:],]+)(?:$|\s+)} $stext -> dlang]} {
-				regsub -- {-lang\s+([[:alpha:],]+)(?:$|\s+)} $stext {} stext
+			if {[regexp -nocase -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dlang]} {
+				regsub -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
 			} else {
 				set dlang "*"
 			}
 			
 			if {[string length [string trim $stext]] != 0} {put_help; return 0}
+			
+			set lversion [get_lversion]
 			
 			set find 0
 			set error 0
@@ -606,25 +608,27 @@ namespace eval ::ccs {
 			
 		} elseif {$type == 2 || $type == 3} {
 			
-			if {[regexp -nocase -- {-type\s+([[:alpha:],]+)(?:$|\s+)} $stext -> dtype]} {
-				regsub -- {-type\s+([[:alpha:],]+)(?:$|\s+)} $stext {} stext
+			if {[regexp -nocase -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dtype]} {
+				regsub -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
 			} else {
 				set dtype "*"
 			}
 			
-			if {[regexp -nocase -- {-name\s+([[:alpha:],]+)(?:$|\s+)} $stext -> dname]} {
-				regsub -- {-name\s+([[:alpha:],]+)(?:$|\s+)} $stext {} stext
+			if {[regexp -nocase -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dname]} {
+				regsub -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
 			} else {
 				set dname "*"
 			}
 			
-			if {[regexp -nocase -- {-lang\s+([[:alpha:],]+)(?:$|\s+)} $stext -> dlang]} {
-				regsub -- {-lang\s+([[:alpha:],]+)(?:$|\s+)} $stext {} stext
+			if {[regexp -nocase -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dlang]} {
+				regsub -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
 			} else {
 				set dlang "*"
 			}
 			
 			if {$type == 2 && (($dtype == "*" && $dname == "*" && $dlang == "*") || [string length [string trim $stext]] != 0)} {put_help; return 0}
+			
+			set lversion [get_lversion]
 			
 			set find 0
 			set error 0
