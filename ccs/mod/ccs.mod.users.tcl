@@ -1,14 +1,17 @@
 ##################################################################################################################
 ## Модуль управления пользователями
 ##################################################################################################################
+# Список последних изменений:
+#	v1.2.4
+# - Для команды !delhost теперь по умолчанию используется указание полной хостмаски, чтобы указать маску хостмаски
+#   необходимо перед маской поставить ключ -m
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"users"
-set modlang		"en"
-addmod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.3" \
-				"20-Oct-2008"
+addfileinfo mod $modname "Buster <buster@ircworld.ru> (c)" \
+				"1.2.4" \
+				"05-Jan-2008"
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -136,7 +139,7 @@ if {$ccs(mod,name,$modname)} {
 	set ccs(flags,delhost) {m}
 	set ccs(alias,delhost) {%pref_clearhosts %pref_delhost %pref_-host}
 	set ccs(block,delhost) 1
-	set ccs(regexp,delhost) {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick dhost}}
+	set ccs(regexp,delhost) {{^([^\ ]+)(?:\ +(-m))?(?:\ +([^\ ]+))$} {-> dnick dmaskflag dhost}}
 	
 	set ccs(group,chattr) "user"
 	set ccs(use_chan,chattr) 3
@@ -257,14 +260,15 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_delhost {} {
-		importvars [list onick ochan obot snick shand schan command dnick dhost]
+		importvars [list onick ochan obot snick shand schan command dnick dmaskflag dhost]
 		
 		set dhand [get_hand $dnick]
 		if {[check_notavailable {-getting_users -locked -nopermition0 -notvalidhandle} -shand $shand -dnick $dnick -dhand $dhand -dchan ""]} {return 0}
 		
 		set findhost 0
 		foreach line [getuser $dhand HOSTS] {
-			if {[string match -nocase $dhost $line]} {
+			if {($dmaskflag == "" && [string equal -nocase $dhost $line]) || \
+				($dmaskflag != "" && [string match -nocase $dhost $line])} {
 				set findhost 1
 				delhost $dhand $line
 				put_msg [sprintf users #111 $line $dhand]

@@ -1,13 +1,16 @@
 ##################################################################################################################
 ## Модуль с базовыми командами управления
 ##################################################################################################################
+# Список последних изменений:
+#	v1.2.5
+# - Убраны скобки { } при выводе хостов в команде !whois
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"base"
-addmod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.4" \
-				"11-Nov-2008" \
+addfileinfo mod $modname "Buster <buster@ircworld.ru> (c)" \
+				"1.2.5" \
+				"05-Jan-2009" \
 				"Модуль предоставляющий базовые команды не попадающие под другие группы."
 
 if {$ccs(mod,name,$modname)} {
@@ -270,7 +273,7 @@ if {$ccs(mod,name,$modname)} {
 		variable ccs
 		importvars [list onick ochan obot]
 		
-		put_msg "[expr {![check_isnull $dnick] ? "nick \002$dnick\002, " : ""}]handle \002$dhand\002. [sprintf base #125 [chattr $dhand $schan] [getuser $dhand HOSTS] [expr {[string is space [set info [getchaninfo $dhand $schan]]] ? "" : " INFO: $info."}]]"
+		put_msg "[expr {![check_isnull $dnick] ? "nick \002$dnick\002, " : ""}]handle \002$dhand\002. [sprintf base #125 [chattr $dhand $schan] [join [getuser $dhand HOSTS]] [expr {[string is space [set info [getchaninfo $dhand $schan]]] ? "" : " INFO: $info."}]]"
 		
 		set lauth [list]
 		if {[matchattr $dhand $ccs(flag_auth_perm)]} {
