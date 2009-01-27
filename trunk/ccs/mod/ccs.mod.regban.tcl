@@ -412,6 +412,7 @@ if {$ccs(mod,name,$modname)} {
 	
 	proc binds_up_regban {} {
 		variable ccs
+		upvar curr curr
 		
 		if {[file exists $ccs(regbanfile)]} {
 			
@@ -426,6 +427,7 @@ if {$ccs(mod,name,$modname)} {
 			
 		}
 		
+		incr curr 2
 		bind join - *		[namespace origin regban_join]
 		bind raw - 352		[namespace origin regban_raw_352]
 		

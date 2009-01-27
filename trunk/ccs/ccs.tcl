@@ -26,6 +26,13 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ##################################################################################################################
 # Список последних изменений:
+#	v1.7.4
+# - Убраны скобки { } при выводе хостов в команде !whois
+# - Для команды !delhost теперь по умолчанию используется указание полной хостмаски, чтобы указать маску хостмаски
+#   необходимо перед маской поставить ключ -m
+# - Добавлена поддержка загрузки дополнительных библиотек
+# - Для файлов добавлена поддержка хранения описания. Которая так же отображается при загрузке файлов из
+#   репозитория
 #	v1.7.3
 # - Исправлено формирование дефолтной маски при добавление бота
 # - Исправлено использование "*" в команде обновления !ccsupdate и изменен текст помощи.
@@ -58,14 +65,14 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@ircworld.ru> (c)"
-	variable version	"1.7.3"
-	variable date		"29-Dec-2008"
+	variable version	"1.7.4"
+	variable date		"27-Jan-2009"
 	
 	variable ccs
 	
 	proc unsetccs {args} {variable ccs; foreach _ $args {foreach line [array names ccs -glob $_] {unset ccs($line)}}}
 	unsetccs "args,*" "help,*" "group,*" "use,*" "use_auth,*" "use_chan,*" "flags,*" "alias,*" \
-		"block,*" "text,*" "mod,*" "lang,*" "regexp,*"
+		"block,*" "text,*" "mod,*" "lang,*" "scr,*" "lib,*" "regexp,*"
 	
 	#############################################################################################################
 	# Префиксы по умолчанию для команд управления. pub - для канала, msg - для приватаm, dcc - патилайн.
@@ -85,10 +92,14 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Список хостов для автоматического обновления. _НЕ ИЗМЕНЯТЬ_
 	set ccs(urls)	{
-		http://bots.systemplanet.ru/scripts/ccs/ccsversion3.txt
-		http://buster-net.ru/files/irc/scripts/ccs/ccsversion3.txt
-		http://eggdrop.msk.ru/files/irc/scripts/ccs/ccsversion3.txt
+		http://bots.systemplanet.ru/scripts/ccs/ccsversion4.txt
+		http://buster-net.ru/files/irc/scripts/ccs/ccsversion4.txt
+		http://eggdrop.msk.ru/files/irc/scripts/ccs/ccsversion4.txt
 	}
+	
+	#############################################################################################################
+	# Список загружаемых типов файлов. _НЕ ИЗМЕНЯТЬ_
+	set ccs(ltype) {mod lang scr lib}
 	
 	#############################################################################################################
 	# Список языков по умолчанию для выводимого текста. Значение может быть переопределено выставлением
@@ -173,6 +184,11 @@ namespace eval ::ccs {
 	# Каталог, откуда будут читаться файлы ccs.scr.*.tcl, при этом указание $ccs(ccsdir) будет соответствовать
 	# каталогу, где находиться основной скрипт.
 	set ccs(scrdir)					"$ccs(ccsdir)/scr"
+	
+	#############################################################################################################
+	# Каталог, откуда будут читаться файлы ccs.lib.*.tcl, при этом указание $ccs(ccsdir) будет соответствовать
+	# каталогу, где находиться основной скрипт.
+	set ccs(libdir)					"$ccs(ccsdir)/lib"
 	
 	#############################################################################################################
 	# Время в миллисекундах, в течение которого удерживать авторизацию юзера, если он не зашел на канал.
@@ -567,17 +583,13 @@ namespace eval ::ccs {
 			
 			if {[string length [string trim $stext]] != 0} {put_help; return 0}
 			
-			set lversion [get_lversion]
-			
 			set find 0
 			set error 0
 			set update 0
-			foreach _ $lversion {
-				foreach {ftype fname flang fversion fauthor fdate ffiles furl} $_ break
+			foreach _ [get_lversion] {
+				foreach {ftype fname flang fversion fauthor fdate ffiles furl fdiscription} $_ break
 				
-				if {$dtype == "*"} {
-					if {$ftype != "mod" && $ftype != "lang"} continue
-				} else {
+				if {$dtype != "*"} {
 					if {[lsearch_equal [split $dtype ,] $ftype] < 0} continue
 				}
 				if {$dname != "*"} {
@@ -586,17 +598,12 @@ namespace eval ::ccs {
 				if {$dlang != "*" && $flang != "*"} {
 					if {[lsearch_equal [split $dlang ,] $flang] < 0} continue
 				}
-					
-				if {$ftype == "mod"} {
-					set cversion [get_modversion $fname]
-				} elseif {$ftype == "lang"} {
-					set cversion [get_langversion $fname $flang]
-				} elseif {$ftype == "scr"} {
-					set cversion [get_scrversion $fname]
-				} else {
-					continue
-				}
-				if {![compare_version $cversion $fversion]} continue
+				
+				if {[lsearch_equal $ccs(ltype) $ftype] < 0} {continue}
+				set name $fname
+				if {$ftype == "lang"} {append name ",$flang"}
+				
+				if {![compare_version [set cversion [get_version $ftype $name]] $fversion]} continue
 				
 				set find 1
 				put_msg [sprintf ccs #195 $ftype $fname $flang $fdate $cversion $fversion]
@@ -628,13 +635,11 @@ namespace eval ::ccs {
 			
 			if {$type == 2 && (($dtype == "*" && $dname == "*" && $dlang == "*") || [string length [string trim $stext]] != 0)} {put_help; return 0}
 			
-			set lversion [get_lversion]
-			
 			set find 0
 			set error 0
 			set update 0
-			foreach _ $lversion {
-				foreach {ftype fname flang fversion fauthor fdate ffiles furl} $_ break
+			foreach _ [get_lversion] {
+				foreach {ftype fname flang fversion fauthor fdate ffiles furl fdiscription} $_ break
 				
 				if {$type == 2} {
 					
@@ -651,15 +656,11 @@ namespace eval ::ccs {
 					}
 					
 				}
-				if {$ftype == "mod"} {
-					set cversion [get_modversion $fname]
-				} elseif {$ftype == "lang"} {
-					set cversion [get_langversion $fname $flang]
-				} elseif {$ftype == "scr"} {
-					set cversion [get_scrversion $fname]
-				} else {
-					continue
-				}
+				if {[lsearch_equal $ccs(ltype) $ftype] < 0} {continue}
+				set name $fname
+				if {$ftype == "lang"} {append name ",$flang"}
+				
+				set cversion [get_version $ftype $name]
 				if {$type == 3 && $cversion == ""} continue
 				if {![compare_version $cversion $fversion]} continue
 				
@@ -667,7 +668,7 @@ namespace eval ::ccs {
 				put_msg [sprintf ccs #195 $ftype $fname $flang $fdate $cversion $fversion]
 				set urlpath [get_dirname $furl]
 				foreach {sfile dfile} $ffiles {
-					set file [string map [list %ps $ccs(scrdir) %pl $ccs(langdir) %pm $ccs(moddir) %is $ccs(info_script)] $dfile]
+					set file [string map [list %pscr $ccs(scrdir) %plib $ccs(libdir) %plang $ccs(langdir) %pmod $ccs(moddir) %is $ccs(info_script)] $dfile]
 					if {[update_file $urlpath/$sfile $file]} {
 						incr update
 						put_log "$urlpath/$sfile to $file v$fversion (successfull)."
@@ -763,65 +764,42 @@ namespace eval ::ccs {
 		importvars [list onick ochan obot snick shand schan]
 		variable ccs
 		
-		set lmod [list]
-		set llang [list]
-		set lscr [list]
 		foreach url $ccs(urls) {
 			put_msg [sprintf ccs #193 $url]
 			if {[string is space [set data [get_httpdata $url]]]} continue
 			foreach _ [split $data \n] {
-				if {[string is space $_]} continue
-				foreach {ftype fname flang fversion fauthor fdate ffiles} $_ break
 				
-				if {$ftype == "mod"} {
-					if {[lsearch $lmod $fname] < 0 || [compare_version $newmod(version,$fname) $fversion]} {
-						set newmod(lang,$fname) $flang
-						set newmod(version,$fname) $fversion
-						set newmod(author,$fname) $fauthor
-						set newmod(date,$fname) $fdate
-						set newmod(files,$fname) $ffiles
-						set newmod(url,$fname) $url
-						if {[lsearch $lmod $fname] < 0} {lappend lmod $fname}
-					}
-				} elseif {$ftype == "lang"} {
-					if {[lsearch $llang [list $fname $flang]] < 0 || [compare_version $newlang(version,$fname,$flang) $fversion]} {
-						set newlang(version,$fname,$flang) $fversion
-						set newlang(author,$fname,$flang) $fauthor
-						set newlang(date,$fname,$flang) $fdate
-						set newlang(files,$fname,$flang) $ffiles
-						set newlang(url,$fname,$flang) $url
-						if {[lsearch $llang [list $fname $flang]] < 0} {lappend llang [list $fname $flang]}
-					}
-				} elseif {$ftype == "scr"} {
-					if {[lsearch $lscr $fname] < 0 || [compare_version $newscr(version,$fname) $fversion]} {
-						set newscr(lang,$fname) $flang
-						set newscr(version,$fname) $fversion
-						set newscr(author,$fname) $fauthor
-						set newscr(date,$fname) $fdate
-						set newscr(files,$fname) $ffiles
-						set newscr(url,$fname) $url
-						if {[lsearch $lscr $fname] < 0} {lappend lscr $fname}
-					}
-				} else {continue}
+				if {[string is space $_]} continue
+				foreach {ftype fname flang fversion fauthor fdate ffiles fdiscription} $_ break
+				
+				if {[lsearch_equal $ccs(ltype) $ftype] < 0} {continue}
+				set name $fname
+				if {$ftype == "lang"} {append name ",$flang"}
+				
+				if {![info exists fileinfo($ftype,version,$name)] || [compare_version $fileinfo($ftype,version,$name) $fversion]} {
+					set fileinfo($ftype,name,$name)			$fname
+					set fileinfo($ftype,lang,$name)			$flang
+					set fileinfo($ftype,version,$name)		$fversion
+					set fileinfo($ftype,author,$name)		$fauthor
+					set fileinfo($ftype,date,$name)			$fdate
+					set fileinfo($ftype,files,$name)		$ffiles
+					set fileinfo($ftype,url,$name)			$url
+					set fileinfo($ftype,discription,$name)	$fdiscription
+				}
 				
 			}
 		}
 		
 		set lversion [list]
-		foreach fname $lmod {
-			lappend lversion [list "mod" $fname $newmod(lang,$fname) $newmod(version,$fname) \
-				$newmod(author,$fname) $newmod(date,$fname) $newmod(files,$fname) $newmod(url,$fname)]
-		}
-		foreach _ $llang {
-			set fname [lindex $_ 0]
-			set flang [lindex $_ 1]
-			lappend lversion [list "lang" $fname $flang $newlang(version,$fname,$flang) \
-				$newlang(author,$fname,$flang) $newlang(date,$fname,$flang) \
-				$newlang(files,$fname,$flang) $newlang(url,$fname,$flang)]
-		}
-		foreach fname $lscr {
-			lappend lversion [list "scr" $fname $newscr(lang,$fname) $newscr(version,$fname) \
-				$newscr(author,$fname) $newscr(date,$fname) $newscr(files,$fname) $newscr(url,$fname)]
+		foreach type $ccs(ltype) {
+			foreach _ [array names fileinfo -glob "$type,name,*"] {
+				set name [join [lrange [split $_ ,] 2 end] ,]
+				lappend lversion [list $type $fileinfo($type,name,$name) \
+					$fileinfo($type,lang,$name) $fileinfo($type,version,$name) \
+					$fileinfo($type,author,$name) $fileinfo($type,date,$name) \
+					$fileinfo($type,files,$name) $fileinfo($type,url,$name) \
+					$fileinfo($type,discription,$name)]
+			}
 		}
 		return $lversion
 		
@@ -891,7 +869,7 @@ namespace eval ::ccs {
 			set par_group		[regexp -nocase -all -- {-g(?:roup)?\ +([\w]+)} $stext -> group]
 			set par_limit		[regexp -nocase -all -- {-l(?:imit)?} $stext]
 			set par_scr			[regexp -nocase -all -- {-s(?:cript(?:s)?)?} $stext]
-			if {$par_group && [lsearch $ccs(groups) [string tolower $group]] < 0} \
+			if {$par_group && [lsearch_equal $ccs(groups) [string tolower $group]] < 0} \
 				{put_msg [sprintf ccs #177 $group [join $ccs(groups)]] -speed 3; return 0}
 			if {!$par_group && $ccs(help_group)} {put_msg [sprintf ccs #178 [join $ccs(groups)]] -speed 3; return 0}
 		}
@@ -1417,24 +1395,6 @@ namespace eval ::ccs {
 		
 	}
 	
-	# Функция получения версии модуля
-	proc get_modversion {name} {
-		variable ccs
-		if {[info exists ccs(mod,name,$name)]} {return $ccs(mod,version,$name)} else {return ""}
-	}
-	
-	# Функция получения версии скрипта
-	proc get_scrversion {name} {
-		variable ccs
-		if {[info exists ccs(scr,name,$name)]} {return $ccs(scr,version,$name)} else {return ""}
-	}
-	
-	# Функция получения версии языкового файла модуля
-	proc get_langversion {name lang} {
-		variable ccs
-		if {[info exists ccs(lang,name,$name,$lang)]} {return $ccs(lang,version,$name,$lang)} else {return ""}
-	}
-	
 	# Функция получения уровня доступа
 	proc get_accesshand {shand schan {useowner 0}} {
 		
@@ -1496,15 +1456,9 @@ namespace eval ::ccs {
 		set lout_text [list]
 		set out_text ""
 		
-		if {$type == "pub"} {
-			set al_pub [string map [list %pref_ $ccs(pref_pub)] $ccs(alias,$command)]
-		} elseif {$type == "msg"} {
-			set al_pub [string map [list %pref_ $ccs(pref_msg)] $ccs(alias,$command)]
-		} elseif {$type == "dcc"} {
-			set al_pub [string map [list %pref_ $ccs(pref_dcc)] $ccs(alias,$command)]
-		}
+		set alias [string map [list %pref_ $ccs(pref_$type)] $ccs(alias,$command)]
 		
-		append out_text "\002[lindex $al_pub 0]"
+		append out_text "\002[lindex $alias 0]"
 		if {$type != "pub"} {
 			set use_chan [get_var use_chan $command 1]
 			switch -- $use_chan {
@@ -1523,7 +1477,7 @@ namespace eval ::ccs {
 			append out_text " - [string map [list %pref_ $ccs(pref_pub) %botnick $botnick %groups [join $ccs(groups) ", "]] $help]."
 		}
 		
-		if {$par_commands} {if {[llength $al_pub] > 1} {append out_text [sprintf ccs #185 [join [lrange $al_pub 1 end] ", "]]}}
+		if {$par_commands} {if {[llength $alias] > 1} {append out_text [sprintf ccs #185 [join [lrange $alias 1 end] ", "]]}}
 		if {$par_access} {append out_text [sprintf ccs #186 [join $ccs(flags,$command) ", "]]}
 		
 		lappend lout_text [string trim $out_text]
@@ -1958,14 +1912,10 @@ namespace eval ::ccs {
 	
 	proc compare_version {version1 version2} {
 		
-		set count -1
-		set dec1 [split $version1 .]
-		set dec2 [split $version2 .]
+		set dec1 [split $version1 .]; set dec2 [split $version2 .]
 		foreach a1 $dec1 a2 $dec2 {
-			set a1 [string trimleft $a1 0]
-			set a2 [string trimleft $a2 0]
-			if {[string is space $a1]} {set a1 0}
-			if {[string is space $a2]} {set a2 0}
+			if {[string is space [set a1 [string trimleft $a1 0]]]} {set a1 0}
+			if {[string is space [set a2 [string trimleft $a2 0]]]} {set a2 0}
 			
 			if {$a2 > $a1} {return 1} elseif {$a2 < $a1} {return 0}
 		}
@@ -1973,63 +1923,36 @@ namespace eval ::ccs {
 		
 	}
 	
-	proc addmod {name author version date {description ""}} {
+	proc get_version {type name} {
 		variable ccs
-		if {![info exists ccs(mod,name,$name)]} {set ccs(mod,name,$name) 1}
-		set ccs(mod,author,$name) $author
-		set ccs(mod,version,$name) $version
-		set ccs(mod,date,$name) $date
-		set ccs(mod,description,$name) $description
-		set ccs(mod,info_script,$name) [info script]
+		if {[info exists ccs($type,version,$name)]} {return $ccs($type,version,$name)} else {return ""}
 	}
 	
-	proc addscr {name author version date {description ""}} {
+	proc addfileinfo {type name author version date {description ""}} {
 		variable ccs
-		if {![info exists ccs(scr,name,$name)]} {set ccs(scr,name,$name) 1}
-		set ccs(scr,author,$name) $author
-		set ccs(scr,version,$name) $version
-		set ccs(scr,date,$name) $date
-		set ccs(scr,description,$name) $description
-		set ccs(scr,info_script,$name) [info script]
+		if {![info exists ccs($type,name,$name)]} {set ccs($type,name,$name) 1}
+		set ccs($type,author,$name)			$author
+		set ccs($type,version,$name)		$version
+		set ccs($type,date,$name)			$date
+		set ccs($type,description,$name)	$description
+		set ccs($type,info_script,$name)	[info script]
 	}
 	
-	proc addlang {name land author version date {description ""}} {
-		variable ccs
-		if {![info exists ccs(lang,name,$name,$land)]} {set ccs(lang,name,$name,$land) 1}
-		set ccs(lang,author,$name,$land) $author
-		set ccs(lang,version,$name,$land) $version
-		set ccs(lang,date,$name,$land) $date
-		set ccs(lang,description,$name,$land) $description
-		set ccs(lang,info_script,$name,$land) [info script]
-	}
+	# Удалить
+	proc addmod {name author version date {description ""}} {addfileinfo mod $name $author $version $date $description}
+	proc addscr {name author version date {description ""}} {addfileinfo scr $name $author $version $date $description}
+	proc addlang {name lang author version date {description ""}} {addfileinfo lang "$name,$lang" $author $version $date $description}
 	
-	proc get_lmod {{only_on 0}} {
+	proc get_fileinfo {type {only_on 0}} {
 		variable ccs
 		set l [list]
-		foreach _ [array names ccs -glob "mod,name,*"] {
+		foreach _ [array names ccs -glob "$type,name,*"] {
 			if {$only_on && !$ccs($_)} continue
-			lappend l [lindex [split $_ ,] 2]
-		}
-		return $l
-	}
-	
-	proc get_lscr {{only_on 0}} {
-		variable ccs
-		set l [list]
-		foreach _ [array names ccs -glob "scr,name,*"] {
-			if {$only_on && !$ccs($_)} continue
-			lappend l [lindex [split $_ ,] 2]
-		}
-		return $l
-	}
-	
-	proc get_llang {{only_on 0}} {
-		variable ccs
-		set l [list]
-		foreach _ [array names ccs -glob "lang,name,*,*"] {
-			if {$only_on && !$ccs($_)} continue
-			set d [split $_ ,]
-			lappend l [list [lindex $d 2] [lindex $d 3]]
+			if {[llength [split $_ ,]] > 3} {
+				lappend l [lrange [split $_ ,] 2 end]
+			} else {
+				lappend l [lindex [split $_ ,] 2]
+			}
 		}
 		return $l
 	}
@@ -2348,7 +2271,7 @@ namespace eval ::ccs {
 		
 		foreach command [concat $ccs(commands) $ccs(scr_commands)] {
 			if {![use_command $command]} continue
-			if {[lsearch $ccs(groups) $ccs(group,$command)] < 0} {lappend ccs(groups) $ccs(group,$command)}
+			if {[lsearch_equal $ccs(groups) $ccs(group,$command)] < 0} {lappend ccs(groups) $ccs(group,$command)}
 			
 			foreach _ $ccs(alias,$command) {
 				
@@ -2434,7 +2357,7 @@ namespace eval ::ccs {
 			
 		}
 		
-		incr curr 22
+		incr curr 19
 		bind msg -|- auth			[namespace origin msg_auth]
 		bind msg -|- identauth		[namespace origin msg_identauth]
 		bind part $ccs(flag_auth) *	[namespace origin part_auth]
@@ -2459,12 +2382,9 @@ namespace eval ::ccs {
 		bind mode - *				[namespace origin mode_fixstick]
 		bind join - *				[namespace origin join_fixstick]
 		
-		bind dcc n ccsreload		[namespace origin ccsreload]
-		bind dcc n ccsrestart		[namespace origin ccsreload]
-		bind dcc n ccsrehash		[namespace origin ccsreload]
 		after 3000 [list [namespace origin fixbind]]
 		
-		foreach _ [concat [get_lmod 1] [get_lscr 1]] {
+		foreach _ [concat [get_fileinfo mod 1] [get_fileinfo scr 1]] {
 			if {[info procs "binds_up_$_"] != ""} {binds_up_$_}
 		}
 		debug "$curr binds is up"
@@ -2486,12 +2406,6 @@ namespace eval ::ccs {
 			put_log "(auto) Init log out" -level 3
 		}
 		
-	}
-	
-	proc ccsreload {handle idx str} {
-		variable ccs
-		binds_down
-		source $ccs(info_script)
 	}
 	
 	proc binds_down {} {
@@ -2536,62 +2450,36 @@ namespace eval ::ccs {
 		
 	}
 	
+	proc sourcefile {type path mask list {debuglevel 1}} {
+		global errorInfo
+		
+		set fcount 0
+		if {$list} {set lfile [get_filelist $path $mask]} else {set lfile [list "$path/$mask"]}
+		foreach _ $lfile {
+			if {[catch {
+				uplevel "source $_"
+				incr fcount
+				debug "loaded file ($type): \002$_\002" $debuglevel
+			} errMsg]} {
+				debug "error load file ($type): \002$_\002"
+				debug "($errMsg)"
+				debug "$errorInfo"
+			}
+		}
+		if {$list} {debug "loaded file ($type). $fcount files"}
+		
+	}
+	
 	#############################################################################################################
 	# Начальная подгатовка переменных и загрузка модулей
 	
-	addmod ccs $author $version $date
+	addfileinfo mod ccs $author $version $date
 	
-	set fcount 0
-	foreach _ [get_filelist $ccs(moddir) ccs.mod.*.tcl] {
-		if {[catch {
-			source $_
-			incr fcount
-			debug "loaded file (mod): \002$_\002" 2
-		} errMsg]} {
-			debug "error load file (mod): \002$_\002"
-			debug "($errMsg)"
-			debug "$errorInfo"
-		}
-	}
-	debug "loaded file (mod). $fcount files"
-	
-	set fcount 0
-	foreach _ [get_filelist $ccs(scrdir) ccs.scr.*.tcl] {
-		if {[catch {
-			source $_
-			incr fcount
-			debug "loaded file (scr): \002$_\002" 2
-		} errMsg]} {
-			debug "error load file (scr): \002$_\002"
-			debug "($errMsg)"
-			debug "$errorInfo"
-		}
-	}
-	debug "loaded file (scr). $fcount files"
-	
-	set fcount 0
-	foreach _ [get_filelist $ccs(langdir) ccs.lang.*.tcl] {
-		if {[catch {
-			source $_
-			incr fcount
-			debug "loaded file (lang): \002$_\002" 3
-		} errMsg]} {
-			debug "error load file (lang): \002$_\002"
-			debug "($errMsg)"
-			debug "$errorInfo"
-		}
-	}
-	debug "loaded file (lang). $fcount files"
-	
-	set _ "$ccs(ccsdir)/ccs.addonce.tcl"
-	if {[catch {
-		source $_
-		debug "loaded file (addonce): \002$_\002"
-	} errMsg]} {
-		debug "error load file (addonce): \002$_\002"
-		debug "($errMsg)"
-		debug "$errorInfo"
-	}
+	sourcefile lib $ccs(libdir) ccs.lib.*.tcl 1 2
+	sourcefile mod $ccs(moddir) ccs.mod.*.tcl 1 2
+	sourcefile scr $ccs(scrdir) ccs.scr.*.tcl 1 2
+	sourcefile lang $ccs(langdir) ccs.lang.*.tcl 1 3
+	sourcefile addonce $ccs(ccsdir) ccs.addonce.tcl 0
 	
 	binds_up
 	binds_rename

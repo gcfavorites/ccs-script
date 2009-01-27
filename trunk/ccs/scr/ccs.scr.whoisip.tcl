@@ -1,12 +1,23 @@
+##################################################################################################################
+## Скрипт получения информации об IP адресе
+##################################################################################################################
+# Список последних изменений:
+#	v1.1.0
+# - Добавлена поддержка IPv6
+# - Часть функций перенесена в библиотеку ip
+
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set scrname		"whoisip"
-addscr $scrname "Buster <buster@ircworld.ru> (c)" \
-				"1.0.5" \
-				"11-Nov-2008" \
+addfileinfo scr $scrname "Buster <buster@ircworld.ru> (c)" \
+				"1.1.0" \
+				"06-Jan-2009" \
 				"Скрипт выдающий информацию по IP адресу"
 
 if {$ccs(scr,name,$scrname)} {
+	
+	set llib [get_fileinfo lib 1]
+	if {[lsearch_equal $llib "ip"] < 0} {debug "\002\00304${scrname} not loaded\002\003: \"ip\" lib not loaded or disabled, please install \"ip\" lib"; return 0}
 	
 	lappend ccs(scr_commands)	"whoisip"
 	
@@ -17,15 +28,8 @@ if {$ccs(scr,name,$scrname)} {
 	
 	#############################################################################################################
 	# Список выводимой информации.
-	set ccs(whoisip_info) {netname descr country mnt-by person address city stateprov postalcode e-mail phone}
+	set ccs(whoisip_info) {netname descr country mnt-by person address city stateprov postalcode e-mail orgtechemail phone orgtechphone orgtechname orgname}
 	
-	set ccs(whoisip_info_alias) {
-		netrange inetnum
-		orgtechemail e-mail
-		orgtechphone phone
-		orgtechname person
-		orgname descr
-	}
 	
 	set ccs(group,whoisip) "info"
 	set ccs(use_auth,whoisip) 0
@@ -44,19 +48,23 @@ if {$ccs(scr,name,$scrname)} {
 	}
 	
 	set ccs(text,whoisip,ru,#101) "Не удалось преобразовать данные в IP адрес."
-	set ccs(text,whoisip,ru,#102) "Полученные данные по запросу: \002%s\002. IP: \002%s\002, host: \002%s\002, Gate: \002%s\002, LongIP: \002%s\002. Диапазон относится к \002%s\002. Подсеть \002%s\002."
+	set ccs(text,whoisip,ru,#102) "Полученные данные по запросу: \002%s\002. IPv4: \002%s\002, IPv6: \002%s\002, host: \002%s\002, Gate: \002%s\002, LongIP: \002%s\002. Диапазон относится к \002%s\002. Подсеть \002%s\002."
 	#set ccs(text,whoisip,ru,#inetnum) "\002Диапазон\002: %s"
 	set ccs(text,whoisip,ru,#netname) "\002Имя сети\002: %s"
 	set ccs(text,whoisip,ru,#descr) "\002descr\002: %s"
+	set ccs(text,whoisip,ru,#orgname) "\002descr\002: %s"
 	set ccs(text,whoisip,ru,#country) "\002Страна\002: %s"
 	set ccs(text,whoisip,ru,#stateprov) "\002Штат\002: %s"
 	set ccs(text,whoisip,ru,#postalcode) "\002Почтовый код\002: %s"
 	set ccs(text,whoisip,ru,#city) "\002Город\002: %s"
 	set ccs(text,whoisip,ru,#mnt-by) "\002mnt-by\002: %s"
 	set ccs(text,whoisip,ru,#person) "\002Лицо\002: %s"
+	set ccs(text,whoisip,ru,#orgtechname) "\002Лицо\002: %s"
 	set ccs(text,whoisip,ru,#address) "\002Адрес\002: %s"
 	set ccs(text,whoisip,ru,#e-mail) "\002E-mail\002: %s"
+	set ccs(text,whoisip,ru,#orgtechemail) "\002E-mail\002: %s"
 	set ccs(text,whoisip,ru,#phone) "\002Тел.\002: %s"
+	set ccs(text,whoisip,ru,#orgtechphone) "\002Тел.\002: %s"
 	
 	#set ccs(text,whoisip,ru,#inetnum) "Диапазон: \00312%s\017"
 	#set ccs(text,whoisip,ru,#descr) "descr: \00303%s\017"
@@ -68,238 +76,261 @@ if {$ccs(scr,name,$scrname)} {
 	#set ccs(text,whoisip,ru,#phone) "Тел.: \00302%s\017"
 	
 	set ccs(ipv4_address_space) {
-		{169.254/16} {Link Local} {}
-		{172.16/12} {Private-Use Networks} {}
-		{192.0.2/24} {Test-Net} {}
-		{192.88.99/24} {6to4 Relay Anycast} {}
-		{192.168/16} {Private-Use Networks} {}
-		{198.18/15} {Network Interconnect Device Benchmark Testing} {}
-		{000/8} {IANA - Local Identification} {}
-		{001/8} {IANA} {}
-		{002/8} {IANA} {}
-		{003/8} {General Electric Company} {}
-		{004/8} {Level 3 Communications, Inc.} {}
-		{005/8} {IANA} {}
-		{006/8} {Army Information Systems Center} {}
-		{007/8} {Administered by ARIN} {whois.arin.net}
-		{008/8} {Level 3 Communications, Inc.} {}
-		{009/8} {IBM} {}
-		{010/8} {IANA - Private Use} {}
-		{011/8} {DoD Intel Information Systems} {}
-		{012/8} {AT&T Bell Laboratories} {}
-		{013/8} {Xerox Corporation} {}
-		{014/8} {IANA} {}
-		{015/8} {Hewlett-Packard Company} {}
-		{016/8} {Digital Equipment Corporation} {}
-		{017/8} {Apple Computer Inc.} {}
-		{018/8} {MIT} {}
-		{019/8} {Ford Motor Company} {}
-		{020/8} {Computer Sciences Corporation} {}
-		{021/8} {DDN-RVN} {}
-		{022/8} {Defense Information Systems Agency} {}
-		{023/8} {IANA} {}
-		{024/8} {ARIN} {whois.arin.net}
-		{025/8} {UK Ministry of Defence} {}
-		{026/8} {Defense Information Systems Agency} {}
-		{027/8} {IANA} {}
-		{028/8} {DSI-North} {}
-		{029/8} {Defense Information Systems Agency} {}
-		{030/8} {Defense Information Systems Agency} {}
-		{031/8} {IANA} {}
-		{032/8} {AT&T Global Network Services} {}
-		{033/8} {DLA Systems Automation Center} {}
-		{034/8} {Halliburton Company} {}
-		{035/8} {MERIT Computer Network} {}
-		{036/8} {IANA} {}
-		{037/8} {IANA} {}
-		{038/8} {Performance Systems International} {}
-		{039/8} {IANA} {}
-		{040/8} {Eli Lily & Company} {}
-		{041/8} {AfriNIC} {whois.afrinic.net}
-		{042/8} {IANA} {}
-		{043/8} {Japan Inet} {}
-		{044/8} {Amateur Radio Digital Communications} {}
-		{045/8} {Interop Show Network} {}
-		{046/8} {IANA} {}
-		{047/8} {Bell-Northern Research} {}
-		{048/8} {Prudential Securities Inc.} {}
-		{049/8} {IANA} {}
-		{050/8} {IANA} {}
-		{051/8} {Deparment of Social Security of UK} {}
-		{052/8} {E.I. duPont de Nemours and Co., Inc.} {}
-		{053/8} {Cap Debis CCS} {}
-		{054/8} {Merck and Co., Inc.} {}
-		{055/8} {DoD Network Information Center} {}
-		{056/8} {US Postal Service} {}
-		{057/8} {SITA} {}
-		{058/8} {APNIC} {whois.apnic.net}
-		{059/8} {APNIC} {whois.apnic.net}
-		{060/8} {APNIC} {whois.apnic.net}
-		{061/8} {APNIC} {whois.apnic.net}
-		{062/8} {RIPE NCC} {whois.ripe.net}
-		{063/8} {ARIN} {whois.arin.net}
-		{064/8} {ARIN} {whois.arin.net}
-		{065/8} {ARIN} {whois.arin.net}
-		{066/8} {ARIN} {whois.arin.net}
-		{067/8} {ARIN} {whois.arin.net}
-		{068/8} {ARIN} {whois.arin.net}
-		{069/8} {ARIN} {whois.arin.net}
-		{070/8} {ARIN} {whois.arin.net}
-		{071/8} {ARIN} {whois.arin.net}
-		{072/8} {ARIN} {whois.arin.net}
-		{073/8} {ARIN} {whois.arin.net}
-		{074/8} {ARIN} {whois.arin.net}
-		{075/8} {ARIN} {whois.arin.net}
-		{076/8} {ARIN} {whois.arin.net}
-		{077/8} {RIPE NCC} {whois.ripe.net}
-		{078/8} {RIPE NCC} {whois.ripe.net}
-		{079/8} {RIPE NCC} {whois.ripe.net}
-		{080/8} {RIPE NCC} {whois.ripe.net}
-		{081/8} {RIPE NCC} {whois.ripe.net}
-		{082/8} {RIPE NCC} {whois.ripe.net}
-		{083/8} {RIPE NCC} {whois.ripe.net}
-		{084/8} {RIPE NCC} {whois.ripe.net}
-		{085/8} {RIPE NCC} {whois.ripe.net}
-		{086/8} {RIPE NCC} {whois.ripe.net}
-		{087/8} {RIPE NCC} {whois.ripe.net}
-		{088/8} {RIPE NCC} {whois.ripe.net}
-		{089/8} {RIPE NCC} {whois.ripe.net}
-		{090/8} {RIPE NCC} {whois.ripe.net}
-		{091/8} {RIPE NCC} {whois.ripe.net}
-		{092/8} {RIPE NCC} {whois.ripe.net}
-		{093/8} {RIPE NCC} {whois.ripe.net}
-		{094/8} {RIPE NCC} {whois.ripe.net}
-		{095/8} {RIPE NCC} {whois.ripe.net}
-		{096/8} {ARIN} {whois.arin.net}
-		{097/8} {ARIN} {whois.arin.net}
-		{098/8} {ARIN} {whois.arin.net}
-		{099/8} {ARIN} {whois.arin.net}
-		{100/4} {IANA} {}
-		{101/8} {IANA} {}
-		{102/8} {IANA} {}
-		{103/8} {IANA} {}
-		{104/8} {IANA} {}
-		{105/8} {IANA} {}
-		{106/8} {IANA} {}
-		{107/8} {IANA} {}
-		{108/8} {IANA} {}
-		{109/8} {IANA} {}
-		{110/8} {IANA} {}
-		{111/8} {IANA} {}
-		{112/8} {APNIC} {whois.apnic.net}
-		{113/8} {APNIC} {whois.apnic.net}
-		{114/8} {APNIC} {whois.apnic.net}
-		{115/8} {APNIC} {whois.apnic.net}
-		{116/8} {APNIC} {whois.apnic.net}
-		{117/8} {APNIC} {whois.apnic.net}
-		{118/8} {APNIC} {whois.apnic.net}
-		{119/8} {APNIC} {whois.apnic.net}
-		{120/8} {APNIC} {whois.apnic.net}
-		{121/8} {APNIC} {whois.apnic.net}
-		{122/8} {APNIC} {whois.apnic.net}
-		{123/8} {APNIC} {whois.apnic.net}
-		{124/8} {APNIC} {whois.apnic.net}
-		{125/8} {APNIC} {whois.apnic.net}
+		{010/8}			{IANA - Private Use}		{}
+		{127/8}			{IANA - Loopback}			{}
+		{172.16/12}		{Private-Use Networks}		{}
+		{192.0.2/24}	{Test-Net}					{}
+		{192.88.99/24}	{6to4 Relay Anycast}		{}
+		{192.168/16}	{Private-Use Networks}		{}
+		{224/4}			{Multicast}					{}
+		{240/4}			{Future use}				{}
+		{169.254/16}	{Link Local}				{}
+		{223/8}			{IANA}						{}
+		{224/4}			{Multicast}					{}
+		{240/4}			{Future use}				{}
+		{24.132/14} {RIPE NCC} {whois.ripe.net}
+		{41/8} {AfriNIC} {whois.afrinic.net}
+		{43/8} {} {whois.v6nic.net}
+		{59/11} {} {whois.nic.or.kr}
+		{58/7} {APNIC} {whois.apnic.net}
+		{61.72/13} {} {whois.nic.or.kr}
+		{61.80/14} {} {whois.nic.or.kr}
+		{61.84/15} {} {whois.nic.or.kr}
+		{61.112/12} {} {whois.nic.ad.jp}
+		{61.192/12} {} {whois.nic.ad.jp}
+		{61.208/13} {} {whois.nic.ad.jp}
+		{60/7} {APNIC} {whois.apnic.net}
+		{62/8} {RIPE NCC} {whois.ripe.net}
+		{77/8} {RIPE NCC} {whois.ripe.net}
+		{78/7} {RIPE NCC} {whois.ripe.net}
+		{80/4} {RIPE NCC} {whois.ripe.net}
+		{96/6} {ARIN} {whois.arin.net}
+		{110/7} {APNIC} {whois.apnic.net}
+		{112/5} {APNIC} {whois.apnic.net}
+		{121.128/10} {} {whois.nic.or.kr}
+		{125.128/11} {} {whois.nic.or.kr}
+		{120/6} {APNIC} {whois.apnic.net}
+		{124/7} {APNIC} {whois.apnic.net}
 		{126/8} {APNIC} {whois.apnic.net}
-		{127/8} {IANA - Loopback} {}
-		{128/8} {Administered by ARIN} {whois.arin.net}
-		{129/8} {Administered by ARIN} {whois.arin.net}
-		{130/8} {Administered by ARIN} {whois.arin.net}
-		{131/8} {Administered by ARIN} {whois.arin.net}
-		{132/8} {Administered by ARIN} {whois.arin.net}
-		{133/8} {Administered by APNIC} {whois.apnic.net}
-		{134/8} {Administered by ARIN} {whois.arin.net}
-		{135/8} {Administered by ARIN} {whois.arin.net}
-		{136/8} {Administered by ARIN} {whois.arin.net}
-		{137/8} {Administered by ARIN} {whois.arin.net}
-		{138/8} {Administered by ARIN} {whois.arin.net}
-		{139/8} {Administered by ARIN} {whois.arin.net}
-		{140/8} {Administered by ARIN} {whois.arin.net}
-		{141/8} {Administered by RIPE NCC} {whois.ripe.net}
-		{142/8} {Administered by ARIN} {whois.arin.net}
-		{143/8} {Administered by ARIN} {whois.arin.net}
-		{144/8} {Administered by ARIN} {whois.arin.net}
-		{145/8} {Administered by RIPE NCC} {whois.ripe.net}
-		{146/8} {Administered by ARIN} {whois.arin.net}
-		{147/8} {Administered by ARIN} {whois.arin.net}
-		{148/8} {Administered by ARIN} {whois.arin.net}
-		{149/8} {Administered by ARIN} {whois.arin.net}
-		{150/8} {Administered by APNIC} {whois.apnic.net}
-		{151/8} {Administered by RIPE NCC} {whois.ripe.net}
-		{152/8} {Administered by ARIN} {whois.arin.net}
-		{153/8} {Administered by APNIC} {whois.apnic.net}
-		{154/8} {Administered by AfriNIC} {whois.afrinic.net}
-		{155/8} {Administered by ARIN} {whois.arin.net}
-		{156/8} {Administered by ARIN} {whois.arin.net}
-		{157/8} {Administered by ARIN} {whois.arin.net}
-		{158/8} {Administered by ARIN} {whois.arin.net}
-		{159/8} {Administered by ARIN} {whois.arin.net}
-		{160/8} {Administered by ARIN} {whois.arin.net}
-		{161/8} {Administered by ARIN} {whois.arin.net}
-		{162/8} {Administered by ARIN} {whois.arin.net}
-		{163/8} {Administered by APNIC} {whois.apnic.net}
-		{164/8} {Administered by ARIN} {whois.arin.net}
-		{165/8} {Administered by ARIN} {whois.arin.net}
-		{166/8} {Administered by ARIN} {whois.arin.net}
-		{167/8} {Administered by ARIN} {whois.arin.net}
-		{168/8} {Administered by ARIN} {whois.arin.net}
-		{169/8} {Administered by ARIN} {whois.arin.net}
-		{170/8} {Administered by ARIN} {whois.arin.net}
-		{171/8} {Administered by APNIC} {whois.apnic.net}
-		{172/8} {Administered by ARIN} {whois.arin.net}
-		{173/8} {ARIN} {whois.arin.net}
-		{174/8} {ARIN} {whois.arin.net}
-		{175/8} {IANA} {}
-		{176/8} {IANA} {}
-		{177/8} {IANA} {}
-		{178/8} {IANA} {}
-		{179/8} {IANA} {}
-		{180/8} {IANA} {}
-		{181/8} {IANA} {}
-		{182/8} {IANA} {}
-		{183/8} {IANA} {}
-		{184/8} {IANA} {}
-		{185/8} {IANA} {}
-		{186/8} {LACNIC} {whois.lacnic.net}
-		{187/8} {LACNIC} {whois.lacnic.net}
-		{188/8} {Administered by RIPE NCC} {whois.ripe.net}
+		{96/3} {} {}
+		{0/1} {ARIN} {whois.arin.net}
+		{133/8} {} {whois.nic.ad.jp}
+		{139.20/14} {RIPE NCC} {whois.ripe.net}
+		{139.24/14} {RIPE NCC} {whois.ripe.net}
+		{139.28/15} {RIPE NCC} {whois.ripe.net}
+		{141/10} {RIPE NCC} {whois.ripe.net}
+		{141.64/12} {RIPE NCC} {whois.ripe.net}
+		{141.80/14} {RIPE NCC} {whois.ripe.net}
+		{141.84/15} {RIPE NCC} {whois.ripe.net}
+		{145/8} {RIPE NCC} {whois.ripe.net}
+		{146.48/16} {RIPE NCC} {whois.ripe.net}
+		{149.202/15} {RIPE NCC} {whois.ripe.net}
+		{149.204/16} {RIPE NCC} {whois.ripe.net}
+		{149.206/15} {RIPE NCC} {whois.ripe.net}
+		{149.208/12} {RIPE NCC} {whois.ripe.net}
+		{149.224/12} {RIPE NCC} {whois.ripe.net}
+		{149.240/13} {RIPE NCC} {whois.ripe.net}
+		{149.248/14} {RIPE NCC} {whois.ripe.net}
+		{150.183/16} {} {whois.nic.or.kr}
+		{150.254/16} {RIPE NCC} {whois.ripe.net}
+		{151/10} {RIPE NCC} {whois.ripe.net}
+		{151.64/11} {RIPE NCC} {whois.ripe.net}
+		{151.96/14} {RIPE NCC} {whois.ripe.net}
+		{151.100/16} {RIPE NCC} {whois.ripe.net}
+		{155.232/13} {AfriNIC} {whois.afrinic.net}
+		{155.240/16} {AfriNIC} {whois.afrinic.net}
+		{160.216/14} {RIPE NCC} {whois.ripe.net}
+		{160.220/16} {RIPE NCC} {whois.ripe.net}
+		{160.44/14} {RIPE NCC} {whois.ripe.net}
+		{160.48/12} {RIPE NCC} {whois.ripe.net}
+		{160.115/16} {AfriNIC} {whois.afrinic.net}
+		{160.116/14} {AfriNIC} {whois.afrinic.net}
+		{160.120/14} {AfriNIC} {whois.afrinic.net}
+		{160.124/16} {AfriNIC} {whois.afrinic.net}
+		{163.156/14} {RIPE NCC} {whois.ripe.net}
+		{163.160/12} {RIPE NCC} {whois.ripe.net}
+		{163.195/16} {AfriNIC} {whois.afrinic.net}
+		{163.196/14} {AfriNIC} {whois.afrinic.net}
+		{163.200/14} {AfriNIC} {whois.afrinic.net}
+		{164/11} {RIPE NCC} {whois.ripe.net}
+		{164.32/13} {RIPE NCC} {whois.ripe.net}
+		{164.40/16} {RIPE NCC} {whois.ripe.net}
+		{164.128/12} {RIPE NCC} {whois.ripe.net}
+		{164.146/15} {AfriNIC} {whois.afrinic.net}
+		{164.148/14} {AfriNIC} {whois.afrinic.net}
+		{165.143/16} {AfriNIC} {whois.afrinic.net}
+		{165.144/14} {AfriNIC} {whois.afrinic.net}
+		{165.148/15} {AfriNIC} {whois.afrinic.net}
+		{169.208/12} {APNIC} {whois.apnic.net}
+		{171.16/12} {RIPE NCC} {whois.ripe.net}
+		{171.32/15} {RIPE NCC} {whois.ripe.net}
+		{186/7} {LACNIC} {whois.lacnic.net}
+		{188/8} {RIPE NCC} {whois.ripe.net}
 		{189/8} {LACNIC} {whois.lacnic.net}
 		{190/8} {LACNIC} {whois.lacnic.net}
-		{191/8} {Administered by LACNIC} {whois.lacnic.net}
-		{192/8} {Administered by ARIN} {whois.arin.net}
+		{128/2} {ARIN} {whois.arin.net}
+		{192.71/16} {RIPE NCC} {whois.ripe.net}
+		{192.72.253/24} {ARIN} {whois.arin.net}
+		{192.72.254/24} {ARIN} {whois.arin.net}
+		{192.72/16} {APNIC} {whois.apnic.net}
+		{192.106/16} {RIPE NCC} {whois.ripe.net}
+		{192.114/15} {RIPE NCC} {whois.ripe.net}
+		{192.116/15} {RIPE NCC} {whois.ripe.net}
+		{192.118/16} {RIPE NCC} {whois.ripe.net}
+		{192.162/16} {RIPE NCC} {whois.ripe.net}
+		{192.164/14} {RIPE NCC} {whois.ripe.net}
+		{192/8} {ARIN} {whois.arin.net}
 		{193/8} {RIPE NCC} {whois.ripe.net}
-		{194/8} {RIPE NCC} {whois.ripe.net}
-		{195/8} {RIPE NCC} {whois.ripe.net}
-		{196/8} {Administered by AfriNIC} {whois.afrinic.net}
-		{197/8} {AfriNIC} {whois.afrinic.net}
-		{198/8} {Administered by ARIN} {whois.arin.net}
-		{199/8} {ARIN} {whois.arin.net}
-		{200/8} {LACNIC} {whois.lacnic.net}
-		{201/8} {LACNIC} {whois.lacnic.net}
-		{202/8} {APNIC} {whois.apnic.net}
-		{203/8} {APNIC} {whois.apnic.net}
-		{204/8} {ARIN} {whois.arin.net}
-		{205/8} {ARIN} {whois.arin.net}
-		{206/8} {ARIN} {whois.arin.net}
-		{207/8} {ARIN} {whois.arin.net}
-		{208/8} {ARIN} {whois.arin.net}
-		{209/8} {ARIN} {whois.arin.net}
-		{210/8} {APNIC} {whois.apnic.net}
-		{211/8} {APNIC} {whois.apnic.net}
-		{212/8} {RIPE NCC} {whois.ripe.net}
-		{213/8} {RIPE NCC} {whois.ripe.net}
-		{214/8} {US-DOD} {}
-		{215/8} {US-DOD} {}
+		{194/7} {RIPE NCC} {whois.ripe.net}
+		{196/7} {AfriNIC} {whois.afrinic.net}
+		{198/7} {ARIN} {whois.arin.net}
+		{200.17/16} {} {whois.nic.br}
+		{200.18/15} {} {whois.nic.br}
+		{200.20/16} {} {whois.nic.br}
+		{200.96/13} {} {whois.nic.br}
+		{200.128/9} {} {whois.nic.br}
+		{200/7} {LACNIC} {whois.lacnic.net}
+		{202.11/16} {} {whois.nic.ad.jp}
+		{202.13/16} {} {whois.nic.ad.jp}
+		{202.15/16} {} {whois.nic.ad.jp}
+		{202.16/14} {} {whois.nic.ad.jp}
+		{202.20.128/17} {} {whois.nic.or.kr}
+		{202.23/16} {} {whois.nic.ad.jp}
+		{202.24/15} {} {whois.nic.ad.jp}
+		{202.26/16} {} {whois.nic.ad.jp}
+		{202.30/15} {} {whois.nic.or.kr}
+		{202.32/14} {} {whois.nic.ad.jp}
+		{202.48/16} {} {whois.nic.ad.jp}
+		{202.39.128/17} {} {whois.twnic.net}
+		{202.208/12} {} {whois.nic.ad.jp}
+		{202.224/11} {} {whois.nic.ad.jp}
+		{203/10} {APNIC} {whois.apnic.net}
+		{203.66/16} {} {whois.twnic.net}
+		{203.69/16} {} {whois.twnic.net}
+		{203.74/15} {} {whois.twnic.net}
+		{203.136/14} {} {whois.nic.ad.jp}
+		{203.140/15} {} {whois.nic.ad.jp}
+		{203.178/15} {} {whois.nic.ad.jp}
+		{203.180/14} {} {whois.nic.ad.jp}
+		{203.224/11} {} {whois.nic.or.kr}
+		{202/7} {APNIC} {whois.apnic.net}
+		{204/14} {} {rwhois.gin.ntt.net}
+		{204/6} {ARIN} {whois.arin.net}
+		{208/7} {ARIN} {whois.arin.net}
+		{209.94.192/19} {LACNIC} {whois.lacnic.net}
+		{210.59.128/17} {} {whois.twnic.net}
+		{210.61/16} {} {whois.twnic.net}
+		{210.62.252/22} {} {whois.twnic.net}
+		{210.65/16} {} {whois.twnic.net}
+		{210.71.128/16} {} {whois.twnic.net}
+		{210.90/15} {} {whois.nic.or.kr}
+		{210.92/14} {} {whois.nic.or.kr}
+		{210.96/11} {} {whois.nic.or.kr}
+		{210.128/11} {} {whois.nic.ad.jp}
+		{210.160/12} {} {whois.nic.ad.jp}
+		{210.178/15} {} {whois.nic.or.kr}
+		{210.180/14} {} {whois.nic.or.kr}
+		{210.188/14} {} {whois.nic.ad.jp}
+		{210.196/14} {} {whois.nic.ad.jp}
+		{210.204/14} {} {whois.nic.or.kr}
+		{210.216/13} {} {whois.nic.or.kr}
+		{210.224/12} {} {whois.nic.ad.jp}
+		{210.240/16} {} {whois.twnic.net}
+		{210.241/15} {} {whois.twnic.net}
+		{210.241.224/19} {} {whois.twnic.net}
+		{210.242/15} {} {whois.twnic.net}
+		{210.248/13} {} {whois.nic.ad.jp}
+		{211/12} {} {whois.nic.ad.jp}
+		{211.16/14} {} {whois.nic.ad.jp}
+		{211.20/15} {} {whois.twnic.net}
+		{211.22/16} {} {whois.twnic.net}
+		{211.32/11} {} {whois.nic.or.kr}
+		{211.75/16} {} {whois.twnic.net}
+		{211.72/16} {} {whois.twnic.net}
+		{211.104/13} {} {whois.nic.or.kr}
+		{211.112/13} {} {whois.nic.or.kr}
+		{211.120/13} {} {whois.nic.ad.jp}
+		{211.128/13} {} {whois.nic.ad.jp}
+		{211.168/13} {} {whois.nic.or.kr}
+		{211.176/12} {} {whois.nic.or.kr}
+		{211.192/10} {} {whois.nic.or.kr}
+		{210/7} {APNIC} {whois.apnic.net}
+		{213.154.32/19} {AfriNIC} {whois.afrinic.net}
+		{213.154.64/19} {AfriNIC} {whois.afrinic.net}
+		{212/7} {RIPE NCC} {whois.ripe.net}
+		{214/7} {ARIN} {whois.arin.net}
 		{216/8} {ARIN} {whois.arin.net}
 		{217/8} {RIPE NCC} {whois.ripe.net}
-		{218/8} {APNIC} {whois.apnic.net}
-		{219/8} {APNIC} {whois.apnic.net}
-		{220/8} {APNIC} {whois.apnic.net}
-		{221/8} {APNIC} {whois.apnic.net}
-		{222/8} {APNIC} {whois.apnic.net}
-		{223/8} {IANA} {}
-		{224/4} {Multicast} {}
-		{240/4} {Future use} {}
+		{218.36/14} {} {whois.nic.or.kr}
+		{218.40/13} {} {whois.nic.ad.jp}
+		{218.48/13} {} {whois.nic.or.kr}
+		{219.96/11} {} {whois.nic.ad.jp}
+		{218.144/12} {} {whois.nic.or.kr}
+		{218.160/12} {} {whois.twnic.net}
+		{218.216/13} {} {whois.nic.ad.jp}
+		{218.224/13} {} {whois.nic.ad.jp}
+		{218.232/13} {} {whois.nic.or.kr}
+		{219.240/15} {} {whois.nic.or.kr}
+		{219.248/13} {} {whois.nic.or.kr}
+		{218/7} {APNIC} {whois.apnic.net}
+		{220.64/11} {} {whois.nic.or.kr}
+		{220.96/14} {} {whois.nic.ad.jp}
+		{220.103/16} {} {whois.nic.or.kr}
+		{220.104/13} {} {whois.nic.ad.jp}
+		{220.149/16} {} {whois.nic.or.kr}
+		{221.138/13} {} {whois.nic.or.kr}
+		{221.144/12} {} {whois.nic.or.kr}
+		{221.160/13} {} {whois.nic.or.kr}
+		{222.96/12} {} {whois.nic.or.kr}
+		{222.112/13} {} {whois.nic.or.kr}
+		{222.120/15} {} {whois.nic.or.kr}
+		{222.122/16} {} {whois.nic.or.kr}
+		{222.232/13} {} {whois.nic.or.kr}
+		{220/6} {APNIC} {whois.apnic.net}
+	}
+	
+	set ccs(ipv6_address_space) {
+		{::/128}			{unspecified}	{}
+		{::1/128}			{localhost}		{}
+		{2001:0000::/32}	{teredo}		{}
+		{2001:0200::/23}	{APNIC}			{whois.apnic.net}
+		{2001:0400::/23}	{ARIN}			{whois.arin.net}
+		{2001:0600::/23}	{RIPE NCC}		{whois.ripe.net}
+		{2001:0800::/22}	{RIPE NCC}		{whois.ripe.net}
+		{2001:0C00::/22}	{APNIC}			{whois.apnic.net}
+		{2001:1000::/23}	{not allocated}	{}
+		{2001:1000::/22}	{LACNIC}		{whois.lacnic.net}
+		{2001:1400::/22}	{RIPE NCC}		{whois.ripe.net}
+		{2001:1800::/23}	{ARIN}			{whois.arin.net}
+		{2001:1A00::/23}	{RIPE NCC}		{whois.ripe.net}
+		{2001:1C00::/22}	{RIPE NCC}		{whois.ripe.net}
+		{2001:3C00::/22}	{reserved for RIPE but not allocated}	{}
+		{2001:2000::/19}	{RIPE NCC}		{whois.ripe.net}
+		{2001:4000::/23}	{RIPE NCC}		{whois.ripe.net}
+		{2001:4200::/23}	{AfriNIC}		{whois.afrinic.net}
+		{2001:4400::/23}	{APNIC}			{whois.apnic.net}
+		{2001:4600::/23}	{RIPE NCC}		{whois.ripe.net}
+		{2001:4800::/23}	{ARIN}			{whois.arin.net}
+		{2001:4A00::/23}	{RIPE NCC}		{whois.ripe.net}
+		{2001:4E00::/23}	{not allocated}	{}
+		{2001:4C00::/22}	{RIPE NCC}		{whois.ripe.net}
+		{2001:5000::/20}	{RIPE NCC}		{whois.ripe.net}
+		{2001:8000::/18}	{APNIC}			{whois.apnic.net}
+		{2002:0000::/16}	{6to4}			{}
+		{2003:0000::/18}	{RIPE NCC}		{whois.ripe.net}
+		{2400:0000::/20}	{}				{whois.nic.or.kr}
+		{2400:0000::/12}	{APNIC}			{whois.apnic.net}
+		{2600:0000::/12}	{ARIN}			{whois.arin.net}
+		{2610:0000::/23}	{ARIN}			{whois.arin.net}
+		{2620:0000::/23}	{ARIN}			{whois.arin.net}
+		{2800:0000::/12}	{LACNIC}		{whois.lacnic.net}
+		{2A00:0000::/12}	{RIPE NCC}		{whois.ripe.net}
+		{2C00:0000::/12}	{AfriNIC}		{whois.afrinic.net}
+		{3FFE:0000::/16}	{}				{whois.6bone.net}
+		{fe80::/10}			{link local}	{}
+		{fec0::/10}			{site local}	{}
+		{ff00::/8}			{multicast}		{}
+		{::/0}				{not allocated}	{}
 	}
 	
 	setudef str ccs-mode-whoisip
@@ -311,11 +342,11 @@ if {$ccs(scr,name,$scrname)} {
 		
 		set whoisipturn($token,dns) 1
 		if {$status} {
-			set whoisipturn($token,wip)		$ipaddr
+			set whoisipturn($token,wipv4)	$ipaddr
 			set whoisipturn($token,whost)	$hostname
-			if {!$whoisipturn($token,addwhois)} {whoisip_addwhois $token}
+			if {!$whoisipturn($token,addwhoisv4)} {whoisip_addwhoisv4 $token}
 		}
-		if {$whoisipturn($token,whois) || (!$status && $whoisipturn($token,wip) == "")} {whoisip_out $token}
+		if {$whoisipturn($token,whoisv4) || $whoisipturn($token,whoisv6) || (!$status && $whoisipturn($token,wipv4) == "" && $whoisipturn($token,wipv6) == "")} {whoisip_out $token}
 		
 	}
 	
@@ -324,13 +355,6 @@ if {$ccs(scr,name,$scrname)} {
 		variable ccs
 		
 		if {![info exists whoisipturn($token,on)]} return
-		
-		if {$whoisipturn($token,wgate) == ""} {
-			set whoisipturn($token,wgate) [ip2gate $whoisipturn($token,wip)]
-		}
-		if {$whoisipturn($token,wlongip) == ""} {
-			set whoisipturn($token,wlongip) [ip2longip $whoisipturn($token,wip)]
-		}
 		
 		set onick $whoisipturn($token,onick)
 		set ochan $whoisipturn($token,ochan)
@@ -341,7 +365,7 @@ if {$ccs(scr,name,$scrname)} {
 		set command $whoisipturn($token,command)
 		set stext $whoisipturn($token,stext)
 		
-		if {$whoisipturn($token,wip) == ""} {
+		if {$whoisipturn($token,wipv4) == "" && $whoisipturn($token,wipv6) == ""} {
 			put_msg [sprintf whoisip #101]
 		} else {
 			set mode [get_use_mode $schan $command]
@@ -352,11 +376,9 @@ if {$ccs(scr,name,$scrname)} {
 			
 			foreach _ $whoisipturn($token,winfo) {
 				if {[regexp -- {^([^\ ]+)\:(.*?)$} $_ -> a b]} {
-					set a [string tolower $a]
-					set a [string map $ccs(whoisip_info_alias) $a]
 					
-					set b [string trim $b]
-					set b [string trimright $b ,]
+					set a [string tolower $a]
+					set b [string trimright [string trim $b] ,]
 					
 					if {$a == "inetnum" || $a == "netrange"} {
 						set whoisipturn($token,range) $b
@@ -380,14 +402,45 @@ if {$ccs(scr,name,$scrname)} {
 				lappend lout [sprintf whoisip #$last_info [join $last_text ", "]]
 			}
 			
-			put_msg [sprintf whoisip #102 $stext $whoisipturn($token,wip) $whoisipturn($token,whost) $whoisipturn($token,wgate) $whoisipturn($token,wlongip) $whoisipturn($token,wdesignation) $whoisipturn($token,range)] -mode $mode
-			put_msg [join $lout "; "] -mode $mode
+			if {$whoisipturn($token,wipv4) != ""} {
+				if {$whoisipturn($token,wgate) == ""} {
+					set whoisipturn($token,wgate) [ipv4_to_gate $whoisipturn($token,wipv4)]
+				}
+				if {$whoisipturn($token,wlongip) == ""} {
+					set whoisipturn($token,wlongip) [ipv4_to_longip $whoisipturn($token,wipv4)]
+				}
+				if {$whoisipturn($token,wipv6) == ""} {
+					set whoisipturn($token,wipv6) [ipv4_to_ipv6 $whoisipturn($token,wipv4)]
+				}
+			}
+			
+			put_msg [sprintf whoisip #102 $stext $whoisipturn($token,wipv4) $whoisipturn($token,wipv6) $whoisipturn($token,whost) $whoisipturn($token,wgate) $whoisipturn($token,wlongip) $whoisipturn($token,wdesignation) $whoisipturn($token,range)] -mode $mode
+			if {[llength $lout] > 0} {
+				put_msg [join $lout "; "] -mode $mode
+			}
 			
 		}
 		
 		after cancel $whoisipturn($token,afterid)
 		
-		unset whoisipturn($token,on) whoisipturn($token,onick) whoisipturn($token,ochan) whoisipturn($token,obot) whoisipturn($token,snick) whoisipturn($token,shand) whoisipturn($token,schan) whoisipturn($token,command) whoisipturn($token,stext) whoisipturn($token,wip) whoisipturn($token,wgate) whoisipturn($token,whost) whoisipturn($token,dns) whoisipturn($token,whois) whoisipturn($token,addwhois) whoisipturn($token,winfo) whoisipturn($token,wlongip) whoisipturn($token,wdesignation) whoisipturn($token,range)
+		unset whoisipturn($token,on) whoisipturn($token,onick) whoisipturn($token,ochan) \
+			whoisipturn($token,obot) whoisipturn($token,snick) whoisipturn($token,shand) \
+			whoisipturn($token,schan) whoisipturn($token,command) whoisipturn($token,stext) \
+			whoisipturn($token,wipv4) whoisipturn($token,wipv6) whoisipturn($token,wgate) \
+			whoisipturn($token,whost) whoisipturn($token,dns) whoisipturn($token,whoisv4) \
+			whoisipturn($token,whoisv6) whoisipturn($token,addwhoisv4) \
+			whoisipturn($token,addwhoisv6) whoisipturn($token,winfo) \
+			whoisipturn($token,wlongip) whoisipturn($token,wdesignation) whoisipturn($token,range)
+		
+		foreach v {4 6} {
+			if {[info exists whoisipturn($token,socket$v)]} {
+				set s $whoisipturn($token,socket$v)
+				catch {fileevent $s readable {}}
+				catch {fileevent $s writable {}}
+				catch {close $s}
+				unset whoisipturn($token,socket$v)
+			}
+		}
 		
 		clear_token whoisip $token
 		
@@ -413,15 +466,18 @@ if {$ccs(scr,name,$scrname)} {
 		set whoisipturn($token,schan)			$schan
 		set whoisipturn($token,command)			$command
 		set whoisipturn($token,stext)			$stext
-		set whoisipturn($token,wip)				""
+		set whoisipturn($token,wipv4)			""
+		set whoisipturn($token,wipv6)			""
 		set whoisipturn($token,wgate)			""
 		set whoisipturn($token,whost)			""
 		set whoisipturn($token,wlongip)			""
 		set whoisipturn($token,wdesignation)	""
 		set whoisipturn($token,winfo)			[list]
 		set whoisipturn($token,dns)				0
-		set whoisipturn($token,whois)			0
-		set whoisipturn($token,addwhois)		0
+		set whoisipturn($token,whoisv4)			0
+		set whoisipturn($token,whoisv6)			0
+		set whoisipturn($token,addwhoisv4)		0
+		set whoisipturn($token,addwhoisv6)		0
 		set whoisipturn($token,range)			""
 		
 		set whoisipturn($token,afterid) [after $ccs(whoisip_timeout) [list [namespace origin whoisip_out] $token]]
@@ -435,32 +491,37 @@ if {$ccs(scr,name,$scrname)} {
 			set ip [string range $ip [expr $ind+1] end]
 		}
 		
-		if {[string_is_ip $ip]} {
-			set whoisipturn($token,wip)		$ip
-		} elseif {[set gateip [gate2ip $ip]] != ""} {
-			set whoisipturn($token,wgate)	$ip
+		if {[string_is_ipv4 $ip]} {
+			set whoisipturn($token,wipv4)		$ip
+		} elseif {[string_is_ipv6 $ip]} {
+			if {[ipv6_in_net 2002::/16 $ip]} {
+				set whoisipturn($token,wipv4)		[ipv6_to_ipv4 $ip]
+			} else {
+				set whoisipturn($token,wipv6)		$ip
+			}
+		} elseif {[set gateip [gate_to_ipv4 $ip]] != ""} {
+			set whoisipturn($token,wgate)		$ip
 			set ip $gateip
-			set whoisipturn($token,wip)		$ip
+			set whoisipturn($token,wipv4)		$ip
 		} elseif {[string is digit $ip] && $ip < 4294967296} {
-			set whoisipturn($token,wlongip)	$ip
-			set ip [longip2ip $ip]
-			set whoisipturn($token,wip)		$ip
+			set whoisipturn($token,wlongip)		$ip
+			set ip [longip_to_ipv4 $ip]
+			set whoisipturn($token,wipv4)		$ip
 		} else {
-			set whoisipturn($token,whost)	$ip
+			set whoisipturn($token,whost)		$ip
 		}
 		
-		if {$whoisipturn($token,wip) != ""} {whoisip_addwhois $token}
+		if {$whoisipturn($token,wipv4) != ""} {whoisip_addwhois $token 4}
+		if {$whoisipturn($token,wipv6) != ""} {whoisip_addwhois $token 6}
 		
 		dnslookup $ip [namespace origin whoisip_dnslookup] $token
-		
 		return 1
 		
 	}
 	
-	proc whoisip_whois_read {token} {
+	proc whoisip_whois_read {token v} {
 		variable whoisipturn
-		
-		set s $whoisipturn($token,socket)
+		set s $whoisipturn($token,socket$v)
 		
 		if {![eof $s]} {
 			while {![eof $s]} {
@@ -471,119 +532,52 @@ if {$ccs(scr,name,$scrname)} {
 		} else {
 			fileevent $s readable {}
 			close $s
-			set whoisipturn($token,whois) 1
+			unset whoisipturn($token,socket$v)
+			set whoisipturn($token,whoisv$v) 1
 			if {$whoisipturn($token,dns)} {whoisip_out $token}
 		}
 		
 	}
 	
-	proc whoisip_whois_write {token} {
+	proc whoisip_whois_write {token v} {
 		variable whoisipturn
 		
-		set s $whoisipturn($token,socket)
-		
-		puts $s $whoisipturn($token,wip)
+		set s $whoisipturn($token,socket$v)
+		puts $s $whoisipturn($token,wipv$v)
 		flush $s
 		fconfigure $s -encoding binary -translation {auto binary}
 		catch {fileevent $s writable {}}
 		
 	}
 	
-	proc whoisip_addwhois {token} {
+	proc whoisip_addwhois {token v} {
 		variable whoisipturn
 		variable ccs
 		
-		set whoisipturn($token,addwhois) 1
+		set whoisipturn($token,addwhoisv$v) 1
 		
 		set find 0
-		foreach {netmask designation whois} $ccs(ipv4_address_space) {
-			if {[ip_in_net $netmask $whoisipturn($token,wip)]} {
+		foreach {netmask designation whois} $ccs(ipv${v}_address_space) {
+			if {[ipv${v}_in_net $netmask $whoisipturn($token,wipv$v)]} {
 				set whoisipturn($token,wdesignation) $designation
 				set whoisipturn($token,range) $netmask
 				set find 1
 				break
 			}
 		}
-		
 		if {$find && $whois != ""} {
 			set s [socket -async $whois 43]
-			set whoisipturn($token,socket) $s
+			set whoisipturn($token,socket$v) $s
 			if {$s != ""} {
 				fconfigure $s -blocking 0 -buffering line
-				fileevent $s readable [list [namespace origin whoisip_whois_read] $token]
-				fileevent $s writable [list [namespace origin whoisip_whois_write] $token]
+				fileevent $s readable [list [namespace origin whoisip_whois_read] $token $v]
+				fileevent $s writable [list [namespace origin whoisip_whois_write] $token $v]
 			} else {
-				set whoisipturn($token,whois) 1
+				set whoisipturn($token,whoisv$v) 1
 			}
 		} else {
-			set whoisipturn($token,whois) 1
+			set whoisipturn($token,whoisv$v) 1
 		}
-		
-	}
-	
-	proc gate2ip {text} {
-		
-		if {[string index $text 0] == "~"} {
-			set text [string range $text 1 end]
-		}
-		if {[string length $text] != 8} {return ""}
-		set ip [longip2ip [scan $text "%x"]]
-		if {[string_is_ip $ip]} {
-			return $ip
-		} else {
-			return ""
-		}
-		
-	}
-	
-	proc ip2gate {ipaddr} {
-		
-		if {$ipaddr == ""} {return ""}
-		foreach {a b c d} [split $ipaddr .] break
-		return [format "%08x" [expr {($a << 24) + ($b << 16) + ($c << 8) + $d}]]
-		
-	}
-	
-	proc string_is_ip {text} {
-		
-		set ld [split $text .]
-		if {[llength $ld] != 4} {return 0}
-		foreach _ $ld {
-			if {![string is digit $_]} {return 0}
-			if {$_ < 0 || $_ > 255} {return 0}
-		}
-		return 1
-		
-	}
-	
-	proc ip2longip {ipaddr} {
-		
-		if {$ipaddr == ""} {return -1}
-		foreach {a b c d} [split $ipaddr .] break
-		foreach _ {a b c d} {
-			set $_ [string trimleft [set $_] 0]
-			if {[set $_] == ""} {set $_ 0}
-			append hexaddr [format {%02x} [set $_]]
-		}
-		return [format {%u} "0x$hexaddr"]
-		
-	}
-	
-	proc longip2ip {longip} {
-		return [expr {$longip >> 24 & 0xFF}].[expr {$longip >> 16 & 0xFF}].[expr {$longip >> 8 & 0xFF}].[expr {$longip & 0xFF}]
-	}
-	
-	proc ip_in_net {netmask ip} {
-		
-		foreach {net mask} [split $netmask /] break
-		
-		if {$mask == "" || $mask > 32} {set mask 32}
-		
-		set longipnet [ip2longip $net]
-		set longip [ip2longip $ip]
-		if {$longip >= $longipnet && $longip < [expr $longipnet + pow(2,(32-$mask))]} {return 1}
-		return 0
-		
 	}
 	
 }
