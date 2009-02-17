@@ -93,9 +93,9 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(text,ccs,en,#188) "%s is not a bot. All bots with \002b\002 flag."
 	set ccs(text,ccs,en,#195) " - Type: \002%s\002, module: \002%s\002, lang: \002%s\002, date: \002%s\002, current version: \002%s\002, new version: \002%s\002"
 	set ccs(text,ccs,en,#196) "Updated files: \002%s\002, errors: \002%s\002."
-	set ccs(text,ccs,en,#197) "There is a need to try again or return the files from the backup. If you think this is not in the files is not critical, needs to be done rehesh bot."
-	set ccs(text,ccs,en,#198) "Only bot's with Suzi Patch can do autoupdate."
-	set ccs(text,ccs,en,#199) "Only bot's with codepage cp1251 can do autoupdate"
-	set ccs(text,ccs,en,#200) "You should specify channel to get help for commands of your access level"
+	set ccs(text,ccs,en,#197) "Hmm... looks like something is wrong. Try to use command again or restore files from backup. If you are assured that the error isn't critical or operation doesn't damaged core files just \002rehash\002 the bot manually."
+	set ccs(text,ccs,en,#198) "Autoupdate feature available for bots with Suzi Patch only."
+	set ccs(text,ccs,en,#199) "Autoupdate feature available for bots wich uses cp1251 internal encoding."
+	set ccs(text,ccs,en,#200) "You should specify channel to get help for commands of your access level."
 	
 }
