@@ -1219,7 +1219,7 @@ namespace eval ::ccs {
 		if {[check_notavailable {-notbotnetuser} -shand $shand -thand $thand -dbothand $bot]} {return 0}
 		
 		if {[matchattr $shand $ccs(flag_auth)]} {
-			putbot_auth $bot $shand ccsauthreceive 1; put_log "ON ($bot)" -level 3
+			putbot_auth $bot $shand ccsauthreceive 1; put_log "ON ($bot)" -level 4
 		} else {
 			putbot_auth $bot $shand ccsauthreceive 0; put_log "OFF ($bot)" -level 3
 		}
@@ -1241,7 +1241,7 @@ namespace eval ::ccs {
 			after cancel $afterid(authoff,$shand,$bot)
 			if {$receive} {
 				set afterid(authoff,$shand,$bot) [after $ccs(time_botauth_check) [list [namespace origin timer_authcheck] $shand $bot]]
-				put_log "OK ($bot)" -level 3
+				put_log "OK ($bot)" -level 4
 			} else {
 				unset afterid(authoff,$shand,$bot)
 				delbotauth $shand $bot
