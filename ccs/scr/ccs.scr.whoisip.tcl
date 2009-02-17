@@ -2,7 +2,7 @@
 ## Скрипт получения информации об IP адресе
 ##################################################################################################################
 # Список последних изменений:
-#	v1.1.0
+#	v1.1.1
 # - Добавлена поддержка IPv6
 # - Часть функций перенесена в библиотеку ip
 
@@ -10,8 +10,8 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set scrname		"whoisip"
 addfileinfo scr $scrname "Buster <buster@ircworld.ru> (c)" \
-				"1.1.0" \
-				"06-Jan-2009" \
+				"1.1.2" \
+				"05-Feb-2009" \
 				"Скрипт выдающий информацию по IP адресу"
 
 if {$ccs(scr,name,$scrname)} {
@@ -28,7 +28,7 @@ if {$ccs(scr,name,$scrname)} {
 	
 	#############################################################################################################
 	# Список выводимой информации.
-	set ccs(whoisip_info) {netname descr country mnt-by person address city stateprov postalcode e-mail orgtechemail phone orgtechphone orgtechname orgname}
+	set ccs(whoisip_info) {netname descr country mnt-by person address city stateprov postalcode e-mail orgtechemail phone orgtechphone orgtechname orgname rtechname rtechemail rtechphone}
 	
 	
 	set ccs(group,whoisip) "info"
@@ -60,11 +60,14 @@ if {$ccs(scr,name,$scrname)} {
 	set ccs(text,whoisip,ru,#mnt-by) "\002mnt-by\002: %s"
 	set ccs(text,whoisip,ru,#person) "\002Лицо\002: %s"
 	set ccs(text,whoisip,ru,#orgtechname) "\002Лицо\002: %s"
+	set ccs(text,whoisip,ru,#rtechname) "\002Лицо\002: %s"
 	set ccs(text,whoisip,ru,#address) "\002Адрес\002: %s"
 	set ccs(text,whoisip,ru,#e-mail) "\002E-mail\002: %s"
 	set ccs(text,whoisip,ru,#orgtechemail) "\002E-mail\002: %s"
+	set ccs(text,whoisip,ru,#rtechemail) "\002E-mail\002: %s"
 	set ccs(text,whoisip,ru,#phone) "\002Тел.\002: %s"
 	set ccs(text,whoisip,ru,#orgtechphone) "\002Тел.\002: %s"
+	set ccs(text,whoisip,ru,#rtechphone) "\002Тел.\002: %s"
 	
 	#set ccs(text,whoisip,ru,#inetnum) "Диапазон: \00312%s\017"
 	#set ccs(text,whoisip,ru,#descr) "descr: \00303%s\017"
@@ -344,7 +347,7 @@ if {$ccs(scr,name,$scrname)} {
 		if {$status} {
 			set whoisipturn($token,wipv4)	$ipaddr
 			set whoisipturn($token,whost)	$hostname
-			if {!$whoisipturn($token,addwhoisv4)} {whoisip_addwhoisv4 $token}
+			if {!$whoisipturn($token,addwhoisv4)} {whoisip_addwhois $token 4}
 		}
 		if {$whoisipturn($token,whoisv4) || $whoisipturn($token,whoisv6) || (!$status && $whoisipturn($token,wipv4) == "" && $whoisipturn($token,wipv6) == "")} {whoisip_out $token}
 		
