@@ -10,8 +10,8 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"users"
 addfileinfo mod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.4" \
-				"05-Jan-2008"
+				"1.2.5" \
+				"24-Feb-2008"
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -250,7 +250,7 @@ if {$ccs(mod,name,$modname)} {
 		importvars [list onick ochan obot snick shand schan command dnick dhost]
 		
 		set dhand [get_hand $dnick]
-		if {[check_notavailable {-getting_users -locked -nopermition2 -notvalidhandle} -shand $shand -dnick $dnick -dhand $dhand -dchan ""]} {return 0}
+		if {[check_notavailable {-getting_users -locked -nopermition0 -notvalidhandle} -shand $shand -dnick $dnick -dhand $dhand -dchan ""]} {return 0}
 		
 		setuser $dhand HOSTS $dhost
 		put_msg [sprintf users #110 $dhost $dhand]

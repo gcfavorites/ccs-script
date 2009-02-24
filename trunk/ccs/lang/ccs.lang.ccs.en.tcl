@@ -5,8 +5,8 @@ set modname		"ccs"
 set modlang		"en"
 addlang $modname $modlang \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.3.2" \
-				"29-Dec-2008" \
+				"1.3.3" \
+				"24-Feb-2009" \
 				"Language file for $modname module ($modlang)"
 
 if {$ccs(lang,name,$modname,$modlang)} {
@@ -36,9 +36,9 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(text,ccs,en,#101) "\002\037Channel Control Script Help system\037\002. Version: \002v%s \[%s\] by %s\002. Command prefixes: \002pub \"%s\", msg \"%s\", dcc \"%s\"\002, command prefixes for botnet: \002pub \"%s\", msg \"%s\", dcc \"%s\"\002. Для команд помеченных \002\[сhan\]\002 возможно указание канала, помеченных \002\<сhan>\002 указание канала обязательно (только для msg и dcc команд, для pub команд указание канала \037не требуется\037)."
 	set ccs(text,ccs,en,#102) "Permission denied (command: \002%s\002, used by: \002%s\002)."
 	set ccs(text,ccs,en,#103) "You're sending requests too fast. Calm down and try again after %s sec(s)."
-	set ccs(text,ccs,ru,#112) "You already recognized as %s. You can't use identification with hostmask update."
-	set ccs(text,ccs,ru,#114) "Autorizathion with host update: /msg %s identauth \002\[handle\] <pass>\002"
-	set ccs(text,ccs,ru,#115) "Permission denied - looks like no one of your hostmask doesn't match current. You can add temporary hostmask and identify at the same time using: /msg %s identauth \002<pass>\002"
+	set ccs(text,ccs,en,#112) "You already recognized as %s. You can't use identification with hostmask update."
+	set ccs(text,ccs,en,#114) "Autorizathion with host update: /msg %s identauth \002\[handle\] <pass>\002"
+	set ccs(text,ccs,en,#115) "Permission denied - looks like no one of your hostmask doesn't match current. You can add temporary hostmask and identify at the same time using: /msg %s identauth \002<pass>\002"
 	set ccs(text,ccs,en,#116) "User \002%s\002 is protected from any changes. Only global bot owner can change his settings."
 	set ccs(text,ccs,en,#117) "At this moment is going the userlists synchronization with others bots. Please try later..."
 	set ccs(text,ccs,en,#118) "Permission denied."
