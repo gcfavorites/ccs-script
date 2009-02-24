@@ -6,8 +6,8 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"regban"
 addmod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.3" \
-				"28-Jan-2009"
+				"1.2.4" \
+				"25-Feb-2009"
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -94,9 +94,10 @@ if {$ccs(mod,name,$modname)} {
 			set rid [lindex [split $_ ,] 1]
 			array set regban $ccs($_)
 			
-			if {![string equal -nocase $schan $regban(chan)]} {continue}
+			if {![string equal -nocase $schan $regban(chan)]} {unset regban; continue}
 			set find 1
 			put_msg [sprintf regban #107 $rid [expr {$regban(enable) ? [sprintf ccs #209] : [sprintf ccs #210]}] [get_msgregban regban]]
+			unset regban
 		}
 		if {!$find} {put_msg [sprintf regban #105]}
 		put_msg [sprintf regban #106 $shand]
@@ -215,9 +216,10 @@ if {$ccs(mod,name,$modname)} {
 			set fid [open $ccs(regbanfile) w]
 			foreach _ [split $data \n] {
 				array set regban $_
-				if {![info exists regban(id)]} {continue}
-				if {$regban(id) == $rid} {put_msg [sprintf regban #102 $rid [get_msgregban regban]]; continue}
+				if {![info exists regban(id)]} {unset regban; continue}
+				if {$regban(id) == $rid} {put_msg [sprintf regban #102 $rid [get_msgregban regban]]; unset regban; continue}
 				puts $fid $_
+				unset regban
 			}
 			close $fid
 			
@@ -263,7 +265,7 @@ if {$ccs(mod,name,$modname)} {
 			set rid [lindex [split $_ ,] 1]
 			array set regban $ccs($_)
 			
-			if {!$regban(enable) || ![string equal -nocase $chan $regban(chan)]} {continue}
+			if {!$regban(enable) || ![string equal -nocase $chan $regban(chan)]} {unset regban; continue}
 			
 			set inc 1
 			set uninc 0
@@ -280,6 +282,7 @@ if {$ccs(mod,name,$modname)} {
 			} elseif {$inc && $uninc} {
 				set who 1
 			}
+			unset regban
 			
 		}
 		
@@ -345,13 +348,13 @@ if {$ccs(mod,name,$modname)} {
 			set rid [lindex [split $_ ,] 1]
 			array set regban $ccs($_)
 			
-			if {!$regban(enable)} {continue}
+			if {!$regban(enable)} {unset regban; continue}
 			
 			set find 0
 			foreach _2 $regbanturn(chans,$nick,$uhost) {
 				if {[string equal -nocase $_2 $regban(chan)]} {set find 1; break}
 			}
-			if {!$find} {continue}
+			if {!$find} {unset regban; continue}
 			
 			set inc 1
 			
@@ -361,6 +364,7 @@ if {$ccs(mod,name,$modname)} {
 			if {$inc && ![string is space $regban(name)] && ![regexp -nocase -- $regban(name) $rname]} {set inc 0}
 			
 			if {$inc} {regban_action $rid $nick $uhost}
+			unset regban
 			
 		}
 		
@@ -404,8 +408,10 @@ if {$ccs(mod,name,$modname)} {
 			catch {
 				set data [loadfile $ccs(regbanfile)]
 				foreach _ [split $data \n] {
+					if {[string is space $_]} continue
 					array set regban $_
 					if {[info exists regban(id)]} {set ccs(regban,$regban(id)) $_}
+					unset regban
 				}
 			}
 			
@@ -418,3 +424,4 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 }
+
