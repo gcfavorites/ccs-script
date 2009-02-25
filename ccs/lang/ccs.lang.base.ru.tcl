@@ -5,8 +5,8 @@ set modname		"base"
 set modlang		"ru"
 addlang $modname $modlang \
 				"Buster <buster@ircworld.ru> (c)" \
-				"1.2.3" \
-				"11-Nov-2008" \
+				"1.2.4" \
+				"25-Feb-2009" \
 				"Языковой файл для модуля $modname ($modlang)"
 
 if {$ccs(lang,name,$modname,$modlang)} {
@@ -32,14 +32,15 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(args,ru,whom) {}
 	set ccs(help,ru,whom) {Выводит список пользователей из патилайна бота}
 	
-	set ccs(args,ru,whois) {<nick/hand>}
-	set ccs(help,ru,whois) {Выводит информацию по \002nick/hand\002}
+	set ccs(args,ru,whois) {<nick|hand>}
+	set ccs(help,ru,whois) {Выводит информацию по \002nick|hand\002}
 	
-	set ccs(args,ru,info) {[mod/scr/lang]}
+	set ccs(args,ru,info) {[mod|scr|lang|mask]}
 	set ccs(help,ru,info) {Выдаёт информацию о системе, установленных модулях, скриптах, языковых файлах и окружених переменных}
 	set ccs(help2,ru,info) {
 		{Выдаёт информацию о системе, установленных модулях, скриптах, языковых файлах и окружених переменных}
-		{Если указать mod/scr/lang то будет выдана информация об установленных модулях/скриптах/языковых файлах}
+		{Если указать \002mod/scr/lang\002 то будет выдана информация об установленных модулях/скриптах/языковых файлах}
+		{Если указать \002mask\002 то будет выведен список порядковых номеров хостмасок}
 	}
 	
 	#############################################################################################################
