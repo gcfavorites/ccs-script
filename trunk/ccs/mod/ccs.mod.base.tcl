@@ -2,6 +2,8 @@
 ## Модуль с базовыми командами управления
 ##################################################################################################################
 # Список последних изменений:
+#	v1.2.6
+# - Для команды !info добавлен вывод списка порядковых номеров хостмасок
 #	v1.2.5
 # - Убраны скобки { } при выводе хостов в команде !whois
 
@@ -9,8 +11,8 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"base"
 addfileinfo mod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.5" \
-				"05-Jan-2009" \
+				"1.2.6" \
+				"25-Feb-2009" \
 				"Модуль предоставляющий базовые команды не попадающие под другие группы."
 
 if {$ccs(mod,name,$modname)} {
@@ -99,7 +101,7 @@ if {$ccs(mod,name,$modname)} {
 	set ccs(flags,info) {%v}
 	set ccs(alias,info) {%pref_info}
 	set ccs(block,info) 5
-	set ccs(regexp,info) {{^(mod|scr|lang)?$} {-> dname}}
+	set ccs(regexp,info) {{^(mod|scr|lang|mask)?$} {-> dname}}
 	
 	setudef str ccs-vkickuser
 	setudef str ccs-vtopicuser
@@ -325,6 +327,9 @@ if {$ccs(mod,name,$modname)} {
 					put_msg [sprintf base #146 "$_0 ($_1)" $ccs(lang,version,$_0,$_1) $ccs(lang,date,$_0,$_1) $ccs(lang,author,$_0,$_1) $ccs(lang,name,$_0,$_1) $ccs(lang,description,$_0,$_1)] -speed 3
 				}
 				if {[llength $llang] == 0} {put_msg [sprintf base #149]}
+			}
+			mask {
+				put_msg "\0021:\002 *!user@host, \0022:\002 *!*user@host, \0023:\002 *!*@host, \0024:\002 *!*user@*.host, \0025:\002 *!*@*.host, \0026:\002 nick!user@host, \0027:\002 nick!*user@host, \0028:\002 nick!*@host, \0029:\002 nick!*user@*.host, \00210:\002 nick!*@*.host"
 			}
 			default {
 				set lout [list]

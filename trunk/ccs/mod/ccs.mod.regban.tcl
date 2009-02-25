@@ -1,12 +1,15 @@
 ##################################################################################################################
 ## Модуль управления регулярными банами
 ##################################################################################################################
+# Список последних изменений:
+#	v1.2.5
+# - Добавлены две новые команды !regbantest и !regbanaction
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"regban"
 addmod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.4" \
+				"1.2.5" \
 				"25-Feb-2009"
 
 if {$ccs(mod,name,$modname)} {
@@ -43,6 +46,8 @@ if {$ccs(mod,name,$modname)} {
 	lappend ccs(commands)	"regbanlist"
 	lappend ccs(commands)	"regban"
 	lappend ccs(commands)	"regunban"
+	lappend ccs(commands)	"regbantest"
+	lappend ccs(commands)	"regbanaction"
 	
 	set ccs(group,regbanlist) "regban"
 	set ccs(flags,regbanlist) {o}
@@ -62,6 +67,18 @@ if {$ccs(mod,name,$modname)} {
 	set ccs(alias,regunban) {%pref_regunban %pref_delregban}
 	set ccs(block,regunban) 3
 	set ccs(regexp,regunban) {{^(\d+)$} {-> rid}}
+	
+	set ccs(group,regbantest) "regban"
+	set ccs(flags,regbantest) {o}
+	set ccs(alias,regbantest) {%pref_regbantest}
+	set ccs(block,regbantest) 5
+	set ccs(regexp,regbantest) {{^$} {}}
+	
+	set ccs(group,regbanaction) "regban"
+	set ccs(flags,regbanaction) {o}
+	set ccs(alias,regbanaction) {%pref_regbanaction}
+	set ccs(block,regbanaction) 5
+	set ccs(regexp,regbanaction) {{^$} {}}
 	
 	setudef str ccs-banmask
 	
@@ -233,6 +250,100 @@ if {$ccs(mod,name,$modname)} {
 		
 	}
 	
+	proc cmd_regbantest {} {
+		variable ccs
+		importvars [list onick ochan obot snick shand schan command]
+		
+		set whochan 0
+		foreach nick [chanlist $schan] {
+			set uhost [getchanhost $nick]
+			
+			set who 0
+			set notwho 0
+			
+			foreach _ [array names ccs -glob "regban,*"] {
+				set rid [lindex [split $_ ,] 1]
+				array set regban $ccs($_)
+				
+				if {!$regban(enable) || ![string equal -nocase $schan $regban(chan)]} {unset regban; continue}
+				
+				set inc 1
+				set uninc 0
+				if {$inc && ![string is space $regban(host)] && \
+							![regexp -- $regban(host) "$nick!$uhost"]} {set inc 0}
+				if {$inc && (![string is space $regban(server)] || \
+							 ![string is space $regban(status)] || \
+							 ![string is space $regban(hops)] || \
+							 ![string is space $regban(name)])} {set uninc 1}
+				
+				if {$inc && !$uninc} {
+					regban_action $rid $nick $uhost 1 [list $onick $ochan $obot]
+					set notwho 1
+				} elseif {$inc && $uninc} {
+					set who 1
+				}
+				unset regban
+				
+			}
+			
+			# inc uninc
+			# 1    0      - проверка прошла
+			# 0    0      - проверка не прошла
+			# 1    1      - требует дополнительной проверки
+			if {$who && !$notwho} {if {[regban_whoadd $nick $uhost $schan 0 1 [list $onick $ochan $obot]]} {set whochan 1}}
+		}
+		
+		if {$whochan} {putquick "WHO +c $schan"}
+		
+	}
+	
+	proc cmd_regbanaction {} {
+		variable ccs
+		importvars [list onick ochan obot snick shand schan command]
+		
+		set whochan 0
+		foreach nick [chanlist $schan] {
+			set uhost [getchanhost $nick]
+			
+			set who 0
+			set notwho 0
+			
+			foreach _ [array names ccs -glob "regban,*"] {
+				set rid [lindex [split $_ ,] 1]
+				array set regban $ccs($_)
+				
+				if {!$regban(enable) || ![string equal -nocase $schan $regban(chan)]} {unset regban; continue}
+				
+				set inc 1
+				set uninc 0
+				if {$inc && ![string is space $regban(host)] && \
+							![regexp -- $regban(host) "$nick!$uhost"]} {set inc 0}
+				if {$inc && (![string is space $regban(server)] || \
+							 ![string is space $regban(status)] || \
+							 ![string is space $regban(hops)] || \
+							 ![string is space $regban(name)])} {set uninc 1}
+				
+				if {$inc && !$uninc} {
+					regban_action $rid $nick $uhost
+					set notwho 1
+				} elseif {$inc && $uninc} {
+					set who 1
+				}
+				unset regban
+				
+			}
+			
+			# inc uninc
+			# 1    0      - проверка прошла
+			# 0    0      - проверка не прошла
+			# 1    1      - требует дополнительной проверки
+			if {$who && !$notwho} {if {[regban_whoadd $nick $uhost $schan 0]} {set whochan 1}}
+		}
+		
+		if {$whochan} {putquick "WHO +c $schan"}
+		
+	}
+	
 	proc regban_raw_352 {from key msg} {
 		variable regbanturn
 		
@@ -294,7 +405,7 @@ if {$ccs(mod,name,$modname)} {
 		
 	}
 	
-	proc regban_whoadd {nick uhost chan} {
+	proc regban_whoadd {nick uhost chan {query_who 1} {only_notify 0} {lout {}}} {
 		variable regbanturn
 		variable ccs
 		
@@ -307,18 +418,24 @@ if {$ccs(mod,name,$modname)} {
 				lappend regbanturn(chans,$nick,$uhost) $chan
 			}
 			
+			return 0
+			
 		} else {
 			
-			set regbanturn(on,$nick,$uhost)		0
-			set regbanturn(chans,$nick,$uhost)	[list $chan]
-			set regbanturn(server,$nick,$uhost)	""
-			set regbanturn(status,$nick,$uhost)	""
-			set regbanturn(hops,$nick,$uhost)	""
-			set regbanturn(name,$nick,$uhost)	""
+			set regbanturn(on,$nick,$uhost)				0
+			set regbanturn(chans,$nick,$uhost)			[list $chan]
+			set regbanturn(server,$nick,$uhost)			""
+			set regbanturn(status,$nick,$uhost)			""
+			set regbanturn(hops,$nick,$uhost)			""
+			set regbanturn(name,$nick,$uhost)			""
+			set regbanturn(only_notify,$nick,$uhost)	$only_notify
+			set regbanturn(lout,$nick,$uhost)			$lout
 			
-			putquick "WHO +n $nick"
+			if {$query_who} {putquick "WHO +n $nick"}
 			
 			after $ccs(regbanwhohash) [list [namespace origin regban_whodel] $nick $uhost]
+			
+			return 1
 			
 		}
 		
@@ -327,9 +444,10 @@ if {$ccs(mod,name,$modname)} {
 	proc regban_whodel {nick uhost} {
 		variable regbanturn
 		
-		unset regbanturn(on,$nick,$uhost)		regbanturn(chans,$nick,$uhost) \
-			  regbanturn(server,$nick,$uhost)	regbanturn(status,$nick,$uhost) \
-			  regbanturn(hops,$nick,$uhost)		regbanturn(name,$nick,$uhost)
+		unset regbanturn(on,$nick,$uhost)			regbanturn(chans,$nick,$uhost) \
+			  regbanturn(server,$nick,$uhost)		regbanturn(status,$nick,$uhost) \
+			  regbanturn(hops,$nick,$uhost)			regbanturn(name,$nick,$uhost) \
+			  regbanturn(only_notify,$nick,$uhost)	regbanturn(lout,$nick,$uhost)
 		
 	}
 	
@@ -363,38 +481,51 @@ if {$ccs(mod,name,$modname)} {
 			if {$inc && ![string is space $regban(hops)] && $regban(hops) != $rhops} {set inc 0}
 			if {$inc && ![string is space $regban(name)] && ![regexp -nocase -- $regban(name) $rname]} {set inc 0}
 			
-			if {$inc} {regban_action $rid $nick $uhost}
+			if {$inc} {regban_action $rid $nick $uhost $regbanturn(only_notify,$nick,$uhost) $regbanturn(lout,$nick,$uhost)}
 			unset regban
 			
 		}
 		
+		if {$regbanturn(only_notify,$nick,$uhost)} {
+			set regbanturn(only_notify,$nick,$uhost) 0
+			set regbanturn(lout,$nick,$uhost) [list]
+		}
+		
 	}
 	
-	proc regban_action {id nick uhost} {
+	proc regban_action {id nick uhost {only_notify 0} {lout {}}} {
 		variable ccs
 		
 		array set regban $ccs(regban,$id)
 		
 		if {!$regban(enable)} {return}
 		
-		if {$regban(ban)} {
-			foreach _ $regban(chan) {
-				if {$regban(mask) > 0} {set mask [get_options "banmask" $_]} else {set mask $regban(mask)}
-				set dhost [get_mask "$nick!$uhost" $mask]
-				pushmode $_ +b $dhost
-			}
-		}
-		
-		if {$regban(kick)} {
-			foreach _ $regban(chan) {flushmode $_; putkick $_ $nick $regban(kickreson)}
-		}
-		
-		if {[llength $regban(notify)] > 0} {
-			foreach _ $regban(notify) {
-				if {[validuser $_] && ![check_isnull [set onick [hand2nick $_]]]} {
-					put_msgdest $onick "RegBan \002ID: $id\002; chan: \002[join $regban(chan) ","]\002; nick: \002$nick\002; host: \002$uhost\002[expr {[string is space $regban(notifytext)] ? "" : "; notice: \"\002$regban(notifytext)\002\""}]" -type notice
+		if {$only_notify} {
+			putlog "1-$lout"
+			foreach {onick ochan obot} $lout break
+			put_msg "RegBan \002ID: $id\002; chan: \002[join $regban(chan) ","]\002; nick: \002$nick\002; host: \002$uhost\002[expr {[string is space $regban(notifytext)] ? "" : "; notice: \"\002$regban(notifytext)\002\""}]"
+		} else {
+			
+			if {$regban(ban)} {
+				foreach _ $regban(chan) {
+					if {$regban(mask) > 0} {set mask [get_options "banmask" $_]} else {set mask $regban(mask)}
+					set dhost [get_mask "$nick!$uhost" $mask]
+					pushmode $_ +b $dhost
 				}
 			}
+			
+			if {$regban(kick)} {
+				foreach _ $regban(chan) {flushmode $_; putkick $_ $nick $regban(kickreson)}
+			}
+			
+			if {[llength $regban(notify)] > 0} {
+				foreach _ $regban(notify) {
+					if {[validuser $_] && ![check_isnull [set onick [hand2nick $_]]]} {
+						put_msgdest $onick "RegBan \002ID: $id\002; chan: \002[join $regban(chan) ","]\002; nick: \002$nick\002; host: \002$uhost\002[expr {[string is space $regban(notifytext)] ? "" : "; notice: \"\002$regban(notifytext)\002\""}]" -type notice
+					}
+				}
+			}
+			
 		}
 		
 	}
