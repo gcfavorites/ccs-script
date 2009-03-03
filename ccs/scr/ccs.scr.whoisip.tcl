@@ -3,9 +3,10 @@
 ##################################################################################################################
 # Список последних изменений (changelog):
 #	v1.1.3
+# - English translation
+#	v1.1.2
 # - Добавлена поддержка IPv6 (added IPv6 support, TCL 8.5 required)
 # - Часть функций перенесена в библиотеку ip (most of functions was moved to ip lib)
-# - English translation
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
@@ -54,54 +55,49 @@ if {$ccs(scr,name,$scrname)} {
 		{Get the whois-info about given host. You can specify nick, host, IP-address, web-gate address or longIP.}
 	}
 	set ccs(text,whoisip,ru,#101) "Не удалось преобразовать данные в IP адрес."
-	set ccs(text,whoisip,en,#101) "Can't proccess given data into IP-address."
 	set ccs(text,whoisip,ru,#102) "Полученные данные по запросу: \002%s\002. IPv4: \002%s\002, IPv6: \002%s\002, host: \002%s\002, Gate: \002%s\002, LongIP: \002%s\002. Диапазон относится к \002%s\002. Подсеть \002%s\002."
-	set ccs(text,whoisip,en,#102) "WHOIS-info about: \002%s\002. IPv4: \002%s\002, IPv6: \002%s\002, host: \002%s\002, Gate: \002%s\002, LongIP: \002%s\002. Range: \002%s\002. Subnet: \002%s\002."
-	#set ccs(text,whoisip,ru,#inetnum) "\002Диапазон\002: %s"
-	#set ccs(text,whoisip,en,#inetnum) "\002Range\002: %s"
+	
 	set ccs(text,whoisip,ru,#netname) "\002Имя сети\002: %s"
-	set ccs(text,whoisip,en,#netname) "\002Network name\002: %s"
 	set ccs(text,whoisip,ru,#descr) "\002descr\002: %s"
 	set ccs(text,whoisip,ru,#orgname) "\002descr\002: %s"
 	set ccs(text,whoisip,ru,#country) "\002Страна\002: %s"
-	set ccs(text,whoisip,en,#country) "\002Country\002: %s"
 	set ccs(text,whoisip,ru,#stateprov) "\002Штат\002: %s"
-	set ccs(text,whoisip,en,#stateprov) "\002State\002: %s"
 	set ccs(text,whoisip,ru,#postalcode) "\002Почтовый код\002: %s"
-	set ccs(text,whoisip,en,#postalcode) "\002Postal code\002: %s"
 	set ccs(text,whoisip,ru,#city) "\002Город\002: %s"
-	set ccs(text,whoisip,en,#city) "\002City\002: %s"
 	set ccs(text,whoisip,ru,#mnt-by) "\002mnt-by\002: %s"
 	set ccs(text,whoisip,ru,#person) "\002Лицо\002: %s"
-	set ccs(text,whoisip,en,#person) "\002Peron\002: %s"
 	set ccs(text,whoisip,ru,#orgtechname) "\002Лицо\002: %s"
-	set ccs(text,whoisip,en,#orgtechname) "\002Org. name\002: %s"
 	set ccs(text,whoisip,ru,#rtechname) "\002Лицо\002: %s"
-	set ccs(text,whoisip,en,#rtechname) "\002Reg. name\002: %s"
 	set ccs(text,whoisip,ru,#address) "\002Адрес\002: %s"
-	set ccs(text,whoisip,en,#address) "\002Address\002: %s"
 	set ccs(text,whoisip,ru,#e-mail) "\002E-mail\002: %s"
-	set ccs(text,whoisip,en,#e-mail) "\002E-mail\002: %s"
 	set ccs(text,whoisip,ru,#orgtechemail) "\002E-mail\002: %s"
 	set ccs(text,whoisip,ru,#rtechemail) "\002E-mail\002: %s"
-	set ccs(text,whoisip,en,#orgtechemail) "\002 Org. email\002: %s"
-	set ccs(text,whoisip,en,#rtechemail) "\002Reg. email\002: %s"
 	set ccs(text,whoisip,ru,#phone) "\002Тел.\002: %s"
-	set ccs(text,whoisip,en,#phone) "\002Phone\002: %s"
 	set ccs(text,whoisip,ru,#orgtechphone) "\002Тел.\002: %s"
 	set ccs(text,whoisip,ru,#rtechphone) "\002Тел.\002: %s"
+	
+	set ccs(text,whoisip,en,#101) "Can't proccess given data into IP-address."
+	set ccs(text,whoisip,en,#102) "WHOIS-info about: \002%s\002. IPv4: \002%s\002, IPv6: \002%s\002, host: \002%s\002, Gate: \002%s\002, LongIP: \002%s\002. Range: \002%s\002. Subnet: \002%s\002."
+	
+	set ccs(text,whoisip,en,#netname) "\002Network name\002: %s"
+	set ccs(text,whoisip,en,#descr) "\002descr\002: %s"
+	set ccs(text,whoisip,en,#orgname) "\002descr\002: %s"
+	set ccs(text,whoisip,en,#country) "\002Country\002: %s"
+	set ccs(text,whoisip,en,#stateprov) "\002State\002: %s"
+	set ccs(text,whoisip,en,#postalcode) "\002Postal code\002: %s"
+	set ccs(text,whoisip,en,#city) "\002City\002: %s"
+	set ccs(text,whoisip,en,#mnt-by) "\002mnt-by\002: %s"
+	set ccs(text,whoisip,en,#person) "\002Peron\002: %s"
+	set ccs(text,whoisip,en,#orgtechname) "\002Org. name\002: %s"
+	set ccs(text,whoisip,en,#rtechname) "\002Reg. name\002: %s"
+	set ccs(text,whoisip,en,#address) "\002Address\002: %s"
+	set ccs(text,whoisip,en,#e-mail) "\002E-mail\002: %s"
+	set ccs(text,whoisip,en,#orgtechemail) "\002 Org. email\002: %s"
+	set ccs(text,whoisip,en,#rtechemail) "\002Reg. email\002: %s"
+	set ccs(text,whoisip,en,#phone) "\002Phone\002: %s"
 	set ccs(text,whoisip,en,#orgtechphone) "\002Org. phone\002: %s"
 	set ccs(text,whoisip,en,#rtechphone) "\002Reg. phone\002: %s"
 
-	#set ccs(text,whoisip,ru,#inetnum) "Диапазон: \00312%s\017"
-	#set ccs(text,whoisip,ru,#descr) "descr: \00303%s\017"
-	#set ccs(text,whoisip,ru,#country) "Страна: \00304%s\017"
-	#set ccs(text,whoisip,ru,#mnt-by) "mnt-by: \00303%s\017"
-	#set ccs(text,whoisip,ru,#person) "Лицо: \00306%s\017"
-	#set ccs(text,whoisip,ru,#address) "Адрес: \00306%s\017"
-	#set ccs(text,whoisip,ru,#e-mail) "E-mail: \00306%s\017"
-	#set ccs(text,whoisip,ru,#phone) "Тел.: \00302%s\017"
-	
 	set ccs(ipv4_address_space) {
 		{010/8}			{IANA - Private Use}		{}
 		{127/8}			{IANA - Loopback}			{}
