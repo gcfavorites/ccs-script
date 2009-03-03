@@ -4,6 +4,7 @@
 # Список последних изменений (changelog):
 #	v1.1.3
 # - English translation
+# - Заменена функция lsearch_equal
 #	v1.1.2
 # - Добавлена поддержка IPv6 (added IPv6 support, TCL 8.5 required)
 # - Часть функций перенесена в библиотеку ip (most of functions was moved to ip lib)
@@ -12,14 +13,14 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set scrname		"whoisip"
 addfileinfo scr $scrname "Buster <buster@ircworld.ru> (c)" \
-				"1.1.3" \
+				"1.1.4" \
 				"01-MAR-2009" \
 				"Скрипт выдающий информацию по IP адресу"
 
 if {$ccs(scr,name,$scrname)} {
 	
 	set llib [get_fileinfo lib 1]
-	if {[lsearch_equal $llib "ip"] < 0} {debug "\002\00304${scrname} not loaded\002\003: \"ip\" lib not loaded or disabled, please install \"ip\" lib"; return 0}
+	if {[lsearch -exact $llib "ip"] < 0} {debug "\002\00304${scrname} not loaded\002\003: \"ip\" lib not loaded or disabled, please install \"ip\" lib"; return 0}
 	
 	lappend ccs(scr_commands)	"whoisip"
 	
@@ -407,7 +408,7 @@ if {$ccs(scr,name,$scrname)} {
 						set whoisipturn($token,range) $b
 					}
 					
-					if {[lsearch_equal $ccs(whoisip_info) $a] < 0} {continue}
+					if {[lsearch -exact $ccs(whoisip_info) $a] < 0} {continue}
 					
 					if {$last_info != $a} {
 						if {$last_info != ""} {

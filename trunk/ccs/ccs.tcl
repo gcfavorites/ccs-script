@@ -639,16 +639,16 @@ namespace eval ::ccs {
 				foreach {ftype fname flang fversion fauthor fdate ffiles furl fdiscription} $_ break
 				
 				if {$dtype != "*"} {
-					if {[lsearch_equal [split $dtype ,] $ftype] < 0} continue
+					if {[lsearch -exact [split $dtype ,] $ftype] < 0} continue
 				}
 				if {$dname != "*"} {
-					if {[lsearch_equal [split $dname ,] $fname] < 0} continue
+					if {[lsearch -exact [split $dname ,] $fname] < 0} continue
 				}
 				if {$dlang != "*" && $flang != "*"} {
-					if {[lsearch_equal [split $dlang ,] $flang] < 0} continue
+					if {[lsearch -exact [split $dlang ,] $flang] < 0} continue
 				}
 				
-				if {[lsearch_equal $ccs(ltype) $ftype] < 0} {continue}
+				if {[lsearch -exact $ccs(ltype) $ftype] < 0} {continue}
 				set name $fname
 				if {$ftype == "lang"} {append name ",$flang"}
 				
@@ -695,17 +695,17 @@ namespace eval ::ccs {
 					if {$dtype == "*"} {
 						if {$ftype != "mod" && $ftype != "lang"} continue
 					} else {
-						if {[lsearch_equal [split $dtype ,] $ftype] < 0} continue
+						if {[lsearch -exact [split $dtype ,] $ftype] < 0} continue
 					}
 					if {$dname != "*"} {
-						if {[lsearch_equal [split $dname ,] $fname] < 0} continue
+						if {[lsearch -exact [split $dname ,] $fname] < 0} continue
 					}
 					if {$dlang != "*" && $flang != "*"} {
-						if {[lsearch_equal [split $dlang ,] $flang] < 0} continue
+						if {[lsearch -exact [split $dlang ,] $flang] < 0} continue
 					}
 					
 				}
-				if {[lsearch_equal $ccs(ltype) $ftype] < 0} {continue}
+				if {[lsearch -exact $ccs(ltype) $ftype] < 0} {continue}
 				set name $fname
 				if {$ftype == "lang"} {append name ",$flang"}
 				
@@ -821,7 +821,7 @@ namespace eval ::ccs {
 				if {[string is space $_]} continue
 				foreach {ftype fname flang fversion fauthor fdate ffiles fdiscription} $_ break
 				
-				if {[lsearch_equal $ccs(ltype) $ftype] < 0} {continue}
+				if {[lsearch -exact $ccs(ltype) $ftype] < 0} {continue}
 				set name $fname
 				if {$ftype == "lang"} {append name ",$flang"}
 				
@@ -918,7 +918,7 @@ namespace eval ::ccs {
 			set par_group		[regexp -nocase -all -- {-g(?:roup)?\ +([\w]+)} $stext -> group]
 			set par_limit		[regexp -nocase -all -- {-l(?:imit)?} $stext]
 			set par_scr			[regexp -nocase -all -- {-s(?:cript(?:s)?)?} $stext]
-			if {$par_group && [lsearch_equal $ccs(groups) [string tolower $group]] < 0} \
+			if {$par_group && [lsearch -exact $ccs(groups) [string tolower $group]] < 0} \
 				{put_msg [sprintf ccs #177 $group [join $ccs(groups)]] -speed 3; return 0}
 			if {!$par_group && $ccs(help_group)} {put_msg [sprintf ccs #178 [join $ccs(groups)]] -speed 3; return 0}
 		}
@@ -967,18 +967,12 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Процедуры авторизации пользователей (AUTH).
 	
-	proc lsearch_equal {llist pattern} {
-		set ind 0
-		foreach _ $llist {if {[string equal $_ $pattern]} {return $ind}; incr ind}
-		return -1
-	}
-	
 	# Процедура авторизации по нику/хендлу
 	proc addauth {shand snick shost} {
 		variable ccs
 		
 		set authnick [getuser $shand XTRA AuthNick]
-		if {[lsearch_equal $authnick $snick!$shost] >= 0} {return 0}
+		if {[lsearch -exact $authnick $snick!$shost] >= 0} {return 0}
 		lappend authnick $snick!$shost
 		setuser $shand XTRA AuthNick $authnick
 		chattr $shand +$ccs(flag_auth)
@@ -991,7 +985,7 @@ namespace eval ::ccs {
 		variable ccs
 		
 		set authnick [getuser $shand XTRA AuthNick]
-		if {[set ind [lsearch_equal $authnick $snick!$shost]] < 0} {return 0}
+		if {[set ind [lsearch -exact $authnick $snick!$shost]] < 0} {return 0}
 		set authnick [lreplace $authnick $ind $ind]
 		setuser $shand XTRA AuthNick $authnick
 		if {[llength $authnick] == 0} {chattr $shand -$ccs(flag_auth)}
@@ -1004,7 +998,7 @@ namespace eval ::ccs {
 		variable ccs
 		
 		set authnick [getuser $shand XTRA AuthBot]
-		if {[lsearch_equal $authnick $sbothand] >= 0} {return 0}
+		if {[lsearch -exact $authnick $sbothand] >= 0} {return 0}
 		lappend authnick $sbothand
 		setuser $shand XTRA AuthBot $authnick
 		chattr $shand +$ccs(flag_auth_botnet)
@@ -1017,7 +1011,7 @@ namespace eval ::ccs {
 		variable ccs
 		
 		set authnick [getuser $shand XTRA AuthBot]
-		if {[set ind [lsearch_equal $authnick $sbothand]] < 0} {return 0}
+		if {[set ind [lsearch -exact $authnick $sbothand]] < 0} {return 0}
 		set authnick [lreplace $authnick $ind $ind]
 		setuser $shand XTRA AuthBot $authnick
 		if {[llength $authnick] == 0} {chattr $shand -$ccs(flag_auth_botnet)}
@@ -1149,7 +1143,7 @@ namespace eval ::ccs {
 			put_log "OFF"
 		} else {
 			set authnick [getuser $shand XTRA AuthNick]
-			set ind [lsearch_equal $authnick $snick!$shost]
+			set ind [lsearch -exact $authnick $snick!$shost]
 			if {$ind < 0} {return 0}
 			lset authnick $ind $newnick!$shost
 			setuser $shand XTRA AuthNick $authnick
@@ -1235,7 +1229,7 @@ namespace eval ::ccs {
 		
 		if {![matchattr $shand $ccs(flag_auth_botnet)]} {return 0}
 		set authnick [getuser $shand XTRA AuthBot]
-		set ind [lsearch_equal $authnick $sbot]
+		set ind [lsearch -exact $authnick $sbot]
 		if {$ind < 0} {return 0}
 		
 		if {[info exists afterid(authoff,$shand,$sbot)]} {after cancel $afterid(authoff,$shand,$sbot)}
@@ -1888,12 +1882,12 @@ namespace eval ::ccs {
 		}
 		if {[matchattr $shand $ccs(flag_auth)]} {
 			set authnick [getuser $shand XTRA AuthNick]
-			set ind [lsearch_equal $authnick $snick!$shost]
+			set ind [lsearch -exact $authnick $snick!$shost]
 			if {$ind >= 0} {return 1}
 		}
 		if {![check_isnull $sbot] && [matchattr $shand $ccs(flag_auth_botnet)]} {
 			set authnick [getuser $shand XTRA AuthBot]
-			set ind [lsearch_equal $authnick $sbot]
+			set ind [lsearch -exact $authnick $sbot]
 			if {$ind >= 0} {return 1}
 		}
 		global botnick
@@ -2326,7 +2320,7 @@ namespace eval ::ccs {
 		
 		foreach command [concat $ccs(commands) $ccs(scr_commands)] {
 			if {![use_command $command]} continue
-			if {[lsearch_equal $ccs(groups) $ccs(group,$command)] < 0} {lappend ccs(groups) $ccs(group,$command)}
+			if {[lsearch -exact $ccs(groups) $ccs(group,$command)] < 0} {lappend ccs(groups) $ccs(group,$command)}
 			
 			foreach _ $ccs(alias,$command) {
 				
