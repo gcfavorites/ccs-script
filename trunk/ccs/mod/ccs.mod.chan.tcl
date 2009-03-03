@@ -1,13 +1,16 @@
 ##################################################################################################################
 ## ћодуль с канальными командами управлени€
 ##################################################################################################################
+# —писок последних изменений:
+#	v1.2.7
+# - ƒл€ команды !channels добавлен вывод секретных каналов если у запрашиваемого достаточно прав.
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"chan"
 addmod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.6" \
-				"11-Nov-2008" \
+				"1.2.7" \
+				"03-Mar-2009" \
 				"ћодуль управление списком каналов и настройки канальных флагов."
 
 if {$ccs(mod,name,$modname)} {
@@ -427,8 +430,10 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_channels {} {
+		variable ccs
 		importvars [list onick ochan obot snick shand schan command]
 		
+		set permission_secret_chan [check_matchattr $shand $schan $ccs(permission_secret_chan)]
 		set chans [list]
 		foreach _ [channels] {
 			if {[botonchan $_]} {set people [llength [chanlist $_]]} else {set people "b"}
@@ -439,7 +444,7 @@ if {$ccs(mod,name,$modname)} {
 			if {[botisvoice $_]} {set prefix "+"}
 			if {[botishalfop $_]} {set prefix "%"}
 			if {[botisop $_]} {set prefix "@"}
-			if {!$secret} {lappend chans "${prefix}$_[expr {$channame != $_ ? " ($channame)" : ""}] ($people)"}
+			if {!$secret || $permission_secret_chan} {lappend chans "[expr {$secret ? "(s)" : ""}]${prefix}$_[expr {$channame != $_ && $channame != "" ? " ($channame)" : ""}] ($people)"}
 		}
 		
 		put_msg [sprintf chan #101 [join $chans ", "]]

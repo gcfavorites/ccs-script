@@ -2,6 +2,8 @@
 ## Модуль управления пользователями
 ##################################################################################################################
 # Список последних изменений:
+#	v1.2.6
+# - Добавлена команда !match показывающая список юзеров, сидящих на канале, с указанной хостмаской
 #	v1.2.4
 # - Для команды !delhost теперь по умолчанию используется указание полной хостмаски, чтобы указать маску хостмаски
 #   необходимо перед маской поставить ключ -m
@@ -10,8 +12,9 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"users"
 addfileinfo mod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.5" \
-				"24-Feb-2008"
+				"1.2.6" \
+				"03-Mar-2009" \
+				"Модуль управление юзер листом бота."
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -112,6 +115,7 @@ if {$ccs(mod,name,$modname)} {
 	lappend ccs(commands)	"chhandle"
 	lappend ccs(commands)	"setinfo"
 	lappend ccs(commands)	"delinfo"
+	lappend ccs(commands)	"match"
 	
 	set ccs(group,adduser) "user"
 	set ccs(use_chan,adduser) 0
@@ -180,6 +184,13 @@ if {$ccs(mod,name,$modname)} {
 	set ccs(alias,delinfo) {%pref_delinfo}
 	set ccs(block,delinfo) 1
 	set ccs(regexp,delinfo) {{^([^\ ]+)$} {-> dnick sinfo}}
+	
+	set ccs(group,match) "user"
+	set ccs(use_chan,match) 3
+	set ccs(flags,match) {lf|lf}
+	set ccs(alias,match) {%pref_match}
+	set ccs(block,match) 5
+	set ccs(regexp,match) {{^(.+?)$} {-> smask}}
 	
 	#############################################################################################################
 	#############################################################################################################
@@ -322,6 +333,41 @@ if {$ccs(mod,name,$modname)} {
 		
 		put_msg [sprintf users #113 [join $lptext ", "] [join $louser ", "]]
 		put_log "$text"
+		return 1
+		
+	}
+	
+	proc cmd_match {} {
+		variable ccs
+		importvars [list onick ochan obot snick shand schan command smask]
+		
+		if {[check_isnull $schan]} {
+			if {[check_matchattr $shand $schan $ccs(permission_secret_chan)]} {
+				set lchan [channels]
+			} else {
+				set lchan [list]
+				foreach _ [channels] {
+					if {![channel get $_ secret]} {lappend lchan $_}
+				}
+			}
+		} else {
+			set lchan [list $schan]
+		}
+		
+		set find 0
+		foreach _0 $lchan {
+			set luser [list]
+			foreach _1 [chanlist $_0] {
+				if {[string match -nocase $smask "$_1![getchanhost $_1 $_0]"]} {
+					lappend luser "$_1![getchanhost $_1 $_0]"
+					set find 1
+				}
+			}
+			if {[llength $luser] > 0} {put_msg "\002$_0\002: [join $luser ", "]"}
+		}
+		
+		if {!$find} {put_msg [sprintf users #122]}
+		put_log "$smask"
 		return 1
 		
 	}
