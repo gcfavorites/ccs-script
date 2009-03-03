@@ -1,6 +1,6 @@
 ##################################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.7.5.
+## Version: 1.7.6.
 ## Script's author: Buster (Buster@ircworld.ru) (http://buster-net.ru/index.php?section=irc&theme=scripts).
 ##                                              (http://eggdrop.msk.ru/index.php?section=irc&theme=scripts).
 ## Forum:           http://forum.systemplanet.ru/viewtopic.php?f=3&t=3
@@ -26,6 +26,10 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ##################################################################################################################
 # Список последних изменений:
+#	v1.7.6
+# - Добавлена переменная ccs(permission_secret_chan) указывающая флаг доступа для работы с секретными каналами.
+# - Для команды !channels добавлен вывод секретных каналовб если у запрашиваемого достаточно прав.
+# - Добавлена команда !match показывающая список юзеров, сидящих на канале, с указанной хостмаской
 #	v1.7.5
 # - 	Добавлено свойство ccs(override_level,command) с помощью которого можно переопределить уровень доступа юзера
 #   для выполнения команды. Более подробная информация в описании всех параметров команд.
@@ -71,8 +75,8 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@ircworld.ru> (c)"
-	variable version	"1.7.5"
-	variable date		"24-Feb-2009"
+	variable version	"1.7.6"
+	variable date		"03-Mar-2009"
 	
 	variable ccs
 	
@@ -98,9 +102,9 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Список хостов для автоматического обновления. _НЕ ИЗМЕНЯТЬ_
 	set ccs(urls)	{
-		http://bots.systemplanet.ru/scripts/ccs/ccsversion4.txt
 		http://buster-net.ru/files/irc/scripts/ccs/ccsversion4.txt
-		http://eggdrop.msk.ru/files/irc/scripts/ccs/ccsversion4.txt
+		http://reserve.buster-net.ru/files/irc/scripts/ccs/ccsversion4.txt
+		http://bots.systemplanet.ru/scripts/ccs/ccsversion4.txt
 	}
 	
 	#############################################################################################################
@@ -211,6 +215,10 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Время в миллисекундах, в течение которого ждать ответа от бота при проверки авторизации.
 	set ccs(time_botauth_receive)	10000
+	
+	#############################################################################################################
+	# Минимальный флаг доступа к секретным каналам.
+	set ccs(permission_secret_chan)	"m|-"
 	
 	#############################################################################################################
 	# Удаление, восстановление, переопределение стандартных приватных команд бота.
@@ -1664,11 +1672,8 @@ namespace eval ::ccs {
 		importvars [list snick shand schan onick ochan obot command]
 		upvar dchan dchan dhand dhand dnick dnick
 		set saccess [get_accesshand $shand $dchan 1]
-		putlog "1-$saccess $command [info exists ccs(override_level,$command)]"
 		if {[info exists ccs(override_level,$command)] && $ccs(override_level,$command) > $saccess} {set saccess $ccs(override_level,$command)}
-		putlog "2-$saccess"
 		set daccess [get_accesshand $dhand $dchan]
-		putlog "3-$daccess"
 		if {($saccess <= $daccess)} {put_msg [sprintf ccs #102 $command [get_nick $dnick $dhand]]; return 1}
 		return 0
 	}
