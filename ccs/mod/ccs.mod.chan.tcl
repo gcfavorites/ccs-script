@@ -4,6 +4,7 @@
 # Список последних изменений:
 #	v1.2.7
 # - Для команды !channels добавлен вывод секретных каналов если у запрашиваемого достаточно прав.
+# - Заменена функция lsearch_equal
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
@@ -209,9 +210,9 @@ if {$ccs(mod,name,$modname)} {
 		
 		foreach _ $lparam {
 			
-			if {[lsearch_equal $data $_] >= 0} {
+			if {[lsearch -exact $data $_] >= 0} {
 				lappend lold $_
-			} elseif {[lsearch_equal $lver $_] < 0} {
+			} elseif {[lsearch -exact $lver $_] < 0} {
 				lappend lerr $_
 			} else {
 				lappend lnew $_
@@ -262,7 +263,7 @@ if {$ccs(mod,name,$modname)} {
 		
 		foreach _ $lparam {
 			
-			if {[lsearch_equal $data $_] >= 0} {
+			if {[lsearch -exact $data $_] >= 0} {
 				lappend ldel $_
 			} else {
 				lappend lno $_
@@ -278,7 +279,7 @@ if {$ccs(mod,name,$modname)} {
 		}
 		
 		set newdata [list]
-		foreach _ $data {if {[lsearch_equal $ldel $_] < 0} {lappend newdata $_}}
+		foreach _ $data {if {[lsearch -exact $ldel $_] < 0} {lappend newdata $_}}
 		
 		if {[catch {
 			savefile $filename $newdata
@@ -319,7 +320,7 @@ if {$ccs(mod,name,$modname)} {
 		foreach _ [channel info $schan] {
 			incr ind
 			foreach {name flag res1 res2} [get_chaninfo $ind $_] break
-			if {$usetemplate && [lsearch_equal $tdata $name] < 0} continue
+			if {$usetemplate && [lsearch -exact $tdata $name] < 0} continue
 			lappend data [list $name $flag $res2]
 			lappend lok $name
 		}
@@ -362,7 +363,7 @@ if {$ccs(mod,name,$modname)} {
 		set lerr [list]
 		set lok [list]
 		foreach _ $data {
-			if {$usetemplate && [lsearch_equal $tdata [lindex $_ 0]] < 0} continue
+			if {$usetemplate && [lsearch -exact $tdata [lindex $_ 0]] < 0} continue
 			if {[catch {
 				if {[lindex $_ 1]} {
 					channel set $schan [lindex $_ 2]
@@ -414,7 +415,7 @@ if {$ccs(mod,name,$modname)} {
 		foreach _ [channel info $schan] {
 			incr ind
 			foreach {name flag res1 res2} [get_chaninfo $ind $_] break
-			if {$usetemplate && [lsearch_equal $tdata $name] < 0} continue
+			if {$usetemplate && [lsearch -exact $tdata $name] < 0} continue
 			lappend lok $name
 			if {$flag} {channel set $dchan $res2} else {channel set $dchan $name $res2}
 		}

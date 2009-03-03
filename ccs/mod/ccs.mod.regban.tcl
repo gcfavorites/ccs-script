@@ -2,6 +2,8 @@
 ## Модуль управления регулярными банами
 ##################################################################################################################
 # Список последних изменений:
+#	v1.2.6
+# - Заменена функция lsearch_equal
 #	v1.2.5
 # - Добавлены две новые команды !regbantest и !regbanaction
 
@@ -9,8 +11,8 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"regban"
 addmod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.5" \
-				"25-Feb-2009"
+				"1.2.6" \
+				"03-Mar-2009"
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -197,7 +199,7 @@ if {$ccs(mod,name,$modname)} {
 		set regban(notify)		[list]
 		set regban(notifytext)	$rnotifytext
 		foreach _ [split $rnotify ", "] {
-			if {![string is space $_] && [lsearch_equal $regban(notify) $_] < 0} {lappend regban(notify) $_}
+			if {![string is space $_] && [lsearch -exact $regban(notify) $_] < 0} {lappend regban(notify) $_}
 		}
 		
 		set ccs(regban,$rid) [array get regban]
@@ -414,7 +416,7 @@ if {$ccs(mod,name,$modname)} {
 			if {$regbanturn(on,$nick,$uhost)} {
 				set regbanturn(chans,$nick,$uhost) [list $chan]
 				regban_whotest $nick $uhost
-			} elseif {[lsearch_equal $regbanturn(chans,$nick,$uhost) $chan] < 0} {
+			} elseif {[lsearch -exact $regbanturn(chans,$nick,$uhost) $chan] < 0} {
 				lappend regbanturn(chans,$nick,$uhost) $chan
 			}
 			
