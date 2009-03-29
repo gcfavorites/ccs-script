@@ -1,6 +1,6 @@
 ##################################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.7.7.
+## Version: 1.7.8.
 ## Script's author: Buster (buster@buster-net.ru) (http://buster-net.ru/index.php?section=irc&theme=scripts).
 ##                                              (http://eggdrop.msk.ru/index.php?section=irc&theme=scripts).
 ## Forum:           http://forum.systemplanet.ru/viewtopic.php?f=3&t=3
@@ -26,6 +26,8 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ##################################################################################################################
 # Список последних изменений:
+#	v1.7.8
+# - Для команды !ccsupdate добавлена загрузка шаблонов настроек ccs.rX.tcl. (!ccsupdate template)
 #	v1.7.7
 # - Добавлен флаг ccs(usecolors). Если какой либо скрипт использует цветовую раскраску и для данного скрипта есть
 #   черно белая цветовая гамма, то выставляя этот параметр в 1 можно задействовать её.
@@ -158,7 +160,7 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@buster-net.ru> (c)"
-	variable version	"1.7.7"
+	variable version	"1.7.8"
 	variable date		"29-Mar-2009"
 	
 	variable ccs
@@ -198,14 +200,15 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Список хостов для автоматического обновления. _НЕ ИЗМЕНЯТЬ_
 	set ccs(urls)	{
-		http://buster-net.ru/files/irc/scripts/ccs/ccsversion4.txt
-		http://reserve.buster-net.ru/files/irc/scripts/ccs/ccsversion4.txt
-		http://bots.systemplanet.ru/scripts/ccs/ccsversion4.txt
+		http://buster-net.ru/files/irc/scripts/ccs
+		http://reserve.buster-net.ru/files/irc/scripts/ccs
+		http://bots.systemplanet.ru/scripts/ccs
 	}
+	set ccs(file_ccsversion)		"ccsversion4.txt"
 	
 	#############################################################################################################
 	# Список загружаемых типов файлов. _НЕ ИЗМЕНЯТЬ_
-	set ccs(ltype) {mod lang scr lib}
+	set ccs(ltype)					{mod lang scr lib}
 	
 	#############################################################################################################
 	# Список языков по умолчанию для выводимого текста. Значение может быть переопределено выставлением
@@ -411,7 +414,7 @@ namespace eval ::ccs {
 	set ccs(flags,update)		{n}
 	set ccs(alias,update)		{%pref_updateccs %pref_ccsupdate}
 	set ccs(block,update)		5
-	set ccs(regexp,update)		{{^(list|download|update)(?:\ +(.*?))?$} {-> stype stext}}
+	set ccs(regexp,update)		{{^(list|download|update|template)(?:\ +(.*?))?$} {-> stype stext}}
 	
 	set ccs(group,help)			"info"
 	set ccs(use_auth,help)		0
@@ -457,7 +460,7 @@ namespace eval ::ccs {
 	proc get_use_mode {schan command} {
 		if {[check_isnull $schan]} {return "user"}
 		set res [channel get $schan ccs-mode-$command]
-		switch -- $res {
+		switch -exact -- $res {
 			channel	{return "chan"}
 			chan	{return "chan"}
 			notice	{return "notice"}
@@ -484,7 +487,7 @@ namespace eval ::ccs {
 		
 		if {[check_isnull $schan]} {
 			
-			switch -- $use_chan {
+			switch -exact -- $use_chan {
 				0 {}
 				1 {
 					if {![regexp -- {^([^\ ]+)(?:\ +(.*?))?$} $text -> chan1 text1]} {put_help; return 0}
@@ -678,98 +681,44 @@ namespace eval ::ccs {
 			put_msg [sprintf ccs #199]; return 0
 		}
 		
-		switch -- [string tolower $stype] {
+		switch -exact -- [string tolower $stype] {
 			"list"		{set type 1}
 			"download"	{set type 2}
 			"update"	{set type 3}
+			"template"	{set type 4}
 			default		{put_help; return 0}
 		}
 		
-		if {$type == 1} {
-			
-			if {[regexp -nocase -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dtype]} {
-				regsub -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
-			} else {
-				set dtype "*"
-			}
-			
-			if {[regexp -nocase -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dname]} {
-				regsub -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
-			} else {
-				set dname "*"
-			}
-			
-			if {[regexp -nocase -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dlang]} {
-				regsub -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
-			} else {
-				set dlang "*"
-			}
-			
-			if {[string length [string trim $stext]] != 0} {put_help; return 0}
-			
-			set find 0
-			set error 0
-			set update 0
-			foreach _ [get_lversion] {
-				foreach {ftype fname flang fversion fauthor fdate ffiles furl fdiscription} $_ break
+		switch -exact -- $type {
+			1 {
 				
-				if {$dtype != "*"} {
-					if {[lsearch -exact [split $dtype ,] $ftype] < 0} continue
-				}
-				if {$dname != "*"} {
-					if {[lsearch -exact [split $dname ,] $fname] < 0} continue
-				}
-				if {$dlang != "*" && $flang != "*"} {
-					if {[lsearch -exact [split $dlang ,] $flang] < 0} continue
+				if {[regexp -nocase -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dtype]} {
+					regsub -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
+				} else {
+					set dtype "*"
 				}
 				
-				if {[lsearch -exact $ccs(ltype) $ftype] < 0} {continue}
-				set name $fname
-				if {$ftype == "lang"} {append name ",$flang"}
+				if {[regexp -nocase -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dname]} {
+					regsub -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
+				} else {
+					set dname "*"
+				}
 				
-				if {![compare_version [set cversion [get_version $ftype $name]] $fversion]} continue
+				if {[regexp -nocase -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dlang]} {
+					regsub -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
+				} else {
+					set dlang "*"
+				}
 				
-				set find 1
-				put_msg [sprintf ccs #195 $ftype $fname $flang $fdate $cversion $fversion]
-			}
-			if {!$find} {
-				put_msg [sprintf ccs #189]
-				return 1
-			}
-			
-		} elseif {$type == 2 || $type == 3} {
-			
-			if {[regexp -nocase -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dtype]} {
-				regsub -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
-			} else {
-				set dtype "*"
-			}
-			
-			if {[regexp -nocase -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dname]} {
-				regsub -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
-			} else {
-				set dname "*"
-			}
-			
-			if {[regexp -nocase -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dlang]} {
-				regsub -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
-			} else {
-				set dlang "*"
-			}
-			
-			if {$type == 2 && (($dtype == "*" && $dname == "*" && $dlang == "*") || [string length [string trim $stext]] != 0)} {put_help; return 0}
-			
-			set find 0
-			set error 0
-			set update 0
-			foreach _ [get_lversion] {
-				foreach {ftype fname flang fversion fauthor fdate ffiles furl fdiscription} $_ break
+				if {[string length [string trim $stext]] != 0} {put_help; return 0}
 				
-				if {$type == 2} {
+				set find 0
+				set error 0
+				set update 0
+				foreach _ [get_lversion] {
+					foreach {ftype fname flang fversion fauthor fdate ffiles furl fdiscription} $_ break
 					
-					if {$dtype == "*"} {
-						if {$ftype != "mod" && $ftype != "lang"} continue
-					} else {
+					if {$dtype != "*"} {
 						if {[lsearch -exact [split $dtype ,] $ftype] < 0} continue
 					}
 					if {$dname != "*"} {
@@ -779,45 +728,129 @@ namespace eval ::ccs {
 						if {[lsearch -exact [split $dlang ,] $flang] < 0} continue
 					}
 					
+					if {[lsearch -exact $ccs(ltype) $ftype] < 0} {continue}
+					set name $fname
+					if {$ftype == "lang"} {append name ",$flang"}
+					
+					if {![compare_version [set cversion [get_version $ftype $name]] $fversion]} continue
+					
+					set find 1
+					put_msg [sprintf ccs #195 $ftype $fname $flang $fdate $cversion $fversion]
 				}
-				if {[lsearch -exact $ccs(ltype) $ftype] < 0} {continue}
-				set name $fname
-				if {$ftype == "lang"} {append name ",$flang"}
+				if {!$find} {
+					put_msg [sprintf ccs #189]
+					return 1
+				}
 				
-				set cversion [get_version $ftype $name]
-				if {$type == 3 && $cversion == ""} continue
-				if {![compare_version $cversion $fversion]} continue
+			}
+			2 - 3 {
 				
-				set find 1
-				put_msg [sprintf ccs #195 $ftype $fname $flang $fdate $cversion $fversion]
-				set urlpath [get_dirname $furl]
-				foreach {sfile dfile} $ffiles {
-					set file [string map [list %pscr $ccs(scrdir) %plib $ccs(libdir) %plang $ccs(langdir) %pmod $ccs(moddir) %is $ccs(info_script)] $dfile]
-					if {[update_file $urlpath/$sfile $file]} {
-						incr update
-						put_log "$urlpath/$sfile to $file v$fversion (successfull)."
-					} else {
-						incr error
-						put_log "$urlpath/$sfile to $file v$fversion (\0034unsuccessfull\003)."
+				if {[regexp -nocase -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dtype]} {
+					regsub -- {-type\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
+				} else {
+					set dtype "*"
+				}
+				
+				if {[regexp -nocase -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dname]} {
+					regsub -- {-name\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
+				} else {
+					set dname "*"
+				}
+				
+				if {[regexp -nocase -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext -> dlang]} {
+					regsub -- {-lang\s+([[:alpha:],\*]+)(?:$|\s+)} $stext {} stext
+				} else {
+					set dlang "*"
+				}
+				
+				if {$type == 2 && (($dtype == "*" && $dname == "*" && $dlang == "*") || [string length [string trim $stext]] != 0)} {put_help; return 0}
+				
+				set find 0
+				set error 0
+				set update 0
+				foreach _ [get_lversion] {
+					foreach {ftype fname flang fversion fauthor fdate ffiles furl fdiscription} $_ break
+					
+					if {$type == 2} {
+						
+						if {$dtype == "*"} {
+							if {$ftype != "mod" && $ftype != "lang"} continue
+						} else {
+							if {[lsearch -exact [split $dtype ,] $ftype] < 0} continue
+						}
+						if {$dname != "*"} {
+							if {[lsearch -exact [split $dname ,] $fname] < 0} continue
+						}
+						if {$dlang != "*" && $flang != "*"} {
+							if {[lsearch -exact [split $dlang ,] $flang] < 0} continue
+						}
+						
+					}
+					if {[lsearch -exact $ccs(ltype) $ftype] < 0} {continue}
+					set name $fname
+					if {$ftype == "lang"} {append name ",$flang"}
+					
+					set cversion [get_version $ftype $name]
+					if {$type == 3 && $cversion == ""} continue
+					if {![compare_version $cversion $fversion]} continue
+					
+					set find 1
+					put_msg [sprintf ccs #195 $ftype $fname $flang $fdate $cversion $fversion]
+					foreach {sfile dfile} $ffiles {
+						set file [string map [list %pscr $ccs(scrdir) %plib $ccs(libdir) %plang $ccs(langdir) %pmod $ccs(moddir) %is $ccs(info_script)] $dfile]
+						if {[update_file $furl/$sfile $file]} {
+							incr update
+							put_log "$furl/$sfile to $file v$fversion (successfull)."
+						} else {
+							incr error
+							put_log "$furl/$sfile to $file v$fversion (\0034unsuccessfull\003)."
+						}
 					}
 				}
-			}
-			if {!$find} {
-				put_msg [sprintf ccs #189]
-				return 1
-			} else {
-				put_msg [sprintf ccs #196 $update $error]
-				if {$error > 0} {
-					put_msg [sprintf ccs #197]
+				if {!$find} {
+					put_msg [sprintf ccs #189]
+					return 1
 				} else {
-					put_msg [sprintf ccs #166]
-					save
-					put_msg [sprintf ccs #167]
-					rehash
+					put_msg [sprintf ccs #196 $update $error]
+					if {$error > 0} {
+						put_msg [sprintf ccs #197]
+					} else {
+						put_msg [sprintf ccs #166]
+						save
+						put_msg [sprintf ccs #167]
+						rehash
+					}
+					return 1
 				}
-				return 1
+				
 			}
-			
+			4 {
+				
+				for {set i 0} {$i <= 6} {incr i} {
+					foreach _ $ccs(urls) {
+						
+						set data [get_httpdata "$_/ccs.r${i}-template.tcl"]
+						if {[string is space $data]} continue
+						set data [encoding convertfrom cp1251 $data]
+						
+						if {[file exists "$ccs(ccsdir)/ccs.r${i}.tcl"]} {
+							set file "ccs.r${i}-template.tcl"
+						} else {
+							set file "ccs.r${i}.tcl"
+						}
+						if {[catch {
+							savefile "$ccs(ccsdir)/$file" $data
+						} errMsg]} {
+							put_msg [sprintf ccs #192 $errMsg]
+						} else {
+							put_msg [sprintf ccs #191 "$ccs(ccsdir)/$file"]
+						}
+						break
+						
+					}
+				}
+				
+			}
 		}
 		
 	}
@@ -889,8 +922,8 @@ namespace eval ::ccs {
 		variable ccs
 		
 		foreach url $ccs(urls) {
-			put_msg [sprintf ccs #193 $url]
-			if {[string is space [set data [get_httpdata $url]]]} continue
+			put_msg [sprintf ccs #193 "$url/$ccs(file_ccsversion)"]
+			if {[string is space [set data [get_httpdata "$url/$ccs(file_ccsversion)"]]]} continue
 			foreach _ [split $data \n] {
 				
 				if {[string is space $_]} continue
@@ -1475,7 +1508,7 @@ namespace eval ::ccs {
 		
 		set maddr [maskhost $uhost]
 		set mhost [string range $maddr [expr [string first @ $maddr]+1] end]
-		switch -- $ind {
+		switch -exact -- $ind {
 			0 {return $nick!$ident@$host}
 			1 {return *!$ident@$host}
 			2 {return *!$nident@$host}
@@ -1579,7 +1612,7 @@ namespace eval ::ccs {
 		append out_text "\002[lindex $alias 0]"
 		if {$type != "pub"} {
 			set use_chan [get_var use_chan $command 1]
-			switch -- $use_chan {
+			switch -exact -- $use_chan {
 				1 {append out_text " <chan>"}
 				2 {append out_text " <chan|*>"}
 				3 {append out_text " \[chan\]"}

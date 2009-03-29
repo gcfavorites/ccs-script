@@ -3,28 +3,29 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"ccs"
 set modlang		"ru"
-addlang $modname $modlang \
+addfileinfo lang "$modname,$modlang" \
 				"Buster <buster@buster-net.ru> (c)" \
-				"1.2.8" \
-				"29-Dec-2008" \
+				"1.2.9" \
+				"29-Mar-2009" \
 				"Языковой файл для модуля $modname ($modlang)"
 
 if {$ccs(lang,name,$modname,$modlang)} {
 	
-	set ccs(args,ru,update) {(<list> [-type type] [-name name] [-lang lang])|(<download> [-type type] [-name name] [-lang lang])|(<update>)}
+	set ccs(args,ru,update) {(<list> [-type type] [-name name] [-lang lang])|(<download> [-type type] [-name name] [-lang lang])|(<update>)|(<template>)}
 	set ccs(help,ru,update) {Автоматическое обновление скрипта, модулей, языков}
 	set ccs(help2,ru,update) {
 		{Автоматическое обновление скрипта, модулей, языков.}
 		{\002list\002 - просмотр списка новых версий.}
 		{\002update\002 - обновление всех ранее установленных модулей и языков}
 		{\002download\002 - загрузка новых модулей и языков.}
+		{\002template\002 - загрузка шаблонов параметров. Если шаблон уже существует то к его имени будет добавляться пометка "template".}
 		{Для list и download необходимо указать, какие модули/скрипты/языки будут показаны/скачаны:}
-			{\002type\002 - тип загружаемого файла: \002mod\002 (модули), \002lang\002 (языковые файлы), \002scr\002 (скрипты)}
+			{\002type\002 - тип загружаемого файла: \002mod\002 (модули), \002lang\002 (языковые файлы), \002scr\002 (скрипты), \002lib\002 (библиотека)}
 			{\002name\002 - имя загружаемого/ых модуля/ей (в качестве шаблона можно использовать подстановочный символ '*'))}
 			{\002lang\002 - язык (указывается только при типе lang, в качестве шаблона можно использовать подстановочный символ '*').}
 			{\002lib\002 - библиотека функций для скриптов/ядра CCS (в качестве шаблона можно использовать подстановочный символ '*').}
-			{\002Примеры\002: }
-			{$ccsupdate download -type mod,lang,src -> скачает \031все\031 доступные модули, языковые файлы и скрипты.}
+		{\002Примеры\002: }
+		{%pref_ccsupdate download -type mod,lang,src -> скачает \031все\031 доступные модули, языковые файлы и скрипты. %pref_ccsupdate download -type lib -name dns -> скачает библиотеку dns.}
 	}
 	
 	set ccs(args,ru,help) {[флаги]}
