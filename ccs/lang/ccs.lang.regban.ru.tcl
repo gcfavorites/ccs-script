@@ -3,10 +3,10 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"regban"
 set modlang		"ru"
-addlang $modname $modlang \
-				"Buster <buster@ircworld.ru> (c)" \
-				"1.2.1" \
-				"25-Feb-2009"
+addfileinfo lang "$modname,$modlang" \
+				"Buster <buster@buster-net.ru> (c)" \
+				"1.2.2" \
+				"29-Mar-2009"
 
 if {$ccs(lang,name,$modname,$modlang)} {
 	

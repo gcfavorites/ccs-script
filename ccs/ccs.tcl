@@ -1,7 +1,7 @@
 ##################################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.7.6.
-## Script's author: Buster (Buster@ircworld.ru) (http://buster-net.ru/index.php?section=irc&theme=scripts).
+## Version: 1.7.7.
+## Script's author: Buster (buster@buster-net.ru) (http://buster-net.ru/index.php?section=irc&theme=scripts).
 ##                                              (http://eggdrop.msk.ru/index.php?section=irc&theme=scripts).
 ## Forum:           http://forum.systemplanet.ru/viewtopic.php?f=3&t=3
 ## sf.net:          http://sourceforge.net/projects/ccs-eggdrop/
@@ -11,10 +11,10 @@
 # Установка скрипта:
 #  1) Распаковать архив в директорию scripts;
 #  2) Прописать скрипт в конфигурационном файле, не забывая указать правильный путь source scripts/ccs/ccs.tcl
-#  3) Настроить дополнительные параметры по желания. Все изменения должны производиться _только_ в файле
-#     ccs.addonce.tcl. Если соответствующая настройка присутствует в файле, то необходимо разкомментировать
+#  3) Настроить дополнительные параметры по желания. Все изменения должны производиться _только_ в файлах
+#     ccs.rX.tcl. Если соответствующая настройка присутствует в файле, то необходимо разкомментировать
 #     параметр и изменить по желанию. Если какой ни будь из параметров присутствует только в скрипте, то следует
-#     скопировать строку и добавить её в ccs.addonce.tcl с измененным значением;
+#     скопировать строку и добавить её в соответсвующий ccs.rX.tcl с измененным значением;
 #  4) Перезапустить бота командой .rehash через патилайн.
 ##################################################################################################################
 # Помощь по командам осуществляеться через команду !helps, флаги помощи:
@@ -26,10 +26,25 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ##################################################################################################################
 # Список последних изменений:
+#	v1.7.7
+# - Добавлен флаг ccs(usecolors). Если какой либо скрипт использует цветовую раскраску и для данного скрипта есть
+#   черно белая цветовая гамма, то выставляя этот параметр в 1 можно задействовать её.
+# - Для скрипта whoisip добавлена поддержка старого модуля eggdrop для DNS запросов.
+# - Для скрипта whoisip добавлена черно белая цветовая раскраска.
 #	v1.7.6
 # - Добавлена переменная ccs(permission_secret_chan) указывающая флаг доступа для работы с секретными каналами.
-# - Для команды !channels добавлен вывод секретных каналовб если у запрашиваемого достаточно прав.
-# - Добавлена команда !match показывающая список юзеров, сидящих на канале, с указанной хостмаской
+# - Для команды !channels добавлен вывод секретных каналов, если у запрашиваемого достаточно прав.
+# - Добавлена команда !match показывающая список юзеров, сидящих на канале, с указанной хостмаской.
+# - Добавлен параметр ccs(datadir) хранящий путь к директории с данными.
+# - Изменена директория по умолчанию для сохранения логов.
+# - Изменена директория по умолчанию для сохранения банов модуля regban. Если такие баны существовали то следует
+#   переместить файл данных в директорию data и сделать .rehash
+# - Для скрипта whoisip интегрирована поддержка библиотеки DNS.
+# - Для скрипта whoisip улучшена работа с запросами IPv6. Разрешение прямой и обратной зоны для хостов.
+# - Для скрипта whoisip в качестве дополнительной информации выводятся NS, MX, CNAME записи.
+# - Файл ccs.addonce.tcl заменен на ряд файлов (ccs.r0.tcl ccs.r1.tcl ccs.r2.tcl ccs.r3.tcl ccs.r4.tcl ccs.r5.tcl
+#   ccs.r6.tcl) загрузка каждого из которых происходит в определенный момент времени. Более подробная информация о
+#   том в какой момент загружается тот или иной файл можно найти в самом файле.
 #	v1.7.5
 # - 	Добавлено свойство ccs(override_level,command) с помощью которого можно переопределить уровень доступа юзера
 #   для выполнения команды. Более подробная информация в описании всех параметров команд.
@@ -67,6 +82,74 @@
 ###################        Все изменения необходимо производить в файле ccs.addonce.tcl        ###################
 ##################################################################################################################
 
+##################################################################################################################
+# Список параметров команд:
+# command - системное имя команды
+#
+# set ccs(args,lang,command)
+#   Аргументы использования команды для указанного языка (строка);
+#
+# set ccs(help,lang,command)
+#   Помощь по команде для указанного языка (строка);
+#
+# set ccs(help2,lang,command)
+#   Расширенная помощь по команде для указанного языка (список строк);
+#
+# set ccs(group,command)
+#   Принадлежность команды к определенной группе (строка);
+#
+# set ccs(use,command)
+#   Включение/отключение команды (1 - включена, 0 - отключена), значение по умолчанию 1
+#   (если параметр не указан);
+#
+# set ccs(use_auth,command)
+#   Команда требует авторизацию для её использования (1 - авторизация требуется, 0 - нет), значение
+#   по умолчанию 1 (если параметр не указан);
+#
+# set ccs(use_chan,command)
+#   Команда использует имя канала, для каких либо действий, в случае управления ботом через приват данная команда
+#   потребует ввести имя канала над которым производиться #   действие. Значение по умолчанию 1
+#   (если параметр не указан)
+#      0 - канал не используеться;
+#      1 - указание канала обязательно;
+#      2 - указание канала либо "*" обязательно;
+#      3 - указание канала не обязательно;
+#
+# set ccs(flags,command)
+#   Флаги доступа к команде. Если флаги указываются через вертикальную черту, это будет означать доступность
+#   команды, как для локальных, так и для глобальных пользователей. Если же флаг указывается одной буквой, то
+#   использовать команду смогут только пользователи с глобальным флагом. (дополнительно добавлен один флаг:
+#   %v - при этом пользователь должен быть добавлен в юзерлист);
+#
+# set ccs(alias,command)
+#   Список команд на которые бот будет реагировать для использования данной команды "%pref_" будет заменена на
+#   префикс по умолчанию.
+#
+# set ccs(block,command)
+#   Необязательный параметр блокировка использования команды по времени. Задается время в секундах, через которое
+#   будет доступно повторное выполнение команды.
+#
+# set ccs(regexp,command)
+#   Регулярное выражение, выбирающее данные и передающее обрабатываемой процедуре
+#
+# set ccs(override_level,command)
+#   Переопределение уровня доступа юзера для выполнения команды. Если у юзера не хватает прав (например: в случае
+#   если для команды назначен юзерский флаг), то этим значением можно поднять уровень.
+#   Список стандартных уровней прав назначаемых стандартными флагами:
+#      0 - нету никаких прав
+#      1 - локальный флаг l
+#      2 - локальный флаг o
+#      3 - локальный флаг m
+#      4 - локальный флаг n
+#      5 - глобальный флаг l
+#      6 - глобальный флаг o
+#      7 - глобальный флаг m
+#      8 - глобальный флаг n
+#      9 - перманентный овнер ("set owner" в конфиге)
+#   Не рекомендуется выставлять значение этого параметра больше уровня доступа по флагам указанного в параметре
+#   set ccs(flags,command)
+##################################################################################################################
+
 package require Tcl
 catch {package require http}
 
@@ -74,15 +157,28 @@ namespace eval ::ccs {
 	
 	#############################################################################################################
 	# Версия и автор скрипта
-	variable author		"Buster <buster@ircworld.ru> (c)"
-	variable version	"1.7.6"
-	variable date		"03-Mar-2009"
+	variable author		"Buster <buster@buster-net.ru> (c)"
+	variable version	"1.7.7"
+	variable date		"29-Mar-2009"
 	
 	variable ccs
 	
-	proc unsetccs {args} {variable ccs; foreach _ $args {foreach line [array names ccs -glob $_] {unset ccs($line)}}}
+	setudef str ccs-default_lang
+	setudef str ccs-on_chan
+	setudef str ccs-usecolors
+	
+	proc unsetccs {args} {
+		variable ccs
+		foreach _0 $args {foreach _1 [array names ccs -glob $_0] {unset ccs($_1)}}
+	}
 	unsetccs "args,*" "help,*" "group,*" "use,*" "use_auth,*" "use_chan,*" "flags,*" "alias,*" \
 		"block,*" "text,*" "mod,*" "lang,*" "scr,*" "lib,*" "regexp,*"
+	
+	set last_nsc [expr [string length "[namespace current]::"]-1]
+	foreach _ [package names] {
+		if {[string range $_ 0 $last_nsc] == "[namespace current]::"} {package forget $_}
+	}
+	foreach _ [namespace children [namespace current]] {namespace delete $_}
 	
 	#############################################################################################################
 	# Префиксы по умолчанию для команд управления. pub - для канала, msg - для приватаm, dcc - патилайн.
@@ -127,7 +223,7 @@ namespace eval ::ccs {
 	set ccs(help_group)				0
 	
 	#############################################################################################################
-	# Уровень отладки (1 - Вывод основной информации; 2, 3, ... - Вывод основной и дополнительной информации)
+	# Уровень отладки (1 - вывод основной информации; 2, 3, ... - Вывод основной и дополнительной информации)
 	set ccs(debug)					2
 	
 	#############################################################################################################
@@ -162,6 +258,13 @@ namespace eval ::ccs {
 	# Значение по умолчанию, которое определяет, должен ли скрипт использоваться по умолчанию на всех каналах
 	# (0 - нет, 1 - да). Значение может быть переопределено выставлением канального флага ccs-on_chan
 	set ccs(on_chan)				1
+	
+	#############################################################################################################
+	# Значение по умолчанию, которое определяет какая цветовая гамма, при их наличии, должна использоваться для
+	# вывода. (0 - черно белая цветовая раскраска, 1 - цветная цветовая раскраска). Это же значение используется
+	# для вывода текста в приват и патилайн.
+	# Значение может быть переопределено выставлением канального флага ccs-usecolors
+	set ccs(usecolors)				1
 	
 	#############################################################################################################
 	# Максимальная длина идента в IRC сети. Нужна для получения правильной хостмаски бана.
@@ -201,6 +304,11 @@ namespace eval ::ccs {
 	set ccs(libdir)					"$ccs(ccsdir)/lib"
 	
 	#############################################################################################################
+	# Каталог, где будут хранится файлы данных, при этом указание $ccs(ccsdir) будет соответствовать
+	# каталогу, где находиться основной скрипт.
+	set ccs(datadir)				"$ccs(ccsdir)/data"
+	
+	#############################################################################################################
 	# Время в миллисекундах, в течение которого удерживать авторизацию юзера, если он не зашел на канал.
 	set ccs(time_auth_notonchan)	300000
 	
@@ -226,27 +334,27 @@ namespace eval ::ccs {
 	#           1 - восстановление стандартного бинда;
 	#         имя - удаление стандартного бинда и за место него создание нового с переопределенным именем;
 	#  n/a(пусто) - не трогать бинд.
-	set ccs(unbind,addhost)		"1"
-	set ccs(unbind,die)			"-1"
-	set ccs(unbind,go)			"-1"
-	set ccs(unbind,hello)		""
-	set ccs(unbind,help)		"-1"
-	set ccs(unbind,ident)		"1"
-	set ccs(unbind,info)		"-1"
-	set ccs(unbind,invite)		"-1"
-	set ccs(unbind,jump)		"-1"
-	set ccs(unbind,key)			"-1"
-	set ccs(unbind,memory)		""
-	set ccs(unbind,op)			"-1"
-	set ccs(unbind,halfop)		"-1"
-	set ccs(unbind,pass)		"1"
-	set ccs(unbind,rehash)		"-1"
-	set ccs(unbind,reset)		"-1"
-	set ccs(unbind,save)		"-1"
-	set ccs(unbind,status)		"-1"
-	set ccs(unbind,voice)		"-1"
-	set ccs(unbind,who)			"-1"
-	set ccs(unbind,whois)		"-1"
+	set ccs(unbind,addhost)	"1"
+	set ccs(unbind,die)		"-1"
+	set ccs(unbind,go)		"-1"
+	set ccs(unbind,hello)	""
+	set ccs(unbind,help)	"-1"
+	set ccs(unbind,ident)	"1"
+	set ccs(unbind,info)	"-1"
+	set ccs(unbind,invite)	"-1"
+	set ccs(unbind,jump)	"-1"
+	set ccs(unbind,key)		"-1"
+	set ccs(unbind,memory)	""
+	set ccs(unbind,op)		"-1"
+	set ccs(unbind,halfop)	"-1"
+	set ccs(unbind,pass)	"1"
+	set ccs(unbind,rehash)	"-1"
+	set ccs(unbind,reset)	"-1"
+	set ccs(unbind,save)	"-1"
+	set ccs(unbind,status)	"-1"
+	set ccs(unbind,voice)	"-1"
+	set ccs(unbind,who)		"-1"
+	set ccs(unbind,whois)	"-1"
 	
 	#############################################################################################################
 	# Список системных имен команд используемых скриптом, в указанном порядке будет выводиться помощью. Список не
@@ -254,98 +362,65 @@ namespace eval ::ccs {
 	set ccs(commands)		[list]
 	set ccs(scr_commands)	[list]
 	
+	
+	proc debug {text {level 1}} {
+		variable ccs
+		if {$ccs(debug) >= $level} {putlog "[namespace current]:: $text"}
+	}
+	
+	proc get_filelist {dirname mask} {
+		if {[catch {
+			set filelist [glob -directory $dirname $mask]
+		} errMsg]} {
+			set filelist [list]
+			debug "Error obtain a list of files from the directory: \"$dirname\", mask: \"$mask\"" 4
+			debug "($errMsg)" 4
+		}
+		return $filelist
+	}
+	
+	proc sourcefile {type path mask list {debuglevel 1}} {
+		
+		set fcount 0
+		if {$list} {set lfile [get_filelist $path $mask]} else {set lfile [list "$path/$mask"]}
+		foreach _ $lfile {
+			if {[catch {
+				if {[file exists $_] && [file isfile $_]} {
+					uplevel "source $_"
+					incr fcount
+					debug "loaded file ($type): \002$_\002" $debuglevel
+				} else {
+					debug "loaded file ($type): \002$_\002 (no such file)" $debuglevel
+				}
+			} errMsg]} {
+				debug "error load file ($type): \002$_\002"
+				debug "($errMsg)"
+			}
+		}
+		if {$list} {debug "loaded file ($type). $fcount files"}
+		
+	}
+	
+	sourcefile r0 $ccs(ccsdir) ccs.r0.tcl 0
+	
 	lappend ccs(commands)	"help"
 	lappend ccs(commands)	"update"
 	
-	#############################################################################################################
-	# Список параметров команд:
-	# command - системное имя команды
-	# set ccs(args,lang,command)
-	#   Аргументы использования команды для указанного языка (строка);
-	#
-	# set ccs(help,lang,command)
-	#   Помощь по команде для указанного языка (строка);
-	#
-	# set ccs(help2,lang,command)
-	#   Расширенная помощь по команде для указанного языка (список строк);
-	#
-	# set ccs(group,command)
-	#   Принадлежность команды к определенной группе (строка);
-	#
-	# set ccs(use,command)
-	#   Включение/отключение команды (1 - включена, 0 - отключена), значение по умолчанию 1
-	#   (если параметр не указан);
-	#
-	# set ccs(use_auth,command)
-	#   Команда требует авторизацию для её использования (1 - авторизация требуется, 0 - нет), значение
-	#   по умолчанию 1 (если параметр не указан);
-	#
-	# set ccs(use_chan,command)
-	#   Команда использует имя канала, для каких либо действий, в случае управления ботом через приват данная
-	#   команда потребует ввести имя канала над которым производиться #   действие. Значение по умолчанию 1
-	#   (если параметр не указан)
-	#      0 - канал не используеться;
-	#      1 - указание канала обязательно;
-	#      2 - указание канала либо "*" обязательно;
-	#      3 - указание канала не обязательно;
-	#
-	# set ccs(flags,command)
-	#   Флаги доступа к команде. Если флаги указываются через вертикальную черту, это будет означать доступность
-	#   команды, как для локальных, так и для глобальных пользователей. Если же флаг указывается одной буквой, то
-	#   использовать команду смогут только пользователи с глобальным флагом. (дополнительно добавлен один флаг:
-	#   %v - при этом пользователь должен быть добавлен в юзерлист);
-	#
-	# set ccs(alias,command)
-	#   Список команд на которые бот будет реагировать для использования данной команды "%pref_" будет заменена
-	#   на префикс по умолчанию.
-	#
-	# set ccs(block,command)
-	#   Необязательный параметр блокировка использования команды по времени. Задается время в секундах, через
-	#   которое будет доступно повторное выполнение команды.
-	#
-	# set ccs(regexp,command)
-	#   Регулярное выражение, выбирающее данные и передающее обрабатываемой процедуре
-	#
-	# set ccs(override_level,command)
-	#   Переопределение уровня доступа юзера для выполнения команды. Если у юзера не хватает прав (например:
-	#   в случае если для команды назначен юзерский флаг), то этим значением можно поднять уровень.
-	#   Список стандартных уровней прав назначаемых стандартными флагами:
-	#      0 - нету никаких прав
-	#      1 - локальный флаг l
-	#      2 - локальный флаг o
-	#      3 - локальный флаг m
-	#      4 - локальный флаг n
-	#      5 - глобальный флаг l
-	#      6 - глобальный флаг o
-	#      7 - глобальный флаг m
-	#      8 - глобальный флаг n
-	#      9 - перманентный овнер ("set owner" в конфиге)
-	#   Не рекомендуется выставлять значение этого параметра больше уровня доступа по флагам указанного
-	#   в параметре set ccs(flags,command)
-	#############################################################################################################
+	set ccs(group,update)		"system"
+	set ccs(use_chan,update)	0
+	set ccs(flags,update)		{n}
+	set ccs(alias,update)		{%pref_updateccs %pref_ccsupdate}
+	set ccs(block,update)		5
+	set ccs(regexp,update)		{{^(list|download|update)(?:\ +(.*?))?$} {-> stype stext}}
 	
-	set ccs(group,update) "system"
-	set ccs(use_chan,update) 0
-	set ccs(flags,update) {n}
-	set ccs(alias,update) {%pref_updateccs %pref_ccsupdate}
-	set ccs(block,update) 5
-	set ccs(regexp,update) {{^(list|download|update)(?:\ +(.*?))?$} {-> stype stext}}
-	
-	set ccs(group,help) "info"
-	set ccs(use_auth,help) 0
-	set ccs(use_chan,help) 3
-	set ccs(use_botnet,help) 0
-	set ccs(flags,help) {%v}
-	set ccs(alias,help) {%pref_helps}
-	set ccs(block,help) 3
-	set ccs(regexp,help) {{^(.+?)$} {-> stext}}
-	
-	#############################################################################################################
-	#############################################################################################################
-	#############################################################################################################
-	
-	setudef str ccs-default_lang
-	setudef str ccs-on_chan
+	set ccs(group,help)			"info"
+	set ccs(use_auth,help)		0
+	set ccs(use_chan,help)		3
+	set ccs(use_botnet,help)	0
+	set ccs(flags,help)			{%v}
+	set ccs(alias,help)			{%pref_helps}
+	set ccs(block,help)			3
+	set ccs(regexp,help)		{{^(.+?)$} {-> stext}}
 	
 	#############################################################################################################
 	# Процедуры обработки биндов приватных и канальных сообщений
@@ -864,11 +939,11 @@ namespace eval ::ccs {
 				-blocksize 32768 \
 				-binary true]
 			
-			set errid [::http::status $token]
-			set ncode [::http::ncode $token]
-			set errtxt [::http::error $token]
-			set data [::http::data $token]
-			#set code [::http::code $token]
+			set errid	[::http::status $token]
+			set ncode	[::http::ncode $token]
+			set errtxt	[::http::error $token]
+			set data	[::http::data $token]
+			#set code	[::http::code $token]
 			::http::cleanup $token
 			
 			if {$errid == "ok" && $ncode == 200} {
@@ -1480,11 +1555,11 @@ namespace eval ::ccs {
 		variable ccs
 		
 		if {[check_isnull $schan] || ![validchan $schan]} {
-			if {$ccs($param) >= 0} {return $ccs($param)}
+			if {[info exists ccs($param)] && $ccs($param) >= 0} {return $ccs($param)}
 		} else {
 			set cset [channel get $schan ccs-$param]
 			if {![string is space $cset] && $cset >= 0} {return $cset}
-			if {$ccs($param) >= 0} {return $ccs($param)}
+			if {[info exists ccs($param)] && $ccs($param) >= 0} {return $ccs($param)}
 		}
 		return 0
 		
@@ -1553,17 +1628,31 @@ namespace eval ::ccs {
 	proc get_textlang {shand schan par1 par2} {
 		variable ccs
 		
-		if {[check_isnull $shand]} {set lang ""} else {set lang [getuser $shand XTRA ccs-default_lang]}
-		foreach _ $lang {
-			if {![string is space $_] && [info exists ccs($par1,$_,$par2)]} {return $ccs($par1,$_,$par2)}
+		set usecolors [get_options usecolors $schan]
+		
+		set llang [list]
+		if {![check_isnull $shand]} {
+			foreach _ [getuser $shand XTRA ccs-default_lang] {
+				if {[string is space $_]} continue
+				if {[lsearch -exact $llang $_] < 0} {lappend llang $_}
+			}
 		}
-		if {[check_isnull $schan] || ![validchan $schan]} {set lang [list]} else {set lang [channel get $schan ccs-default_lang]}
-		foreach _ $lang {
-			if {![string is space $_] && [info exists ccs($par1,$_,$par2)]} {return $ccs($par1,$_,$par2)}
+		if {![check_isnull $schan] && [validchan $schan]} {
+			foreach _ [channel get $schan ccs-default_lang] {
+				if {[string is space $_]} continue
+				if {[lsearch -exact $llang $_] < 0} {lappend llang $_}
+			}
 		}
-		set lang $ccs(default_lang)
-		foreach _ $lang {
-			if {![string is space $_] && [info exists ccs($par1,$_,$par2)]} {return $ccs($par1,$_,$par2)}
+		if {[info exists ccs(default_lang)]} {
+			foreach _ $ccs(default_lang) {
+				if {[string is space $_]} continue
+				if {[lsearch -exact $llang $_] < 0} {lappend llang $_}
+			}
+		}
+		
+		foreach _ $llang {
+			if {!$usecolors && [info exists ccs(bw$par1,$_,$par2)]} {return $ccs(bw$par1,$_,$par2)}
+			if {[info exists ccs($par1,$_,$par2)]} {return $ccs($par1,$_,$par2)}
 		}
 		
 		return "null"
@@ -1576,17 +1665,6 @@ namespace eval ::ccs {
 	
 	proc get_filename {name} {
 		return [string range $name [expr [string last "/" $name]+1] end]
-	}
-	
-	proc get_filelist {dirname mask} {
-		if {[catch {
-			set filelist [glob -directory $dirname $mask]
-		} errMsg]} {
-			set filelist [list]
-			debug "Error obtain a list of files from the directory: \"$dirname\", mask: \"$mask\""
-			debug "($errMsg)"
-		}
-		return $filelist
 	}
 	
 	proc get_token {id} {
@@ -1914,7 +1992,6 @@ namespace eval ::ccs {
 				if {[matchattr $dhand $flag]} {return 1}
 			}
 		}
-		
 		return 0
 		
 	}
@@ -1989,7 +2066,6 @@ namespace eval ::ccs {
 	
 	# Удалить
 	proc addmod {name author version date {description ""}} {addfileinfo mod $name $author $version $date $description}
-	proc addscr {name author version date {description ""}} {addfileinfo scr $name $author $version $date $description}
 	proc addlang {name lang author version date {description ""}} {addfileinfo lang "$name,$lang" $author $version $date $description}
 	
 	proc get_fileinfo {type {only_on 0}} {
@@ -2028,11 +2104,6 @@ namespace eval ::ccs {
 	
 	#############################################################################################################
 	# Процедуры вывода сообщений
-	
-	proc debug {text {level 1}} {
-		variable ccs
-		if {$ccs(debug) >= $level} {putlog "[namespace current]:: $text"}
-	}
 	
 	proc put_log {text args} {
 		importvars [list snick shand schan command] $args [list level 1]
@@ -2499,39 +2570,30 @@ namespace eval ::ccs {
 		
 	}
 	
-	proc sourcefile {type path mask list {debuglevel 1}} {
-		global errorInfo
-		
-		set fcount 0
-		if {$list} {set lfile [get_filelist $path $mask]} else {set lfile [list "$path/$mask"]}
-		foreach _ $lfile {
-			if {[catch {
-				uplevel "source $_"
-				incr fcount
-				debug "loaded file ($type): \002$_\002" $debuglevel
-			} errMsg]} {
-				debug "error load file ($type): \002$_\002"
-				debug "($errMsg)"
-				debug "$errorInfo"
-			}
-		}
-		if {$list} {debug "loaded file ($type). $fcount files"}
-		
-	}
-	
 	#############################################################################################################
 	# Начальная подгатовка переменных и загрузка модулей
 	
 	addfileinfo mod ccs $author $version $date
 	
+	sourcefile r1 $ccs(ccsdir) ccs.r1.tcl 0
 	sourcefile lib $ccs(libdir) ccs.lib.*.tcl 1 2
+	sourcefile r2 $ccs(ccsdir) ccs.r2.tcl 0
 	sourcefile mod $ccs(moddir) ccs.mod.*.tcl 1 2
+	sourcefile r3 $ccs(ccsdir) ccs.r3.tcl 0
 	sourcefile scr $ccs(scrdir) ccs.scr.*.tcl 1 2
+	sourcefile r4 $ccs(ccsdir) ccs.r4.tcl 0
 	sourcefile lang $ccs(langdir) ccs.lang.*.tcl 1 3
-	sourcefile addonce $ccs(ccsdir) ccs.addonce.tcl 0
+	if {[file exists $ccs(ccsdir)/ccs.addonce.tcl] && \
+		[file isfile $ccs(ccsdir)/ccs.addonce.tcl] && \
+		![file exists $ccs(ccsdir)/ccs.r5.tcl]} {
+		catch {file rename $ccs(ccsdir)/ccs.addonce.tcl $ccs(ccsdir)/ccs.r5.tcl}
+	}
+	sourcefile r5 $ccs(ccsdir) ccs.r5.tcl 0
+	#sourcefile addonce $ccs(ccsdir) ccs.addonce.tcl 0
 	
 	binds_up
 	binds_rename
+	sourcefile r6 $ccs(ccsdir) ccs.r6.tcl 0
 	
 	debug "v$version \[$date\] by $author loaded"
 	

@@ -2,6 +2,8 @@
 ## Модуль с базовыми командами управления
 ##################################################################################################################
 # Список последних изменений:
+#	v1.2.7
+# - Для команды !info добавлен вывод библиотек
 #	v1.2.6
 # - Для команды !info добавлен вывод списка порядковых номеров хостмасок
 #	v1.2.5
@@ -10,9 +12,9 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"base"
-addfileinfo mod $modname "Buster <buster@ircworld.ru> (c)" \
-				"1.2.6" \
-				"25-Feb-2009" \
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.2.7" \
+				"14-Mar-2009" \
 				"Модуль предоставляющий базовые команды не попадающие под другие группы."
 
 if {$ccs(mod,name,$modname)} {
@@ -101,7 +103,7 @@ if {$ccs(mod,name,$modname)} {
 	set ccs(flags,info) {%v}
 	set ccs(alias,info) {%pref_info}
 	set ccs(block,info) 5
-	set ccs(regexp,info) {{^(mod|scr|lang|mask)?$} {-> dname}}
+	set ccs(regexp,info) {{^(mod|scr|lang|mask|lib)?$} {-> dname}}
 	
 	setudef str ccs-vkickuser
 	setudef str ccs-vtopicuser
@@ -306,27 +308,34 @@ if {$ccs(mod,name,$modname)} {
 		
 		switch -- $dname {
 			mod {
-				set lmod [get_lmod]
+				set lmod [get_fileinfo mod]
 				foreach _ $lmod {
 					put_msg [sprintf base #146 $_ $ccs(mod,version,$_) $ccs(mod,date,$_) $ccs(mod,author,$_) $ccs(mod,name,$_) $ccs(mod,description,$_)] -speed 3
 				}
 				if {[llength $lmod] == 0} {put_msg [sprintf base #147]}
 			}
 			scr {
-				set lscr [get_lscr]
+				set lscr [get_fileinfo scr]
 				foreach _ $lscr {
 					put_msg [sprintf base #146 $_ $ccs(scr,version,$_) $ccs(scr,date,$_) $ccs(scr,author,$_) $ccs(scr,name,$_) $ccs(scr,description,$_)] -speed 3
 				}
 				if {[llength $lscr] == 0} {put_msg [sprintf base #148]}
 			}
 			lang {
-				set llang [get_llang]
+				set llang [get_fileinfo lang]
 				foreach _ $llang {
 					set _0 [lindex $_ 0]
 					set _1 [lindex $_ 1]
 					put_msg [sprintf base #146 "$_0 ($_1)" $ccs(lang,version,$_0,$_1) $ccs(lang,date,$_0,$_1) $ccs(lang,author,$_0,$_1) $ccs(lang,name,$_0,$_1) $ccs(lang,description,$_0,$_1)] -speed 3
 				}
 				if {[llength $llang] == 0} {put_msg [sprintf base #149]}
+			}
+			lib {
+				set llib [get_fileinfo lib]
+				foreach _ $llib {
+					put_msg [sprintf base #146 $_ $ccs(lib,version,$_) $ccs(lib,date,$_) $ccs(lib,author,$_) $ccs(lib,name,$_) $ccs(lib,description,$_)] -speed 3
+				}
+				if {[llength $llib] == 0} {put_msg [sprintf base #150]}
 			}
 			mask {
 				put_msg "\0021:\002 *!user@host, \0022:\002 *!*user@host, \0023:\002 *!*@host, \0024:\002 *!*user@*.host, \0025:\002 *!*@*.host, \0026:\002 nick!user@host, \0027:\002 nick!*user@host, \0028:\002 nick!*@host, \0029:\002 nick!*user@*.host, \00210:\002 nick!*@*.host"

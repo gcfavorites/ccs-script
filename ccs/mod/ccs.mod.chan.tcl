@@ -9,7 +9,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"chan"
-addmod $modname "Buster <buster@ircworld.ru> (c)" \
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
 				"1.2.7" \
 				"03-Mar-2009" \
 				"Модуль управление списком каналов и настройки канальных флагов."
@@ -18,11 +18,11 @@ if {$ccs(mod,name,$modname)} {
 	
 	#############################################################################################################
 	# Путь и маска файлов сохранения настроек каналов. %s в имени будет заменен на имя настроек.
-	set ccs(chansetfile)		"$ccs(ccsdir)/data/ccs.chanset.%s.dat"
+	set ccs(chansetfile)		"$ccs(datadir)/ccs.chanset.%s.dat"
 	
 	#############################################################################################################
 	# Путь и маска файлов сохранения шаблонов настроек каналов. %s в имени будет заменен на имя шаблона.
-	set ccs(chantemplatefile)	"$ccs(ccsdir)/data/ccs.chantemplate.%s.dat"
+	set ccs(chantemplatefile)	"$ccs(datadir)/ccs.chantemplate.%s.dat"
 	
 	#############################################################################################################
 	# Сохранять старые файлы настроек в bak директории (1 - да, 0 - нет)

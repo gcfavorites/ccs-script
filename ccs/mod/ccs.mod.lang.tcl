@@ -5,7 +5,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"lang"
-addmod $modname "Buster <buster@ircworld.ru> (c)" \
+addmod $modname "Buster <buster@buster-net.ru> (c)" \
 				"1.2.1" \
 				"25-Jul-2008"
 

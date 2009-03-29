@@ -4,7 +4,7 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 set modname		"users"
 set modlang		"ru"
 addfileinfo lang "$modname,$modlang" \
-				"Buster <buster@ircworld.ru> (c)" \
+				"Buster <buster@buster-net.ru> (c)" \
 				"1.2.3" \
 				"03-Mar-2009"
 

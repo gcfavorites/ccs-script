@@ -1,11 +1,10 @@
-
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"users"
 set modlang		"en"
 addfileinfo lang "$modname,$modlang" \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.2.1" \
+				"1.2.3" \
 				"23-Mar-2009"
 
 if {$ccs(lang,name,$modname,$modlang)} {
@@ -42,7 +41,8 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(help2,en,match) {
 		{Shows a list of channel users matching specified hostmask.}
 		{Symbols like \002* ? [ ] \\002 can be used when specify the mask. To use these symblos 'as is' you need to put a '\002\\002' before every of them.}
-
+	}
+	
 	set ccs(args,en,resetpass) {<nick>}
 	set ccs(help,en,resetpass) {Clears user's password (that mean he can set new password via /msg %botnick pass <new_pass>).}
 	
@@ -77,6 +77,5 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(text,users,en,#120) "New INFO has been set for \002%s\002"
 	set ccs(text,users,en,#121) "INFO for \002%s\002 has been deleted"
 	set ccs(text,users,en,#122) "No users matching \002%s\002 found."
-
 	
 }
