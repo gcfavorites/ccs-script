@@ -1,12 +1,11 @@
-
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"base"
 set modlang		"ru"
-addlang $modname $modlang \
-				"Buster <buster@ircworld.ru> (c)" \
-				"1.2.4" \
-				"25-Feb-2009" \
+addfileinfo lang "$modname,$modlang" \
+				"Buster <buster@buster-net.ru> (c)" \
+				"1.2.6" \
+				"14-Mar-2009" \
 				"языковой файл дл€ модул€ $modname ($modlang)"
 
 if {$ccs(lang,name,$modname,$modlang)} {
@@ -93,5 +92,6 @@ if {$ccs(lang,name,$modname,$modlang)} {
 	set ccs(text,base,ru,#147) "ћодули не найдены."
 	set ccs(text,base,ru,#148) "—крипты не найдены."
 	set ccs(text,base,ru,#149) "языковые файлы не найдены."
+	set ccs(text,base,ru,#150) "Ѕиблиотеки не найдены."
 	
 }
