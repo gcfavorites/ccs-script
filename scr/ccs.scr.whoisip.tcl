@@ -2,6 +2,8 @@
 ## Скрипт получения информации об IP адресе (script that allows you to get info about specified host/IP)
 ##################################################################################################################
 # Список последних изменений (changelog):
+#	v1.2.2
+# - Исправлена корректная загрузка скрипта при отсутствии DNS модуля.
 #	v1.2.1
 # - Добавлена поддержка старого модуля eggdrop для DNS запросов.
 # - Добавлена черно белая цветовая раскраска.
@@ -20,15 +22,13 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set scrname		"whoisip"
 addfileinfo scr $scrname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.1" \
-				"29-Mar-2009" \
+				"1.2.2" \
+				"30-Mar-2009" \
 				"Скрипт выдающий информацию по IP адресу"
 
 if {$ccs(scr,name,$scrname)} {
 	
 	package require [namespace current]::ip 2.0.0
-	
-	lappend ccs(scr_commands)	"whoisip"
 	
 	#############################################################################################################
 	# Время в милисекундах в течении которого ожидать ответа.
@@ -63,6 +63,8 @@ if {$ccs(scr,name,$scrname)} {
 	#dns::configure -port 53
 	#dns::configure -timeout 10000
 	#dns::configure -protocol tcp
+	
+	lappend ccs(scr_commands)	"whoisip"
 	
 	set ccs(group,whoisip)		"info"
 	set ccs(use_auth,whoisip)	0

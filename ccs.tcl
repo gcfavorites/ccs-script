@@ -28,6 +28,7 @@
 # Список последних изменений:
 #	v1.7.9
 # - Перенесены все процедуры авторизации и управления через ботнет в модуль ccs.mod.bots.tcl
+# - Исправлена корректная загрузка скрипта при отсутствии DNS модуля.
 #	v1.7.8
 # - Для команды !ccsupdate добавлена загрузка шаблонов настроек ccs.rX.tcl. (!ccsupdate template)
 #	v1.7.7
@@ -1975,7 +1976,7 @@ namespace eval ::ccs {
 		
 		foreach command [concat $ccs(commands) $ccs(scr_commands)] {
 			if {![use_command $command]} continue
-			if {[lsearch -exact $ccs(groups) $ccs(group,$command)] < 0} {lappend ccs(groups) $ccs(group,$command)}
+			if {[info exists ccs(group,$command)] && [lsearch -exact $ccs(groups) $ccs(group,$command)] < 0} {lappend ccs(groups) $ccs(group,$command)}
 			
 			foreach _ $ccs(alias,$command) {
 				
