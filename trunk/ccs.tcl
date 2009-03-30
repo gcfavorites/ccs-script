@@ -1,6 +1,6 @@
 ##################################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.7.8.
+## Version: 1.7.9.
 ## Script's author: Buster (buster@buster-net.ru) (http://buster-net.ru/index.php?section=irc&theme=scripts).
 ##                                              (http://eggdrop.msk.ru/index.php?section=irc&theme=scripts).
 ## Forum:           http://forum.systemplanet.ru/viewtopic.php?f=3&t=3
@@ -26,6 +26,8 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ##################################################################################################################
 # Список последних изменений:
+#	v1.7.9
+# - Перенесены все процедуры авторизации и управления через ботнет в модуль ccs.mod.bots.tcl
 #	v1.7.8
 # - Для команды !ccsupdate добавлена загрузка шаблонов настроек ccs.rX.tcl. (!ccsupdate template)
 #	v1.7.7
@@ -160,8 +162,8 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@buster-net.ru> (c)"
-	variable version	"1.7.8"
-	variable date		"29-Mar-2009"
+	variable version	"1.7.9"
+	variable date		"30-Mar-2009"
 	
 	variable ccs
 	
@@ -318,14 +320,6 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Время в миллисекундах, в течение которого удерживать авторизацию юзера при покидании канала.
 	set ccs(time_auth_part)			3000
-	
-	#############################################################################################################
-	# Время в миллисекундах, повторения проверки ботнет авторизации.
-	set ccs(time_botauth_check)		900000
-	
-	#############################################################################################################
-	# Время в миллисекундах, в течение которого ждать ответа от бота при проверки авторизации.
-	set ccs(time_botauth_receive)	10000
 	
 	#############################################################################################################
 	# Минимальный флаг доступа к секретным каналам.
@@ -534,135 +528,6 @@ namespace eval ::ccs {
 		
 	}
 	
-	proc launch_cmdbot {snick shand shost schan onick ochan text command} {
-		variable ccs
-		global lastbind
-		
-		if {![on_chan $schan $command]} {return -code ok 0}
-		
-		set text [string trim $text]
-		if {![regexp -- {^([^\ ]+)(?:\ +(.*?))?$} $text -> dbotnick text]} {put_msg [sprintf ccs #201 $lastbind]; return 0}
-		
-		if {[string equal -nocase $dbotnick "all"] || [string equal -nocase $dbotnick "*"]} {
-			launch_cmd $snick $shand $shost $schan $onick $ochan [list] $text $command
-			set lcmdbots [get_lcmdbots]
-		} else {
-			set dbothand [get_hand $dbotnick]
-			if {[check_notavailable {-notisbot -notiscmdbot -notvalidhandle} -dnick $dbotnick -dhand $dbothand]} {return 0}
-			set lcmdbots [list $dbothand]
-		}
-		
-		foreach dbothand $lcmdbots {
-			if {[check_notavailable {-notvalidpasscmdbot -notislinked -notisauth} \
-				-snick $snick -shand $shand -dbotnick $dbothand -dbothand $dbothand +dbotpass dbotpass +thand thand]} continue
-			send_cmdbot $dbothand $dbotpass $thand $snick $shand $shost $schan $onick $ochan $text $command
-		}
-		
-	}
-	
-	proc bot_ccscmdbot {bot command text} {
-		variable turn
-		
-		if {[check_notavailable {-notvalidpasscmdbot} -dbotnick $bot -dbothand $bot -quiet 1 +dbotpass dbotpass]} {return 0}
-		set ldecrypt [decrypt $dbotpass $text]
-		
-		if {$command == "ccscmdbot"} {
-			
-			foreach {ok thand code end snick shand shost schan onick ochan command text} $ldecrypt break
-			
-			if {$ok != "ok2602"} {put_log "(\0034not decrypt\003) ($bot)"; return 0}
-			if {[check_notavailable {-notbotnetuser} -shand $shand -thand $thand -dbothand $bot]} {return 0}
-			
-			if {!$end} {
-				set turn($code,bot) $bot
-				set turn($code,thand) $thand
-				set turn($code,snick) $snick
-				set turn($code,shand) $shand
-				set turn($code,shost) $shost
-				set turn($code,schan) $schan
-				set turn($code,onick) $onick
-				set turn($code,ochan) $ochan
-				set turn($code,command) $command
-				set turn($code,text) $text
-			} else {
-				launch_cmd $snick $shand $shost $schan $onick $ochan [list $bot $shand $thand] $text $command
-			}
-			
-		} elseif {$command == "ccscmdbotadd"} {
-			
-			foreach {ok code end text} $ldecrypt break
-			if {$ok != "ok2602"} {put_log "(\0034not decrypt\003) ($bot)"; return 0}
-			
-			if {![info exists turn($code,bot)] || $turn($code,bot) != $bot} {put_log "(\0034turn not start\003) ($bot)"; return 0}
-			append turn($code,text) $text
-			
-			if {$end} {
-				set bot $turn($code,bot)
-				set thand $turn($code,thand)
-				set snick $turn($code,snick)
-				set shand $turn($code,shand)
-				set shost $turn($code,shost)
-				set schan $turn($code,schan)
-				set onick $turn($code,onick)
-				set ochan $turn($code,ochan)
-				set command $turn($code,command)
-				set text $turn($code,text)
-				launch_cmd $snick $shand $shost $schan $onick $ochan [list $bot $shand $thand] $text $command
-				unset turn($code,bot) turn($code,thand) turn($code,snick) turn($code,shand) \
-					turn($code,shost) turn($code,schan) turn($code,onick) turn($code,ochan) \
-					turn($code,command) turn($code,text)
-			}
-			
-		}
-		
-		return 0
-		
-	}
-	
-	proc bot_ccstext {bot command text} {
-		variable turn
-		
-		if {[check_notavailable {-notvalidpasscmdbot} -dbotnick $bot -dbothand $bot -quiet 1 +dbotpass dbotpass]} {return 0}
-		set ldecrypt [decrypt $dbotpass $text]
-		
-		if {$command == "ccstext"} {
-			
-			foreach {ok thand code end shand onick ochan quiet text} $ldecrypt break
-			if {$ok != "ok2103"} {put_log "(\0034not decrypt\003) ($bot)"; return 0}
-			if {[check_notavailable {-notbotnetuser} -shand $shand -thand $thand -dbothand $bot]} {return 0}
-			
-			if {!$end} {
-				set turn($code,bot) $bot
-				set turn($code,onick) $onick
-				set turn($code,ochan) $ochan
-				set turn($code,quiet) $quiet
-				set turn($code,text) $text
-			} else {
-				put_msg "$bot :: $text" -speed 3
-			}
-			
-		} elseif {$command == "ccstextadd"} {
-			
-			foreach {ok code end text} $ldecrypt break
-			if {$ok != "ok2103"} {put_log "(\0034not decrypt\003) ($bot)"; return 0}
-			
-			if {![info exists turn($code,bot)] || $turn($code,bot) != $bot} {put_log "(\0034turn not start\003) ($bot)"; return 0}
-			append turn($code,text) $text
-			
-			if {$end} {
-				set onick $turn($code,onick)
-				set ochan $turn($code,ochan)
-				set quiet $turn($code,quiet)
-				set text $turn($code,text)
-				put_msg "$bot :: $text" -speed 3
-				unset turn($code,bot) turn($code,onick) turn($code,ochan) turn($code,quiet) turn($code,text)
-			}
-			
-		}
-		return 0
-		
-	}
-	
 	#############################################################################################################
 	# Процедуры команд, вызываемые общими процедурами биндов
 	#############################################################################################################
@@ -855,6 +720,86 @@ namespace eval ::ccs {
 		
 	}
 	
+	#############################################################################################################
+	# Процедуры команд управления помощью (HELP).
+	
+	proc cmd_help {} {
+		importvars [list onick ochan obot snick shand schan command stext]
+		variable ccs
+		
+		set lcommands [list]
+		foreach _ [concat $ccs(commands) $ccs(scr_commands)] {
+			set lalias [list]
+			foreach alias $ccs(alias,$_) {
+				lappend lalias [string map [list %pref_ $ccs(pref_pub)] $alias]
+				lappend lalias [string map [list %pref_ $ccs(pref_msg)] $alias]
+				lappend lalias [string map [list %pref_ ""] $alias]
+			}
+			foreach alias $lalias {
+				if {[string match -nocase $stext $alias]} {lappend lcommands $_; break}
+			}
+		}
+		
+		if {[llength $lcommands] > 0} {
+			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0; set par_scr 0
+		} elseif {[string equal -nocase $stext "all"]} {
+			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0; set par_scr 0
+		} elseif {[string equal -nocase $stext "limit"]} {
+			set par_access 1; set par_commands 1; set par_group 0; set par_limit 1; set par_scr 0
+		} elseif {[string equal -nocase $stext "scr"] || [string equal -nocase $stext "script"] || [string equal -nocase $stext "scripts"]} {
+			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0; set par_scr 1
+		} else {
+			set par_access		[regexp -nocase -all -- {-a(?:ccess)?} $stext]
+			set par_commands	[regexp -nocase -all -- {-c(?:ommands)?} $stext]
+			set par_group		[regexp -nocase -all -- {-g(?:roup)?\ +([\w]+)} $stext -> group]
+			set par_limit		[regexp -nocase -all -- {-l(?:imit)?} $stext]
+			set par_scr			[regexp -nocase -all -- {-s(?:cript(?:s)?)?} $stext]
+			if {$par_group && [lsearch -exact $ccs(groups) [string tolower $group]] < 0} \
+				{put_msg [sprintf ccs #177 $group [join $ccs(groups)]] -speed 3; return 0}
+			if {!$par_group && $ccs(help_group)} {put_msg [sprintf ccs #178 [join $ccs(groups)]] -speed 3; return 0}
+		}
+		
+		if {$par_limit && [check_isnull $schan]} {put_msg [sprintf ccs #200] -speed 3; return 0}
+		
+		set find 0
+		if {$par_access || $par_commands || $par_group || $par_limit || $par_scr} {
+			if {[llength $lcommands] > 0} {
+				foreach _ $lcommands {
+					set lout_text [get_help $_ "pub" $par_access $par_commands [expr [llength $lcommands] == 1]]
+					if {[llength $lout_text] > 0} {
+						if {!$find && [llength $lcommands] > 1} {
+							put_msg [sprintf ccs #101 $::ccs::version $::ccs::date $::ccs::author \
+								$ccs(pref_pub) $ccs(pref_msg) $ccs(pref_dcc) \
+								$ccs(pref_pubcmd) $ccs(pref_msgcmd) $ccs(pref_dcccmd)] -speed 3
+						}
+						foreach _ $lout_text {put_msg $_ -speed 3}; set find 1
+					}
+				}
+			} else {
+				if {$par_scr} {set lcommands $ccs(scr_commands)} else {set lcommands $ccs(commands)}
+				foreach _ $lcommands {
+					if {![use_command $_]} continue
+					if {$par_group && ![string equal -nocase $group $ccs(group,$_)]} continue
+					if {$par_limit && ![check_matchattr $shand $schan $ccs(flags,$_)]} continue
+					
+					set lout_text [get_help $_ "pub" $par_access $par_commands 0]
+					if {[llength $lout_text] > 0} {
+						if {!$find} {
+							put_msg [sprintf ccs #101 $::ccs::version $::ccs::date $::ccs::author \
+								$ccs(pref_pub) $ccs(pref_msg) $ccs(pref_dcc) \
+								$ccs(pref_pubcmd) $ccs(pref_msgcmd) $ccs(pref_dcccmd)] -speed 3 -ochan $onick
+						}
+						foreach _ $lout_text {put_msg $_ -speed 3 -ochan $onick}; set find 1
+					}
+				}
+			}
+		}
+		if {!$find} {put_help; return 0}
+		put_log ""
+		return 1
+		
+	}
+	
 	proc update_file {url filename} {
 		importvars [list onick ochan obot snick shand schan]
 		variable ccs
@@ -993,86 +938,6 @@ namespace eval ::ccs {
 	}
 	
 	#############################################################################################################
-	# Процедуры команд управления помощью (HELP).
-	
-	proc cmd_help {} {
-		importvars [list onick ochan obot snick shand schan command stext]
-		variable ccs
-		
-		set lcommands [list]
-		foreach _ [concat $ccs(commands) $ccs(scr_commands)] {
-			set lalias [list]
-			foreach alias $ccs(alias,$_) {
-				lappend lalias [string map [list %pref_ $ccs(pref_pub)] $alias]
-				lappend lalias [string map [list %pref_ $ccs(pref_msg)] $alias]
-				lappend lalias [string map [list %pref_ ""] $alias]
-			}
-			foreach alias $lalias {
-				if {[string match -nocase $stext $alias]} {lappend lcommands $_; break}
-			}
-		}
-		
-		if {[llength $lcommands] > 0} {
-			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0; set par_scr 0
-		} elseif {[string equal -nocase $stext "all"]} {
-			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0; set par_scr 0
-		} elseif {[string equal -nocase $stext "limit"]} {
-			set par_access 1; set par_commands 1; set par_group 0; set par_limit 1; set par_scr 0
-		} elseif {[string equal -nocase $stext "scr"] || [string equal -nocase $stext "script"] || [string equal -nocase $stext "scripts"]} {
-			set par_access 1; set par_commands 1; set par_group 0; set par_limit 0; set par_scr 1
-		} else {
-			set par_access		[regexp -nocase -all -- {-a(?:ccess)?} $stext]
-			set par_commands	[regexp -nocase -all -- {-c(?:ommands)?} $stext]
-			set par_group		[regexp -nocase -all -- {-g(?:roup)?\ +([\w]+)} $stext -> group]
-			set par_limit		[regexp -nocase -all -- {-l(?:imit)?} $stext]
-			set par_scr			[regexp -nocase -all -- {-s(?:cript(?:s)?)?} $stext]
-			if {$par_group && [lsearch -exact $ccs(groups) [string tolower $group]] < 0} \
-				{put_msg [sprintf ccs #177 $group [join $ccs(groups)]] -speed 3; return 0}
-			if {!$par_group && $ccs(help_group)} {put_msg [sprintf ccs #178 [join $ccs(groups)]] -speed 3; return 0}
-		}
-		
-		if {$par_limit && [check_isnull $schan]} {put_msg [sprintf ccs #200] -speed 3; return 0}
-		
-		set find 0
-		if {$par_access || $par_commands || $par_group || $par_limit || $par_scr} {
-			if {[llength $lcommands] > 0} {
-				foreach _ $lcommands {
-					set lout_text [get_help $_ "pub" $par_access $par_commands [expr [llength $lcommands] == 1]]
-					if {[llength $lout_text] > 0} {
-						if {!$find && [llength $lcommands] > 1} {
-							put_msg [sprintf ccs #101 $::ccs::version $::ccs::date $::ccs::author \
-								$ccs(pref_pub) $ccs(pref_msg) $ccs(pref_dcc) \
-								$ccs(pref_pubcmd) $ccs(pref_msgcmd) $ccs(pref_dcccmd)] -speed 3
-						}
-						foreach _ $lout_text {put_msg $_ -speed 3}; set find 1
-					}
-				}
-			} else {
-				if {$par_scr} {set lcommands $ccs(scr_commands)} else {set lcommands $ccs(commands)}
-				foreach _ $lcommands {
-					if {![use_command $_]} continue
-					if {$par_group && ![string equal -nocase $group $ccs(group,$_)]} continue
-					if {$par_limit && ![check_matchattr $shand $schan $ccs(flags,$_)]} continue
-					
-					set lout_text [get_help $_ "pub" $par_access $par_commands 0]
-					if {[llength $lout_text] > 0} {
-						if {!$find} {
-							put_msg [sprintf ccs #101 $::ccs::version $::ccs::date $::ccs::author \
-								$ccs(pref_pub) $ccs(pref_msg) $ccs(pref_dcc) \
-								$ccs(pref_pubcmd) $ccs(pref_msgcmd) $ccs(pref_dcccmd)] -speed 3 -ochan $onick
-						}
-						foreach _ $lout_text {put_msg $_ -speed 3 -ochan $onick}; set find 1
-					}
-				}
-			}
-		}
-		if {!$find} {put_help; return 0}
-		put_log ""
-		return 1
-		
-	}
-	
-	#############################################################################################################
 	# Процедуры авторизации пользователей (AUTH).
 	
 	# Процедура авторизации по нику/хендлу
@@ -1099,53 +964,6 @@ namespace eval ::ccs {
 		if {[llength $authnick] == 0} {chattr $shand -$ccs(flag_auth)}
 		return 1
 		
-	}
-	
-	# Процедура ботнет авторизации по хендлу
-	proc addbotauth {shand sbothand} {
-		variable ccs
-		
-		set authnick [getuser $shand XTRA AuthBot]
-		if {[lsearch -exact $authnick $sbothand] >= 0} {return 0}
-		lappend authnick $sbothand
-		setuser $shand XTRA AuthBot $authnick
-		chattr $shand +$ccs(flag_auth_botnet)
-		return 1
-		
-	}
-	
-	# Процедура снятия ботнет авторизации по хендлу
-	proc delbotauth {shand sbothand} {
-		variable ccs
-		
-		set authnick [getuser $shand XTRA AuthBot]
-		if {[set ind [lsearch -exact $authnick $sbothand]] < 0} {return 0}
-		set authnick [lreplace $authnick $ind $ind]
-		setuser $shand XTRA AuthBot $authnick
-		if {[llength $authnick] == 0} {chattr $shand -$ccs(flag_auth_botnet)}
-		return 1
-		
-	}
-	
-	# отсылка запроса через ботнет по авторизационному списку
-	proc putbot_authall {shand command args} {
-		set lauth [getuser $shand XTRA ListAuth]
-		foreach _ $lauth {
-			foreach {tbot thand} $_ break
-			if {![islinked $tbot]} continue
-			putbot $tbot "$command [concat [list $shand $thand] $args]"
-		}
-	}
-	
-	# отсылка запроса через ботнет по авторизационному списку выбранному боту
-	proc putbot_auth {sbot shand command args} {
-		set lauth [getuser $shand XTRA ListAuth]
-		foreach _ $lauth {
-			foreach {tbot thand} $_ break
-			if {$tbot != $sbot} continue
-			if {![islinked $tbot]} continue
-			putbot $tbot "$command [concat [list $shand $thand] $args]"
-		}
 	}
 	
 	proc msg_identauth {nick uhost hand text} {
@@ -1177,7 +995,7 @@ namespace eval ::ccs {
 		set shand $dhand
 		
 		if {![addauth $shand $snick $shost]} {put_msg [sprintf ccs #130]; return 0}
-		putbot_authall $shand ccsaddauth $snick $shost $network
+		if {[proc_exists "putbot_authall"]} {putbot_authall $shand ccsaddauth $snick $shost $network}
 		put_msg [sprintf ccs #131 [get_nick $snick $shand] $ccs(pref_pub) $ccs(pref_msg) \
 				$ccs(pref_dcc) $ccs(pref_pubcmd) $ccs(pref_msgcmd) $ccs(pref_dcccmd)]
 		
@@ -1204,7 +1022,7 @@ namespace eval ::ccs {
 		set command "AUTH"
 		
 		if {[info exists ccs(authprocs)]} {
-			foreach _ $ccs(authprocs) {if {[info procs $_] != ""} {catch {$_ $nick $uhost $hand $text}}}
+			foreach _ $ccs(authprocs) {if {[proc_exists $_]} {catch {$_ $nick $uhost $hand $text}}}
 		}
 		
 		if {[check_isnull $shand]} {put_msg [sprintf ccs #127]; return 0}
@@ -1212,14 +1030,14 @@ namespace eval ::ccs {
 		
 		if {$pass == ""} {
 			if {![delauth $shand $snick $shost]} {put_msg [sprintf ccs #128]; return 0}
-			putbot_authall $shand ccsdelauth $snick $shost $network 1
+			if {[proc_exists "putbot_authall"]} {putbot_authall $shand ccsdelauth $snick $shost $network 1}
 			put_msg [sprintf ccs #129 [get_nick $snick $shand]]
 			put_log "OFF"
 		} else {
 			if {[passwdok $shand -]} {put_msg [sprintf ccs #212 [get_nick $snick $shand] $botnick]; return 0}
 			if {![passwdok $shand $pass]} {put_msg [sprintf ccs #132 [get_nick $snick $shand]]; put_log "(\0034unsuccessfull\003)"; return 0}
 			if {![addauth $shand $snick $shost]} {put_msg [sprintf ccs #130]; return 0}
-			putbot_authall $shand ccsaddauth $snick $shost $network
+			if {[proc_exists "putbot_authall"]} {putbot_authall $shand ccsaddauth $snick $shost $network}
 			put_msg [sprintf ccs #131 [get_nick $snick $shand] $ccs(pref_pub) $ccs(pref_msg) \
 				$ccs(pref_dcc) $ccs(pref_pubcmd) $ccs(pref_msgcmd) $ccs(pref_dcccmd)]
 			
@@ -1246,7 +1064,7 @@ namespace eval ::ccs {
 		
 		if {[nick2hand $newnick] != $shand} {
 			if {![delauth $shand $snick $shost]} {return 0}
-			putbot_authall $shand ccsdelauth $snick $shost $network 0
+			if {[proc_exists "putbot_authall"]} {putbot_authall $shand ccsdelauth $snick $shost $network 0}
 			put_msg [sprintf ccs #211]
 			put_log "OFF"
 		} else {
@@ -1292,197 +1110,10 @@ namespace eval ::ccs {
 		
 		if {[onchan $snick]} {return 0}
 		if {![delauth $shand $snick $shost]} {return 0}
-		putbot_authall $shand ccsdelauth $snick $shost $network 0
+		if {[proc_exists "putbot_authall"]} {putbot_authall $shand ccsdelauth $snick $shost $network 0}
 		if {!$quiet} {put_msg [sprintf ccs #126]}
 		put_log "OFF"
 		
-	}
-	
-	# принятие запроса через ботнет на авторизацию или удаление авторизации, поралельно запуск цикла проверки авторизации
-	proc bot_ccsaddauth {bot command text} {
-		variable ccs
-		global network
-		
-		foreach {thand shand snick shost snetwork} $text break
-		set command "BOTNETADDAUTH"
-		
-		if {[check_notavailable {-notbotnetuser} -shand $shand -thand $thand -dbothand $bot]} {return 0}
-		if {$network == $snetwork && [onchan $snick]} {addauth $shand $snick $shost}
-		addbotauth $shand $bot
-		after $ccs(time_botauth_check) [list [namespace origin timer_authcheck] $shand $bot]
-		
-		put_log "ON (Bot: $bot)"
-		
-	}
-	
-	proc bot_ccsdelauth {bot command text} {
-		variable ccs
-		global network
-		
-		foreach {thand shand snick shost snetwork hard} $text break
-		set command "BOTNETDELAUTH"
-		
-		if {[check_notavailable {-notbotnetuser} -shand $shand -thand $thand -dbothand $bot]} {return 0}
-		if {$network == $snetwork && $hard} {delauth $shand $snick $shost}
-		delbotauth $shand $bot
-		
-		put_log "OFF (Bot: $bot)"
-		
-	}
-	
-	# Таймер выполняющий проверку регистрации юзера
-	proc timer_authcheck {shand sbot} {
-		variable ccs
-		variable afterid
-		
-		if {![matchattr $shand $ccs(flag_auth_botnet)]} {return 0}
-		set authnick [getuser $shand XTRA AuthBot]
-		set ind [lsearch -exact $authnick $sbot]
-		if {$ind < 0} {return 0}
-		
-		if {[info exists afterid(authoff,$shand,$sbot)]} {after cancel $afterid(authoff,$shand,$sbot)}
-		set afterid(authoff,$shand,$sbot) [after $ccs(time_botauth_receive) [list [namespace origin timer_authoff] $shand $sbot]]
-		putbot_auth $sbot $shand ccsauthcheck
-		
-	}
-	
-	# Таймер снимающий авторизацию при отсутствии подтверждения
-	proc timer_authoff {shand sbot} {
-		variable ccs
-		variable afterid
-		
-		set command "BOTNETAUTH"
-		
-		delbotauth $shand $sbot
-		unset afterid(authoff,$shand,$sbot)
-		
-		put_log "OFF ($sbot)"
-		
-	}
-	
-	# принятие запроса о действующей авторизации
-	proc bot_ccsauthcheck {bot command text} {
-		variable ccs
-		
-		foreach {thand shand} $text break
-		set command "BOTNETAUTHCHECK"
-		
-		if {[check_notavailable {-notbotnetuser} -shand $shand -thand $thand -dbothand $bot]} {return 0}
-		
-		if {[matchattr $shand $ccs(flag_auth)]} {
-			putbot_auth $bot $shand ccsauthreceive 1; put_log "ON ($bot)" -level 4
-		} else {
-			putbot_auth $bot $shand ccsauthreceive 0; put_log "OFF ($bot)" -level 3
-		}
-		return 0
-		
-	}
-	
-	# возвращение запроса о действующей авторизации
-	proc bot_ccsauthreceive {bot command text} {
-		variable ccs
-		variable afterid
-		
-		foreach {thand shand receive} $text break
-		set command "BOTNETAUTHRECEIVE"
-		
-		if {[check_notavailable {-notbotnetuser} -shand $shand -thand $thand -dbothand $bot]} {return 0}
-		
-		if {[info exists afterid(authoff,$shand,$bot)]} {
-			after cancel $afterid(authoff,$shand,$bot)
-			if {$receive} {
-				set afterid(authoff,$shand,$bot) [after $ccs(time_botauth_check) [list [namespace origin timer_authcheck] $shand $bot]]
-				put_log "OK ($bot)" -level 4
-			} else {
-				unset afterid(authoff,$shand,$bot)
-				delbotauth $shand $bot
-				put_log "OFF ($bot)"
-			}
-		} else {
-			delbotauth $shand $bot
-			put_log "OFF ($bot)"
-		}
-		
-		return 0
-		
-	}
-	
-	proc send_cmdbot {dbothand dbotpass thand snick shand shost schan onick ochan text command} {
-		
-		set lencode 3
-		set lensend 300
-		
-		set code ""
-		for {set x 0} {$x < $lencode} {incr x} {append code [expr int(rand()*10)]}
-		
-		set lenhead1 [string length [list ok2602 $snick $shand $shost $schan $onick $ochan $command $thand $code 1]]
-		set lentext [string length $text]
-		set lenencrtext [match_lenencr [expr $lenhead1+$lentext+1]]
-		
-		if {$lenencrtext > $lensend} {
-			
-			set lenrem1 [expr [match_lendencr $lensend]-$lenhead1-1]
-			
-			putbot $dbothand "ccscmdbot [encrypt $dbotpass [list ok2602 $shand $code 0 $snick $thand \
-				$shost $schan $onick $ochan $command [string range $text 0 [expr $lenrem1-1]]]]"
-			set lenhead2 [string length [list ok2602 $code 1]]
-			set lenrem2 [expr [match_lendencr $lensend]-$lenhead2-1]
-			
-			set x $lenrem1
-			while {$x < $lentext} {
-				if {[expr $x+$lenrem2+1] >= $lentext} {set end 1} else {set end 0}
-				putbot $dbothand "ccscmdbotadd [encrypt $dbotpass [list ok2602 $code $end \
-					[string range $text $x [expr $x+$lenrem2]]]]"
-				set x [expr $x+$lenrem2+1]
-			}
-		} else {
-			putbot $dbothand "ccscmdbot [encrypt $dbotpass [list ok2602 $shand $code 1 $snick $thand \
-				$shost $schan $onick $ochan $command $text]]"
-		}
-		
-	}
-	
-	proc send_ccstext {dbothand dbotpass thand shand onick ochan quiet text} {
-		
-		set lencode 3
-		set lensend 300
-		
-		set code ""
-		for {set x 0} {$x < $lencode} {incr x} {append code [expr int(rand()*10)]}
-		
-		set lenhead1 [string length [list ok2103 $shand $thand $onick $ochan $quiet $code 1]]
-		set lentext [string length $text]
-		set lenencrtext [match_lenencr [expr $lenhead1+$lentext+1]]
-		
-		if {$lenencrtext > $lensend} {
-			
-			set lenrem1 [expr [match_lendencr $lensend]-$lenhead1-1]
-			
-			putbot $dbothand "ccstext [encrypt $dbotpass [list ok2103 $shand $code 0 $thand $onick \
-				$ochan $quiet [string range $text 0 [expr $lenrem1-1]]]]"
-			set lenhead2 [string length [list ok2103 $code 1]]
-			set lenrem2 [expr [match_lendencr $lensend]-$lenhead2-1]
-			
-			set x $lenrem1
-			while {$x < $lentext} {
-				if {[expr $x+$lenrem2+1] >= $lentext} {set end 1} else {set end 0}
-				putbot $dbothand "ccstextadd [encrypt $dbotpass [list ok2103 $code $end \
-					[string range $text $x [expr $x+$lenrem2]]]]"
-				set x [expr $x+$lenrem2+1]
-			}
-		} else {
-			putbot $dbothand "ccstext [encrypt $dbotpass [list ok2103 $shand $code 1 $thand $onick \
-				$ochan $quiet $text]]"
-		}
-		
-	}
-	
-	proc match_lenencr {x} {
-		return [expr (($x-1)/8+1)*12]
-	}
-	
-	proc match_lendencr {x} {
-		return [expr ($x/12-1)*8+1]
 	}
 	
 	#############################################################################################################
@@ -1652,6 +1283,10 @@ namespace eval ::ccs {
 		}
 	}
 	
+	proc proc_exists {name} {
+		if {[info procs $name] == [list $name]} {return 1} else {return 0}
+	}
+	
 	proc get_var {par command default} {
 		variable ccs
 		if {[info exists ccs($par,$command)]} {return $ccs($par,$command)} else {return $default}
@@ -1796,20 +1431,6 @@ namespace eval ::ccs {
 		return 0
 	}
 	
-	# Запрет если уровень доступа меньше и уровень доступа обязательно больше нуля у обоих
-	proc notavailable-nopermition2 {} {
-		variable ccs
-		importvars [list snick shand schan onick ochan obot command]
-		upvar dhand dhand dchan dchan dnick dnick
-		set saccess [get_accesshand $shand $dchan 1]
-		if {[info exists ccs(override_level,$command)] && $ccs(override_level,$command) > $saccess} {set saccess $ccs(override_level,$command)}
-		set daccess [get_accesshand $dhand $dchan]
-		if {($saccess <= $daccess) && !($saccess == 0 && $daccess == 0)} {
-			put_msg [sprintf ccs #102 $command [get_nick $dnick $dhand]]; return 1
-		}
-		return 0
-	}
-	
 	proc notavailable-notisop {} {
 		importvars [list snick shand schan onick ochan obot command]
 		upvar dnick dnick dchan dchan
@@ -1897,68 +1518,6 @@ namespace eval ::ccs {
 		return 0
 	}
 	
-	proc notavailable-notiscmdbot {} {
-		variable ccs
-		importvars [list snick shand schan onick ochan obot command]
-		upvar dhand dhand dnick dnick
-		if {![matchattr $dhand b] || ![matchattr $dhand $ccs(flag_cmd_bot)]} {
-			put_msg [sprintf ccs #202 [get_nick $dnick $dhand]]; return 1
-		}
-		return 0
-	}
-	
-	proc notavailable-notbotnetuser {} {
-		importvars [list snick shand schan onick ochan obot command]
-		upvar dbothand dbothand thand thand
-		if {![validuser $shand]} {put_log "(\0034handle not found\003) ($dbothand)"; return 1}
-		set find 0
-		foreach _ [getuser $shand XTRA ListAuth] {
-			foreach {pbot phand} $_ break
-			if {[string equal -nocase $dbothand $pbot] && [string equal -nocase $thand $phand]} {
-				set find 1; break
-			}
-		}
-		if {!$find} {put_log "(\0034not access\003) ($dbothand)"; return 1}
-		return 0
-	}
-	
-	proc notavailable-notvalidpasscmdbot {} {
-		importvars [list snick shand schan onick ochan obot command]
-		upvar dbotpass dbotpass dbothand dbothand dbotnick dbotnick quiet quiet
-		if {![info exists quiet]} {set quiet 0}
-		if {[set dbotpass [getuser $dbothand XTRA PassCmdBot]] == ""} {
-			if {!$quiet} {put_msg [sprintf ccs #203 [get_nick $dbotnick $dbothand]]}
-			put_log "(\0034pass cmdbot not set\003) ($dbothand)"
-			return 1
-		}
-		return 0
-	}
-	
-	proc notavailable-notislinked {} {
-		importvars [list snick shand schan onick ochan obot command]
-		upvar dbothand dbothand dbotnick dbotnick
-		if {![islinked $dbothand]} {
-			put_msg [sprintf ccs #204 [get_nick $dbotnick $dbothand]]; return 1
-		}
-		return 0
-	}
-	
-	proc notavailable-notisauth {} {
-		importvars [list snick shand schan onick ochan obot command]
-		upvar dbothand dbothand dbotnick dbotnick thand thand
-		set find 0
-		foreach _ [getuser $shand XTRA ListAuth] {
-			foreach {pbot phand} $_ break
-			if {[string equal -nocase $pbot $dbothand]} {set find 1; set thand $phand; break}
-		}
-		if {!$find} {
-			set thand ""
-			put_msg [sprintf ccs #205 [get_nick $snick $shand] [get_nick $dbotnick $dbothand]]
-			return 1
-		}
-		return 0
-	}
-	
 	proc check_notavailable {lo args} {
 		global botnick
 		importvars [list snick shand schan onick ochan obot command]
@@ -1971,7 +1530,7 @@ namespace eval ::ccs {
 			}
 		}
 		
-		foreach _ $lo {if {[info procs "notavailable$_"] != ""} {if {[notavailable$_]} {return 1}}}
+		foreach _ $lo {if {[proc_exists "notavailable$_"]} {if {[notavailable$_]} {return 1}}}
 		return 0
 		
 	}
@@ -2027,14 +1586,6 @@ namespace eval ::ccs {
 		}
 		return 0
 		
-	}
-	
-	# Функция получения списка ботов для выполнения команд
-	proc get_lcmdbots {} {
-		variable ccs
-		set lcmdbots [list]
-		foreach _ [userlist b] {if {[matchattr $_ $ccs(flag_cmd_bot)]} {lappend lcmdbots $_}}
-		return $lcmdbots
 	}
 	
 	proc xdate {expire} {
@@ -2168,7 +1719,7 @@ namespace eval ::ccs {
 			foreach {dbothand shand thand} $obot break
 			if {[islinked $dbothand]} {
 				if {[check_notavailable {-notvalidpasscmdbot} -dbotnick $dbothand -dbothand $dbothand -quiet 1 +dbotpass dbotpass]} {return 0}
-				send_ccstext $dbothand $dbotpass $thand $shand $onick $ochan $quiet $text
+				if {[proc_exists "send_ccstext"]} {send_ccstext $dbothand $dbotpass $thand $shand $onick $ochan $quiet $text}
 				return
 			} else {
 				put_log "PUT_MSG not link $dbothand"
@@ -2465,52 +2016,11 @@ namespace eval ::ccs {
 					"
 				}
 				
-				if {![string is space $ccs(pref_pubcmd)] && $ccs(pref_pubcmd) != $ccs(pref_pub) && [string first %pref_ $_] >= 0} {
-					# Прописываем бинды управления через ботнет для PUB команд
-					incr curr
-					bind pub -|- [string map [list %pref_ $ccs(pref_pubcmd)] $_] [namespace current]::pub_cmdbot_$command
-					eval "
-						proc [namespace current]::pub_cmdbot_$command {nick uhost hand chan text} {
-							launch_cmdbot \$nick \$hand \$uhost \$chan \$nick \$chan \$text \"$command\"
-							return 0
-						}
-					"
-				}
-				
-				if {![string is space $ccs(pref_msgcmd)] && $ccs(pref_msgcmd) != $ccs(pref_msg)} {
-					# Прописываем бинды управления через ботнет для MSG команд
-					incr curr
-					bind msg -|- [string map [list %pref_ $ccs(pref_msgcmd)] $_] [namespace current]::msg_cmdbot_$command
-					eval "
-						proc [namespace current]::msg_cmdbot_$command {nick uhost hand text} {
-							launch_cmdbot \$nick \$hand \$uhost \"*\" \$nick \$nick \$text \"$command\"
-							return 0
-						}
-					"
-				}
-				
-				if {$ccs(pref_dcccmd) != "." && $ccs(pref_dcccmd) != $ccs(pref_dcc)} {
-					# Прописываем бинды управления через ботнет для DCC команд
-					incr curr 2
-					bind filt -|- "[string map [list %pref_ $ccs(pref_dcccmd)] $_]" [namespace current]::filt_cmdbot_$command
-					bind filt -|- "[string map [list %pref_ $ccs(pref_dcccmd)] $_] *" [namespace current]::filt_cmdbot_$command
-					eval "
-						proc [namespace current]::filt_cmdbot_$command {idx text} {
-							set hand \[idx2hand \$idx\]
-							set nick \[hand2nick \$hand\]
-							set uhost \[getchanhost \$nick\]
-							set text \[join \[lrange \[split \$text\] 1 end\]\]
-							launch_cmdbot \$nick \$hand \$uhost \"*\" \$idx \$idx \$text \"$command\"
-							return \"\"
-						}
-					"
-				}
-				
 			}
 			
 		}
 		
-		incr curr 19
+		incr curr 11
 		bind msg -|- auth			[namespace origin msg_auth]
 		bind msg -|- identauth		[namespace origin msg_identauth]
 		bind part $ccs(flag_auth) *	[namespace origin part_auth]
@@ -2518,16 +2028,6 @@ namespace eval ::ccs {
 		bind kick - *				[namespace origin kick_auth]
 		bind nick $ccs(flag_auth) *	[namespace origin nick_auth]
 		bind splt $ccs(flag_auth) *	[namespace origin splt_auth]
-		
-		bind bot -|- ccsaddauth		[namespace origin bot_ccsaddauth]
-		bind bot -|- ccsdelauth		[namespace origin bot_ccsdelauth]
-		bind bot -|- ccsauthcheck	[namespace origin bot_ccsauthcheck]
-		bind bot -|- ccsauthreceive	[namespace origin bot_ccsauthreceive]
-		
-		bind bot -|- ccscmdbot		[namespace origin bot_ccscmdbot]
-		bind bot -|- ccscmdbotadd	[namespace origin bot_ccscmdbot]
-		bind bot -|- ccstext		[namespace origin bot_ccstext]
-		bind bot -|- ccstextadd		[namespace origin bot_ccstext]
 		
 		bind evnt -|- prerehash		[namespace origin prerehash]
 		bind evnt -|- init-server	[namespace origin init_server]
@@ -2538,7 +2038,7 @@ namespace eval ::ccs {
 		after 3000 [list [namespace origin fixbind]]
 		
 		foreach _ [concat [get_fileinfo mod 1] [get_fileinfo scr 1]] {
-			if {[info procs "binds_up_$_"] != ""} {binds_up_$_}
+			if {[proc_exists "binds_up_$_"]} {binds_up_$_}
 		}
 		debug "$curr binds is up"
 		
