@@ -1,6 +1,6 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
-set modname		"ban"
+set modname		"bots"
 set modlang		"en"
 addfileinfo lang "$modname,$modlang" \
 				"Kein <kein-of@yandex.ru>" \
