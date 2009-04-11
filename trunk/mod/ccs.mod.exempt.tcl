@@ -28,27 +28,27 @@ if {$ccs(mod,name,$modname)} {
 	# 10: nick!*@*.host
 	set ccs(exemptmask)		4
 	
-	cconfigure exempt -add -group "exempt" -flags {o|o} -block 1 \
+	cconfigure exempt -add 1 -group "exempt" -flags {o|o} -block 1 \
 		-alias {%pref_exempt} \
 		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
 	
-	cconfigure unexempt -add -group "exempt" -flags {o|o} -block 1 -useauth 0 -usechan 0 -usebotnet 0 \
+	cconfigure unexempt -add 1 -group "exempt" -flags {o|o} -block 1 -useauth 0 -usechan 0 -usebotnet 0 \
 		-alias {%pref_unexempt} \
 		-regexp {{^([^\ ]+)$} {-> sexempt}}
 	
-	cconfigure gexempt -add -group "exempt" -flags {o} -block 1 -usechan 0 \
+	cconfigure gexempt -add 1 -group "exempt" -flags {o} -block 1 -usechan 0 \
 		-alias {%pref_gexempt} \
 		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
 	
-	cconfigure gunexempt -add -group "exempt" -flags {o} -block 1 -usechan 0 \
+	cconfigure gunexempt -add 1 -group "exempt" -flags {o} -block 1 -usechan 0 \
 		-alias {%pref_gunexempt} \
 		-regexp {{^([^\ ]+)$} {-> sexempt}}
 	
-	cconfigure exemptlist -add -group "exempt" -flags {o|o} -block 5 -usechan 3 \
+	cconfigure exemptlist -add 1 -group "exempt" -flags {o|o} -block 5 -usechan 3 \
 		-alias {%pref_exemptlist %pref_exempts} \
 		-regexp {{^((?!global)[^\ ]+)?(?:\s*(global))?$} {-> smask sglobal}}
 	
-	cconfigure resetexempts -add -group "exempt" -flags {o|o} -block 5 \
+	cconfigure resetexempts -add 1 -group "exempt" -flags {o|o} -block 5 \
 		-alias {%pref_resetexempts} \
 		-regexp {{^$} {}}
 	

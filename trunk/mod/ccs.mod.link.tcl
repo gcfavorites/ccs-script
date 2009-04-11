@@ -12,11 +12,11 @@ addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
 
 if {$ccs(mod,name,$modname)} {
 	
-	cconfigure link -add -group "botnet" -flags {nt} -block 5 -usechan 0 \
+	cconfigure link -add 1 -group "botnet" -flags {nt} -block 5 -usechan 0 \
 		-alias {%pref_link} \
 		-regexp {{^(?:([^\ ]+)\ +)?([^\ ]+)+?$} {-> sviabot sbot}}
 	
-	cconfigure unlink -add -group "botnet" -flags {nt} -block 5 -usechan 0 \
+	cconfigure unlink -add 1 -group "botnet" -flags {nt} -block 5 -usechan 0 \
 		-alias {%pref_unlink %pref_dellink} \
 		-regexp {{^([^\ ]+)$} {-> sbot}}
 	

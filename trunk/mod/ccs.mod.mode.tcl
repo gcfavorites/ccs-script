@@ -12,39 +12,39 @@ addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
 
 if {$ccs(mod,name,$modname)} {
 	
-	cconfigure op -add -group "mode" -flags {o|o} -block 1 \
+	cconfigure op -add 1 -group "mode" -flags {o|o} -block 1 \
 		-alias {%pref_op} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure deop -add -group "mode" -flags {o|o} -block 1 \
+	cconfigure deop -add 1 -group "mode" -flags {o|o} -block 1 \
 		-alias {%pref_deop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure hop -add -group "mode" -flags {l|l} -use 0 -block 1 \
+	cconfigure hop -add 1 -group "mode" -flags {l|l} -use 0 -block 1 \
 		-alias {%pref_hop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure dehop -add -group "mode" -flags {l|l} -use 0 -block 1 \
+	cconfigure dehop -add 1 -group "mode" -flags {l|l} -use 0 -block 1 \
 		-alias {%pref_dehop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure voice -add -group "mode" -flags {v|v o|o} -block 1 -useauth 0 \
+	cconfigure voice -add 1 -group "mode" -flags {v|v o|o} -block 1 -useauth 0 \
 		-alias {%pref_voice} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure devoice -add -group "mode" -flags {v|v o|o} -block 1 -useauth 0 \
+	cconfigure devoice -add 1 -group "mode" -flags {v|v o|o} -block 1 -useauth 0 \
 		-alias {%pref_devoice} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure allvoice -add -group "mode" -flags {m|m} -block 5 \
+	cconfigure allvoice -add 1 -group "mode" -flags {m|m} -block 5 \
 		-alias {%pref_allvoice} \
 		-regexp {{^$} {}}
 	
-	cconfigure alldevoice -add -group "mode" -flags {m|m} -block 1 \
+	cconfigure alldevoice -add 1 -group "mode" -flags {m|m} -block 1 \
 		-alias {%pref_alldevoice} \
 		-regexp {{^$} {}}
 	
-	cconfigure mode -add -group "mode" -flags {o|o} \
+	cconfigure mode -add 1 -group "mode" -flags {o|o} \
 		-alias {%pref_mode} \
 		-regexp {{^(.+?)$} {-> smode}}
 	

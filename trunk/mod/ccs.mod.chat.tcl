@@ -21,7 +21,7 @@ if {$ccs(mod,name,$modname)} {
 	# системы
 	set ccs(dccip)			""
 	
-	cconfigure chat -add -group "other" -flags {p} -block 5 -usechan 0 \
+	cconfigure chat -add 1 -group "other" -flags {p} -block 5 -usechan 0 \
 		-alias {%pref_chat} \
 		-regexp {{^$} {}}
 	

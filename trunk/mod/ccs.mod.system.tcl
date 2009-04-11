@@ -12,43 +12,43 @@ addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
 
 if {$ccs(mod,name,$modname)} {
 	
-	cconfigure servers -add -group "system" -flags {m} -block 5 -usechan 0 \
+	cconfigure servers -add 1 -group "system" -flags {m} -block 5 -usechan 0 \
 		-alias {%pref_servers} \
 		-regexp {{^$} {}}
 	
-	cconfigure addserver -add -group "system" -flags {m} -block 1 -usechan 0 \
+	cconfigure addserver -add 1 -group "system" -flags {m} -block 1 -usechan 0 \
 		-alias {%pref_addserver} \
 		-regexp {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)$} {-> sserver sport spass}}
 	
-	cconfigure delserver -add -group "system" -flags {m} -block 1 -usechan 0 \
+	cconfigure delserver -add 1 -group "system" -flags {m} -block 1 -usechan 0 \
 		-alias {%pref_delserver} \
 		-regexp {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)$} {-> sserver sport spass}}
 	
-	cconfigure save -add -group "system" -flags {m} -block 3 -usechan 0 \
+	cconfigure save -add 1 -group "system" -flags {m} -block 3 -usechan 0 \
 		-alias {%pref_save} \
 		-regexp {{^$} {}}
 	
-	cconfigure reload -add -group "system" -flags {m} -block 3 -usechan 0 \
+	cconfigure reload -add 1 -group "system" -flags {m} -block 3 -usechan 0 \
 		-alias {%pref_reload} \
 		-regexp {{^$} {}}
 	
-	cconfigure backup -add -group "system" -flags {m} -block 3 -usechan 0 \
+	cconfigure backup -add 1 -group "system" -flags {m} -block 3 -usechan 0 \
 		-alias {%pref_backup} \
 		-regexp {{^$} {}}
 	
-	cconfigure die -add -group "system" -flags {n} -usechan 0 \
+	cconfigure die -add 1 -group "system" -flags {n} -usechan 0 \
 		-alias {%pref_die} \
 		-regexp {{^(.*?)$} {-> stext}}
 	
-	cconfigure rehash -add -group "system" -flags {m} -block 5 -usechan 0 \
+	cconfigure rehash -add 1 -group "system" -flags {m} -block 5 -usechan 0 \
 		-alias {%pref_rehash} \
 		-regexp {{^$} {}}
 	
-	cconfigure restart -add -group "system" -flags {m} -usechan 0 \
+	cconfigure restart -add 1 -group "system" -flags {m} -usechan 0 \
 		-alias {%pref_restart} \
 		-regexp {{^$} {}}
 	
-	cconfigure jump -add -group "system" -flags {m} -block 5 -usechan 0 \
+	cconfigure jump -add 1 -group "system" -flags {m} -block 5 -usechan 0 \
 		-alias {%pref_jump} \
 		-regexp {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)?$} {-> sserver sport spass}}
 	

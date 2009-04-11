@@ -28,39 +28,39 @@ if {$ccs(mod,name,$modname)} {
 	# Время в миллисекундах, в течение которого ждать ответа от бота при проверки авторизации.
 	set ccs(time_botauth_receive)	10000
 	
-	cconfigure bots -add -group "botnet" -flags {%v} -block 5 -usechan 0 -usebotnet 0 \
+	cconfigure bots -add 1 -group "botnet" -flags {%v} -block 5 -usechan 0 -usebotnet 0 \
 		-alias {%pref_bots} \
 		-regexp {{^(tree)?$} {-> stree}}
 	
-	cconfigure botattr -add -group "botnet" -flags {mt} -block 2 -usechan 0 \
+	cconfigure botattr -add 1 -group "botnet" -flags {mt} -block 2 -usechan 0 \
 		-alias {%pref_botattr} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick sflag}}
 	
-	cconfigure chaddr -add -group "botnet" -flags {mt} -block 2 -usechan 0 \
+	cconfigure chaddr -add 1 -group "botnet" -flags {mt} -block 2 -usechan 0 \
 		-alias {%pref_chaddr} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ :]+)(?:\:(\d+)(?:/(\d+))?)?)$} {-> dnick saddress sbport suport}}
 	
-	cconfigure addbot -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+	cconfigure addbot -add 1 -group "botnet" -flags {mt} -block 3 -usechan 0 \
 		-alias {%pref_addbot} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ :]+)(?:\:(\d+)(?:/(\d+))?)?)(?:\ +([^\ ]+))?$} {-> dnick daddress dbport duport dhost}}
 	
-	cconfigure delbot -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+	cconfigure delbot -add 1 -group "botnet" -flags {mt} -block 3 -usechan 0 \
 		-alias {%pref_delbot} \
 		-regexp {{^([^\ ]+)$} {-> dnick}}
 	
-	cconfigure chbotpass -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+	cconfigure chbotpass -add 1 -group "botnet" -flags {mt} -block 3 -usechan 0 \
 		-alias {%pref_chbotpass} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))?$} {-> dnick dpass}}
 	
-	cconfigure listauth -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+	cconfigure listauth -add 1 -group "botnet" -flags {mt} -block 3 -usechan 0 \
 		-alias {%pref_listauth} \
 		-regexp {{^([^\ ]+)$} {-> dnick}}
 	
-	cconfigure addauth -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+	cconfigure addauth -add 1 -group "botnet" -flags {mt} -block 3 -usechan 0 \
 		-alias {%pref_addauth} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))(?:\ +([^\ ]+))$} {-> dnick dbotnick dhandle}}
 	
-	cconfigure delauth -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+	cconfigure delauth -add 1 -group "botnet" -flags {mt} -block 3 -usechan 0 \
 		-alias {%pref_delauth} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick dbotnick}}
 	

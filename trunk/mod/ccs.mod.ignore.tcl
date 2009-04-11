@@ -28,15 +28,15 @@ if {$ccs(mod,name,$modname)} {
 	# 10: nick!*@*.host
 	set ccs(ignoremask)			4
 	
-	cconfigure addignore -add -group "other" -flags {o} -block 3 -usechan 0 \
+	cconfigure addignore -add 1 -group "other" -flags {o} -block 3 -usechan 0 \
 		-alias {%pref_addignore %pref_+ignore} \
 		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ +(.*?))?$} {-> dnick stime reason}}
 	
-	cconfigure delignore -add -group "other" -flags {o} -block 1 -usechan 0 \
+	cconfigure delignore -add 1 -group "other" -flags {o} -block 1 -usechan 0 \
 		-alias {%pref_delignore %pref_-ignore} \
 		-regexp {{^([^\ ]+)$} {-> ignore}}
 	
-	cconfigure ignorelist -add -group "other" -flags {m} -block 3 -usechan 0 \
+	cconfigure ignorelist -add 1 -group "other" -flags {m} -block 3 -usechan 0 \
 		-alias {%pref_ignorelist %pref_ignores} \
 		-regexp {{^$} {}}
 	

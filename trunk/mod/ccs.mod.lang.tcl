@@ -12,15 +12,15 @@ addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
 
 if {$ccs(mod,name,$modname)} {
 	
-	cconfigure langlist -add -group "lang" -flags {%v} -block 3 -usechan 0 \
+	cconfigure langlist -add 1 -group "lang" -flags {%v} -block 3 -usechan 0 \
 		-alias {%pref_langlist} \
 		-regexp {{^([^\ ]+)?$} {-> mod}}
 	
-	cconfigure chansetlang -add -group "lang" -flags {m|m} -block 3 \
+	cconfigure chansetlang -add 1 -group "lang" -flags {m|m} -block 3 \
 		-alias {%pref_chansetlang} \
 		-regexp {{^([^\ ]+)?$} {-> lang}}
 	
-	cconfigure chlang -add -group "lang" -flags {m} -block 3 -usechan 0 \
+	cconfigure chlang -add 1 -group "lang" -flags {m} -block 3 -usechan 0 \
 		-alias {%pref_chlang} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))?$} {-> dnick lang}}
 	

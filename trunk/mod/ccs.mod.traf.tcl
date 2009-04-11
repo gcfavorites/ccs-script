@@ -12,7 +12,7 @@ addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
 
 if {$ccs(mod,name,$modname)} {
 	
-	cconfigure traf -add -group "info" -flags {%v} -block 3 -useauth 0 -usechan 0 -usebotnet 0 \
+	cconfigure traf -add 1 -group "info" -flags {%v} -block 3 -useauth 0 -usechan 0 -usebotnet 0 \
 		-alias {%pref_traf} \
 		-regexp {{^([^\ ]+)?$} {-> stype}}
 	

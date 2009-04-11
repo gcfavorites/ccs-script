@@ -27,27 +27,27 @@ if {$ccs(mod,name,$modname)} {
 	set ccs(chanserv,voice)		"ChanServ VOICE %chan %nick"
 	set ccs(chanserv,devoice)	"ChanServ DEVOICE %chan %nick"
 	
-	cconfigure csop -add -group "chanserv" -flags {o|o} -block 1 \
+	cconfigure csop -add 1 -group "chanserv" -flags {o|o} -block 1 \
 		-alias {%pref_csop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure csdeop -add -group "chanserv" -flags {o|o} -block 1 \
+	cconfigure csdeop -add 1 -group "chanserv" -flags {o|o} -block 1 \
 		-alias {%pref_csdeop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure cshop -add -group "chanserv" -flags {l|l} -use 0 -block 1 \
+	cconfigure cshop -add 1 -group "chanserv" -flags {l|l} -use 0 -block 1 \
 		-alias {%pref_cshop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure csdehop -add -group "chanserv" -flags {l|l} -use 0 -block 1 \
+	cconfigure csdehop -add 1 -group "chanserv" -flags {l|l} -use 0 -block 1 \
 		-alias {%pref_csdehop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure csvoice -add -group "chanserv" -flags {v|v o|o} -block 1 -useauth 0 \
+	cconfigure csvoice -add 1 -group "chanserv" -flags {v|v o|o} -block 1 -useauth 0 \
 		-alias {%pref_csvoice} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure csdevoice -add -group "chanserv" -flags {v|v o|o} -block 1 -useauth 0 \
+	cconfigure csdevoice -add 1 -group "chanserv" -flags {v|v o|o} -block 1 -useauth 0 \
 		-alias {%pref_csdevoice} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	

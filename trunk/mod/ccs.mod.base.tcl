@@ -29,39 +29,39 @@ if {$ccs(mod,name,$modname)} {
 	# переопределено выставлением канального флага ccs-vtopicuser
 	set ccs(vtopicuser)			1
 	
-	cconfigure kick -add -group "mode" -flags {o|o} -block 1 \
+	cconfigure kick -add 1 -group "mode" -flags {o|o} -block 1 \
 		-alias {%pref_kick} \
 		-regexp {{^([^\ ]+)(?:\ +(.*?))?$} {-> dnick reason}}
 	
-	cconfigure inv -add -group "other" -flags {m|m} -block 5 \
+	cconfigure inv -add 1 -group "other" -flags {m|m} -block 5 \
 		-alias {%pref_inv} \
 		-regexp {{^([^\ ]+)$} {-> dnick}}
 	
-	cconfigure topic -add -group "chan" -flags {o|o T|T} -block 3 \
+	cconfigure topic -add 1 -group "chan" -flags {o|o T|T} -block 3 \
 		-alias {%pref_topic} \
 		-regexp {{^(.+?)$} {-> stext}}
 	
-	cconfigure addtopic -add -group "chan" -flags {o|o T|T} -block 5 \
+	cconfigure addtopic -add 1 -group "chan" -flags {o|o T|T} -block 5 \
 		-alias {%pref_addtopic %pref_добавить} \
 		-regexp {{^(.+?)$} {-> stext}}
 	
-	cconfigure ops -add -group "info" -flags {-|-} -block 5 -useauth 0 -usebotnet 0 \
+	cconfigure ops -add 1 -group "info" -flags {-|-} -block 5 -useauth 0 -usebotnet 0 \
 		-alias {%pref_ops} \
 		-regexp {{^$} {}}
 	
-	cconfigure admins -add -group "info" -flags {-|-} -block 5 -useauth 0 -usechan 0 -usebotnet 0 \
+	cconfigure admins -add 1 -group "info" -flags {-|-} -block 5 -useauth 0 -usechan 0 -usebotnet 0 \
 		-alias {%pref_admins} \
 		-regexp {{^$} {}}
 	
-	cconfigure whom -add -group "info" -flags {p} -block 5 -useauth 0 -usechan 0 -usebotnet 0 \
+	cconfigure whom -add 1 -group "info" -flags {p} -block 5 -useauth 0 -usechan 0 -usebotnet 0 \
 		-alias {%pref_whom} \
 		-regexp {{^$} {}}
 	
-	cconfigure whois -add -group "user" -flags {%v} -block 2 -useauth 0 -usechan 3 \
+	cconfigure whois -add 1 -group "user" -flags {%v} -block 2 -useauth 0 -usechan 3 \
 		-alias {%pref_whois} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure info -add -group "info" -flags {%v} -block 5 -useauth 0 -usechan 0 \
+	cconfigure info -add 1 -group "info" -flags {%v} -block 5 -useauth 0 -usechan 0 \
 		-alias {%pref_info} \
 		-regexp {{^(mod|scr|lang|mask|lib)?$} {-> dname}}
 	

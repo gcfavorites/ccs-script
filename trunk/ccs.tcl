@@ -228,7 +228,22 @@ namespace eval ::ccs {
 		while {[string match -* [lindex $args 0]]} {
 			switch -glob -- [lindex $args 0] {
 				-add {
-					if {[lsearch -exact $ccs(commands) $command] < 0} {lappend ccs(commands) $command}
+					set opt "add"
+					if {$cget} {
+						return [expr [lsearch -exact $ccs(commands) $command] >= 0]
+					} else {
+						set value [Pop args 1]
+						if {![string is digit $value] || $value < 0 || $value > 1} \
+							{return -code error "bad value, must be a digit \[0..1\] \
+								(command: '$command', option '$opt', value: '$value')"}
+						if {$value} {
+							if {[lsearch -exact $ccs(commands) $command] < 0} {lappend ccs(commands) $command}
+						} else {
+							if {[set ind [lsearch -exact $ccs(commands) $command]] >= 0} {
+								set ccs(commands) [lreplace $ccs(commands) $ind $ind]
+							}
+						}
+					}
 				}
 				-gr* {
 					set opt "group"
@@ -642,11 +657,11 @@ namespace eval ::ccs {
 	
 	sourcefile r0 $ccs(ccsdir) ccs.r0.tcl 0
 	
-	cconfigure update -add -group "system" -usechan 0 -flags {n} -block 5 \
+	cconfigure update -add 1 -group "system" -usechan 0 -flags {n} -block 5 \
 		-alias {%pref_updateccs %pref_ccsupdate} \
 		-regexp {{^(list|download|update|template)(?:\ +(.*?))?$} {-> stype stext}}
 	
-	cconfigure help -add -group "info" -useauth 0 -usechan 3 -usebotnet 0 -block 3 -flags {%v} \
+	cconfigure help -add 1 -group "info" -useauth 0 -usechan 3 -usebotnet 0 -block 3 -flags {%v} \
 		-alias {%pref_helps} \
 		-regexp {{^(.+?)$} {-> stext}}
 	

@@ -12,19 +12,19 @@ addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
 
 if {$ccs(mod,name,$modname)} {
 	
-	cconfigure broadcast -add -group "other" -flags {o} -block 10 -usechan 0 \
+	cconfigure broadcast -add 1 -group "other" -flags {o} -block 10 -usechan 0 \
 		-alias {%pref_broadcast} \
 		-regexp {{^(?:([@\+]|@\+)\s+)?(.+?)$} {-> smod stext}}
 	
-	cconfigure say -add -group "other" -flags {m} -block 3 \
+	cconfigure say -add 1 -group "other" -flags {m} -block 3 \
 		-alias {%pref_say} \
 		-regexp {{^(?:([@\+]|@\+)\s+)?(act)?(?:\ *(.+?))$} {-> smod sact stext}}
 	
-	cconfigure msg -add -group "other" -flags {m} -block 3 -usechan 0 \
+	cconfigure msg -add 1 -group "other" -flags {m} -block 3 -usechan 0 \
 		-alias {%pref_msg} \
 		-regexp {{^([^\ ]+)(?:\ +(act))?(?:\ +(.*?))$} {-> dnick sact stext}}
 	
-	cconfigure act -add -group "other" -flags {m} -block 3 \
+	cconfigure act -add 1 -group "other" -flags {m} -block 3 \
 		-alias {%pref_act} \
 		-regexp {{^(?:([@\+]|@\+)\s+)?(.+?)$} {-> smod stext}}
 	

@@ -40,27 +40,27 @@ if {$ccs(mod,name,$modname)} {
 	# 10: nick!*@*.host
 	set ccs(banmask)		4
 	
-	cconfigure ban -add -group "ban" -flags {o|o} -block 1 \
+	cconfigure ban -add 1 -group "ban" -flags {o|o} -block 1 \
 		-alias {%pref_ban} \
 		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime reason stick}}
 	
-	cconfigure unban -add -group "ban" -flags {o|o} -block 1 \
+	cconfigure unban -add 1 -group "ban" -flags {o|o} -block 1 \
 		-alias {%pref_unban} \
 		-regexp {{^([^\ ]+)$} {-> sban}}
 	
-	cconfigure gban -add -group "ban" -flags {o} -block 1 -usechan 0 \
+	cconfigure gban -add 1 -group "ban" -flags {o} -block 1 -usechan 0 \
 		-alias {%pref_gban} \
 		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime reason stick}}
 	
-	cconfigure gunban -add -group "ban" -flags {o} -block 1 -usechan 0 \
+	cconfigure gunban -add 1 -group "ban" -flags {o} -block 1 -usechan 0 \
 		-alias {%pref_gunban} \
 		-regexp {{^([^\ ]+)$} {-> sban}}
 	
-	cconfigure banlist -add -group "ban" -flags {o|o} -block 3 -usechan 3 \
+	cconfigure banlist -add 1 -group "ban" -flags {o|o} -block 3 -usechan 3 \
 		-alias {%pref_banlist %pref_bans} \
 		-regexp {{^((?!global)[^\ ]+)?(?:\s*(global))?$} {-> smask sglobal}}
 	
-	cconfigure resetbans -add -group "ban" -flags {o|o} -block 5 \
+	cconfigure resetbans -add 1 -group "ban" -flags {o|o} -block 5 \
 		-alias {%pref_resetbans} \
 		-regexp {{^$} {}}
 	
