@@ -5,9 +5,10 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"ignore"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.0" \
-				"16-Jun-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль управления списком игноров."
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -27,30 +28,17 @@ if {$ccs(mod,name,$modname)} {
 	# 10: nick!*@*.host
 	set ccs(ignoremask)			4
 	
-	lappend ccs(commands)	"addignore"
-	lappend ccs(commands)	"delignore"
-	lappend ccs(commands)	"ignorelist"
+	cconfigure addignore -add -group "other" -flags {o} -block 3 -usechan 0 \
+		-alias {%pref_addignore %pref_+ignore} \
+		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ +(.*?))?$} {-> dnick stime reason}}
 	
-	set ccs(group,addignore) "other"
-	set ccs(use_chan,addignore) 0
-	set ccs(flags,addignore) {o}
-	set ccs(alias,addignore) {%pref_addignore %pref_+ignore}
-	set ccs(block,addignore) 3
-	set ccs(regexp,addignore) {{^([^\ ]+)(?:\ +(\d+))?(?:\ +(.*?))?$} {-> dnick stime reason}}
+	cconfigure delignore -add -group "other" -flags {o} -block 1 -usechan 0 \
+		-alias {%pref_delignore %pref_-ignore} \
+		-regexp {{^([^\ ]+)$} {-> ignore}}
 	
-	set ccs(group,delignore) "other"
-	set ccs(use_chan,delignore) 0
-	set ccs(flags,delignore) {o}
-	set ccs(alias,delignore) {%pref_delignore %pref_-ignore}
-	set ccs(block,delignore) 1
-	set ccs(regexp,delignore) {{^([^\ ]+)$} {-> ignore}}
-	
-	set ccs(group,ignorelist) "other"
-	set ccs(use_chan,ignorelist) 0
-	set ccs(flags,ignorelist) {m}
-	set ccs(alias,ignorelist) {%pref_ignorelist %pref_ignores}
-	set ccs(block,ignorelist) 3
-	set ccs(regexp,ignorelist) {{^$} {}}
+	cconfigure ignorelist -add -group "other" -flags {m} -block 3 -usechan 0 \
+		-alias {%pref_ignorelist %pref_ignores} \
+		-regexp {{^$} {}}
 	
 	setudef str ccs-ignoremask
 	

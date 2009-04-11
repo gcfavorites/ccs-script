@@ -5,22 +5,16 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"traf"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.0" \
-				"16-Jun-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль выдающий информацию о расходуемом трафике бота."
 
 if {$ccs(mod,name,$modname)} {
 	
-	lappend ccs(commands)	"traf"
-	
-	set ccs(group,traf) "info"
-	set ccs(use_auth,traf) 0
-	set ccs(use_chan,traf) 0
-	set ccs(use_botnet,traf) 0
-	set ccs(flags,traf) {%v}
-	set ccs(alias,traf) {%pref_traf}
-	set ccs(block,traf) 3
-	set ccs(regexp,traf) {{^([^\ ]+)?$} {-> stype}}
+	cconfigure traf -add -group "info" -flags {%v} -block 3 -useauth 0 -usechan 0 -usebotnet 0 \
+		-alias {%pref_traf} \
+		-regexp {{^([^\ ]+)?$} {-> stype}}
 	
 	#############################################################################################################
 	#############################################################################################################

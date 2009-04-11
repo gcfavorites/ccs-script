@@ -5,35 +5,24 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"lang"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.1" \
-				"25-Jul-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль локализации (установка языка по умолчанию для каналов и пользователей)."
 
 if {$ccs(mod,name,$modname)} {
 	
-	lappend ccs(commands)	"langlist"
-	lappend ccs(commands)	"chansetlang"
-	lappend ccs(commands)	"chlang"
+	cconfigure langlist -add -group "lang" -flags {%v} -block 3 -usechan 0 \
+		-alias {%pref_langlist} \
+		-regexp {{^([^\ ]+)?$} {-> mod}}
 	
-	set ccs(group,langlist) "lang"
-	set ccs(use_chan,langlist) 0
-	set ccs(flags,langlist) {%v}
-	set ccs(alias,langlist) {%pref_langlist}
-	set ccs(block,langlist) 3
-	set ccs(regexp,langlist) {{^([^\ ]+)?$} {-> mod}}
+	cconfigure chansetlang -add -group "lang" -flags {m|m} -block 3 \
+		-alias {%pref_chansetlang} \
+		-regexp {{^([^\ ]+)?$} {-> lang}}
 	
-	set ccs(group,chansetlang) "lang"
-	set ccs(flags,chansetlang) {m|m}
-	set ccs(alias,chansetlang) {%pref_chansetlang}
-	set ccs(block,chansetlang) 3
-	set ccs(regexp,chansetlang) {{^([^\ ]+)?$} {-> lang}}
-	
-	set ccs(group,chlang) "lang"
-	set ccs(use_chan,chlang) 0
-	set ccs(flags,chlang) {m}
-	set ccs(alias,chlang) {%pref_chlang}
-	set ccs(block,chlang) 3
-	set ccs(regexp,chlang) {{^([^\ ]+)(?:\ +([^\ ]+))?$} {-> dnick lang}}
+	cconfigure chlang -add -group "lang" -flags {m} -block 3 -usechan 0 \
+		-alias {%pref_chlang} \
+		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))?$} {-> dnick lang}}
 	
 	#############################################################################################################
 	#############################################################################################################

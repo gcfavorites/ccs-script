@@ -5,28 +5,20 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"link"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.0" \
-				"16-Jun-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль линковки ботов."
 
 if {$ccs(mod,name,$modname)} {
 	
-	lappend ccs(commands)	"link"
-	lappend ccs(commands)	"unlink"
+	cconfigure link -add -group "botnet" -flags {nt} -block 5 -usechan 0 \
+		-alias {%pref_link} \
+		-regexp {{^(?:([^\ ]+)\ +)?([^\ ]+)+?$} {-> sviabot sbot}}
 	
-	set ccs(group,link) "botnet"
-	set ccs(use_chan,link) 0
-	set ccs(flags,link) {nt}
-	set ccs(alias,link) {%pref_link}
-	set ccs(block,link) 5
-	set ccs(regexp,link) {{^(?:([^\ ]+)\ +)?([^\ ]+)+?$} {-> sviabot sbot}}
-	
-	set ccs(group,unlink) "botnet"
-	set ccs(use_chan,unlink) 0
-	set ccs(flags,unlink) {nt}
-	set ccs(alias,unlink) {%pref_unlink %pref_dellink}
-	set ccs(block,unlink) 5
-	set ccs(regexp,unlink) {{^([^\ ]+)$} {-> sbot}}
+	cconfigure unlink -add -group "botnet" -flags {nt} -block 5 -usechan 0 \
+		-alias {%pref_unlink %pref_dellink} \
+		-regexp {{^([^\ ]+)$} {-> sbot}}
 	
 	#############################################################################################################
 	#############################################################################################################

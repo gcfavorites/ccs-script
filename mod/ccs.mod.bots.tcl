@@ -9,8 +9,9 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"bots"
 addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.3" \
-				"30-Mar-2009"
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль управления ботнетом."
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -27,79 +28,41 @@ if {$ccs(mod,name,$modname)} {
 	# Время в миллисекундах, в течение которого ждать ответа от бота при проверки авторизации.
 	set ccs(time_botauth_receive)	10000
 	
-	lappend ccs(commands)	"bots"
-	lappend ccs(commands)	"botattr"
-	lappend ccs(commands)	"addbot"
-	lappend ccs(commands)	"delbot"
-	lappend ccs(commands)	"chaddr"
-	lappend ccs(commands)	"chbotpass"
-	lappend ccs(commands)	"listauth"
-	lappend ccs(commands)	"addauth"
-	lappend ccs(commands)	"delauth"
+	cconfigure bots -add -group "botnet" -flags {%v} -block 5 -usechan 0 -usebotnet 0 \
+		-alias {%pref_bots} \
+		-regexp {{^(tree)?$} {-> stree}}
 	
-	set ccs(group,bots) "botnet"
-	set ccs(use_chan,bots) 0
-	set ccs(use_botnet,bots) 0
-	set ccs(flags,bots) {%v}
-	set ccs(alias,bots) {%pref_bots}
-	set ccs(block,bots) 5
-	set ccs(regexp,bots) {{^(tree)?$} {-> stree}}
+	cconfigure botattr -add -group "botnet" -flags {mt} -block 2 -usechan 0 \
+		-alias {%pref_botattr} \
+		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick sflag}}
 	
-	set ccs(group,botattr) "botnet"
-	set ccs(use_chan,botattr) 0
-	set ccs(flags,botattr) {mt}
-	set ccs(alias,botattr) {%pref_botattr}
-	set ccs(block,botattr) 2
-	set ccs(regexp,botattr) {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick sflag}}
+	cconfigure chaddr -add -group "botnet" -flags {mt} -block 2 -usechan 0 \
+		-alias {%pref_chaddr} \
+		-regexp {{^([^\ ]+)(?:\ +([^\ :]+)(?:\:(\d+)(?:/(\d+))?)?)$} {-> dnick saddress sbport suport}}
 	
-	set ccs(group,chaddr) "botnet"
-	set ccs(use_chan,chaddr) 0
-	set ccs(flags,chaddr) {mt}
-	set ccs(alias,chaddr) {%pref_chaddr}
-	set ccs(block,chaddr) 2
-	set ccs(regexp,chaddr) {{^([^\ ]+)(?:\ +([^\ :]+)(?:\:(\d+)(?:/(\d+))?)?)$} {-> dnick saddress sbport suport}}
+	cconfigure addbot -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+		-alias {%pref_addbot} \
+		-regexp {{^([^\ ]+)(?:\ +([^\ :]+)(?:\:(\d+)(?:/(\d+))?)?)(?:\ +([^\ ]+))?$} {-> dnick daddress dbport duport dhost}}
 	
-	set ccs(group,addbot) "botnet"
-	set ccs(use_chan,addbot) 0
-	set ccs(flags,addbot) {mt}
-	set ccs(alias,addbot) {%pref_addbot}
-	set ccs(block,addbot) 3
-	set ccs(regexp,addbot) {{^([^\ ]+)(?:\ +([^\ :]+)(?:\:(\d+)(?:/(\d+))?)?)(?:\ +([^\ ]+))?$} {-> dnick daddress dbport duport dhost}}
+	cconfigure delbot -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+		-alias {%pref_delbot} \
+		-regexp {{^([^\ ]+)$} {-> dnick}}
 	
-	set ccs(group,delbot) "botnet"
-	set ccs(use_chan,delbot) 0
-	set ccs(flags,delbot) {mt}
-	set ccs(alias,delbot) {%pref_delbot}
-	set ccs(block,delbot) 3
-	set ccs(regexp,delbot) {{^([^\ ]+)$} {-> dnick}}
+	cconfigure chbotpass -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+		-alias {%pref_chbotpass} \
+		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))?$} {-> dnick dpass}}
 	
-	set ccs(group,chbotpass) "botnet"
-	set ccs(use_chan,chbotpass) 0
-	set ccs(flags,chbotpass) {mt}
-	set ccs(alias,chbotpass) {%pref_chbotpass}
-	set ccs(block,chbotpass) 3
-	set ccs(regexp,chbotpass) {{^([^\ ]+)(?:\ +([^\ ]+))?$} {-> dnick dpass}}
+	cconfigure listauth -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+		-alias {%pref_listauth} \
+		-regexp {{^([^\ ]+)$} {-> dnick}}
 	
-	set ccs(group,listauth) "botnet"
-	set ccs(use_chan,listauth) 0
-	set ccs(flags,listauth) {mt}
-	set ccs(alias,listauth) {%pref_listauth}
-	set ccs(block,listauth) 3
-	set ccs(regexp,listauth) {{^([^\ ]+)$} {-> dnick}}
+	cconfigure addauth -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+		-alias {%pref_addauth} \
+		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))(?:\ +([^\ ]+))$} {-> dnick dbotnick dhandle}}
 	
-	set ccs(group,addauth) "botnet"
-	set ccs(use_chan,addauth) 0
-	set ccs(flags,addauth) {mt}
-	set ccs(alias,addauth) {%pref_addauth}
-	set ccs(block,addauth) 3
-	set ccs(regexp,addauth) {{^([^\ ]+)(?:\ +([^\ ]+))(?:\ +([^\ ]+))$} {-> dnick dbotnick dhandle}}
-	
-	set ccs(group,delauth) "botnet"
-	set ccs(use_chan,delauth) 0
-	set ccs(flags,delauth) {mt}
-	set ccs(alias,delauth) {%pref_delauth}
-	set ccs(block,delauth) 3
-	set ccs(regexp,delauth) {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick dbotnick}}
+	cconfigure delauth -add -group "botnet" -flags {mt} -block 3 -usechan 0 \
+		-alias {%pref_delauth} \
+		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick dbotnick}}
 	
 	#############################################################################################################
 	#############################################################################################################

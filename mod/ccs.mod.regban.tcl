@@ -13,9 +13,9 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"regban"
 addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.6" \
-				"03-Mar-2009" \
-				"Модуль управление банами по регулярным выражениям."
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль управления банами по регулярным выражениям."
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -48,42 +48,25 @@ if {$ccs(mod,name,$modname)} {
 	# сервера.
 	set ccs(regbanwhohash)		10000
 	
-	lappend ccs(commands)	"regbanlist"
-	lappend ccs(commands)	"regban"
-	lappend ccs(commands)	"regunban"
-	lappend ccs(commands)	"regbantest"
-	lappend ccs(commands)	"regbanaction"
+	cconfigure regbanlist -add -group "regban" -flags {o} -block 3 \
+		-alias {%pref_regbanlist} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,regbanlist) "regban"
-	set ccs(flags,regbanlist) {o}
-	set ccs(alias,regbanlist) {%pref_regbanlist}
-	set ccs(block,regbanlist) 3
-	set ccs(regexp,regbanlist) {{^$} {}}
+	cconfigure regban -add -group "regban" -flags {o} -block 3 \
+		-alias {%pref_regban %pref_addregban} \
+		-regexp {{^(.*?)$} {-> text}}
 	
-	set ccs(group,regban) "regban"
-	set ccs(flags,regban) {o}
-	set ccs(alias,regban) {%pref_regban %pref_addregban}
-	set ccs(block,regban) 3
-	set ccs(regexp,regban) {{^(.*?)$} {-> text}}
+	cconfigure regunban -add -group "regban" -flags {o} -block 3 -usechan 3 \
+		-alias {%pref_regunban %pref_delregban} \
+		-regexp {{^(\d+)$} {-> rid}}
 	
-	set ccs(group,regunban) "regban"
-	set ccs(use_chan,regunban) 3
-	set ccs(flags,regunban) {o}
-	set ccs(alias,regunban) {%pref_regunban %pref_delregban}
-	set ccs(block,regunban) 3
-	set ccs(regexp,regunban) {{^(\d+)$} {-> rid}}
+	cconfigure regbantest -add -group "regban" -flags {o} -block 5 \
+		-alias {%pref_regbantest} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,regbantest) "regban"
-	set ccs(flags,regbantest) {o}
-	set ccs(alias,regbantest) {%pref_regbantest}
-	set ccs(block,regbantest) 5
-	set ccs(regexp,regbantest) {{^$} {}}
-	
-	set ccs(group,regbanaction) "regban"
-	set ccs(flags,regbanaction) {o}
-	set ccs(alias,regbanaction) {%pref_regbanaction}
-	set ccs(block,regbanaction) 5
-	set ccs(regexp,regbanaction) {{^$} {}}
+	cconfigure regbanaction -add -group "regban" -flags {o} -block 5 \
+		-alias {%pref_regbanaction} \
+		-regexp {{^$} {}}
 	
 	setudef str ccs-banmask
 	

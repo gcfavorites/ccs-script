@@ -5,80 +5,48 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"mode"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.4" \
-				"20-Oct-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль управления модами канала."
 
 if {$ccs(mod,name,$modname)} {
 	
-	lappend ccs(commands)	"op"
-	lappend ccs(commands)	"deop"
-	lappend ccs(commands)	"hop"
-	lappend ccs(commands)	"dehop"
-	lappend ccs(commands)	"voice"
-	lappend ccs(commands)	"devoice"
-	lappend ccs(commands)	"allvoice"
-	lappend ccs(commands)	"alldevoice"
-	lappend ccs(commands)	"mode"
+	cconfigure op -add -group "mode" -flags {o|o} -block 1 \
+		-alias {%pref_op} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,op) "mode"
-	set ccs(flags,op) {o|o}
-	set ccs(alias,op) {%pref_op}
-	set ccs(block,op) 1
-	set ccs(regexp,op) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure deop -add -group "mode" -flags {o|o} -block 1 \
+		-alias {%pref_deop} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,deop) "mode"
-	set ccs(flags,deop) {o|o}
-	set ccs(alias,deop) {%pref_deop}
-	set ccs(block,deop) 1
-	set ccs(regexp,deop) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure hop -add -group "mode" -flags {l|l} -use 0 -block 1 \
+		-alias {%pref_hop} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,hop) "mode"
-	set ccs(use,hop) 0
-	set ccs(flags,hop) {l|l}
-	set ccs(alias,hop) {%pref_hop}
-	set ccs(block,hop) 1
-	set ccs(regexp,hop) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure dehop -add -group "mode" -flags {l|l} -use 0 -block 1 \
+		-alias {%pref_dehop} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,dehop) "mode"
-	set ccs(use,dehop) 0
-	set ccs(flags,dehop) {l|l}
-	set ccs(alias,dehop) {%pref_dehop}
-	set ccs(block,dehop) 1
-	set ccs(regexp,dehop) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure voice -add -group "mode" -flags {v|v o|o} -block 1 -useauth 0 \
+		-alias {%pref_voice} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,voice) "mode"
-	set ccs(use_auth,voice) 0
-	set ccs(flags,voice) {v|v o|o}
-	set ccs(alias,voice) {%pref_voice}
-	set ccs(block,voice) 1
-	set ccs(regexp,voice) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure devoice -add -group "mode" -flags {v|v o|o} -block 1 -useauth 0 \
+		-alias {%pref_devoice} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,devoice) "mode"
-	set ccs(use_auth,devoice) 0
-	set ccs(flags,devoice) {v|v o|o}
-	set ccs(alias,devoice) {%pref_devoice}
-	set ccs(block,devoice) 1
-	set ccs(regexp,devoice) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure allvoice -add -group "mode" -flags {m|m} -block 5 \
+		-alias {%pref_allvoice} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,allvoice) "mode"
-	set ccs(use_auth,allvoice) 0
-	set ccs(flags,allvoice) {m|m}
-	set ccs(alias,allvoice) {%pref_allvoice}
-	set ccs(block,allvoice) 3
-	set ccs(regexp,allvoice) {{^$} {}}
+	cconfigure alldevoice -add -group "mode" -flags {m|m} -block 1 \
+		-alias {%pref_alldevoice} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,alldevoice) "mode"
-	set ccs(use_auth,alldevoice) 0
-	set ccs(flags,alldevoice) {m|m}
-	set ccs(alias,alldevoice) {%pref_alldevoice}
-	set ccs(block,alldevoice) 3
-	set ccs(regexp,alldevoice) {{^$} {}}
-	
-	set ccs(group,mode) "mode"
-	set ccs(flags,mode) {o|o}
-	set ccs(alias,mode) {%pref_mode}
-	set ccs(regexp,mode) {{^(.+?)$} {-> smode}}
+	cconfigure mode -add -group "mode" -flags {o|o} \
+		-alias {%pref_mode} \
+		-regexp {{^(.+?)$} {-> smode}}
 	
 	
 	#############################################################################################################

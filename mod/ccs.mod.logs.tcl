@@ -9,8 +9,8 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"logs"
 addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.5" \
-				"14-Mar-2009" \
+				"1.3.0" \
+				"11-Apr-2009" \
 				"Модуль логирования (сохранения всех действий пользователей в файл)."
 
 if {$ccs(mod,name,$modname)} {

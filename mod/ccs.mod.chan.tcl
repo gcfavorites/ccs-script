@@ -10,9 +10,9 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"chan"
 addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.7" \
-				"03-Mar-2009" \
-				"Модуль управление списком каналов и настройки канальных флагов."
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль управления списком каналов и настроек канальных флагов."
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -28,95 +28,53 @@ if {$ccs(mod,name,$modname)} {
 	# Сохранять старые файлы настроек в bak директории (1 - да, 0 - нет)
 	set ccs(bakchanset)		1
 	
-	lappend ccs(commands)	"channels"
-	lappend ccs(commands)	"chanadd"
-	lappend ccs(commands)	"chandel"
-	lappend ccs(commands)	"rejoin"
-	lappend ccs(commands)	"chaninfo"
-	lappend ccs(commands)	"chanset"
-	lappend ccs(commands)	"chansave"
-	lappend ccs(commands)	"chanload"
-	lappend ccs(commands)	"chancopy"
-	lappend ccs(commands)	"chantemplateadd"
-	lappend ccs(commands)	"chantemplatedel"
-	lappend ccs(commands)	"chantemplatelist"
+	cconfigure channels -add -group "chan" -flags {o|o} -block 5 -useauth 0 -usechan 0 \
+		-alias {%pref_channels} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,channels) "chan"
-	set ccs(use_auth,channels) 0
-	set ccs(use_chan,channels) 0
-	set ccs(flags,channels) {o|o}
-	set ccs(alias,channels) {%pref_channels}
-	set ccs(block,channels) 5
-	set ccs(regexp,channels) {{^$} {}}
+	cconfigure chanadd -add -group "chan" -flags {n} -block 3 -usechan 0 \
+		-alias {%pref_chanadd %pref_addchan} \
+		-regexp {{^([^\ ]+)$} {-> dchan}}
 	
-	set ccs(group,chanadd) "chan"
-	set ccs(use_chan,chanadd) 0
-	set ccs(flags,chanadd) {n}
-	set ccs(alias,chanadd) {%pref_chanadd %pref_addchan}
-	set ccs(block,chanadd) 3
-	set ccs(regexp,chanadd) {{^([^\ ]+)$} {-> dchan}}
+	cconfigure chandel -add -group "chan" -flags {n} -block 3 -usechan 0 \
+		-alias {%pref_chandel %pref_delchan} \
+		-regexp {{^([^\ ]+)$} {-> dchan}}
 	
-	set ccs(group,chandel) "chan"
-	set ccs(use_chan,chandel) 0
-	set ccs(flags,chandel) {n}
-	set ccs(alias,chandel) {%pref_chandel %pref_delchan}
-	set ccs(block,chandel) 3
-	set ccs(regexp,chandel) {{^([^\ ]+)$} {-> dchan}}
+	cconfigure rejoin -add -group "chan" -flags {m|m} -block 3 \
+		-alias {%pref_rejoin} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,rejoin) "chan"
-	set ccs(flags,rejoin) {m|m}
-	set ccs(alias,rejoin) {%pref_rejoin}
-	set ccs(block,rejoin) 3
-	set ccs(regexp,rejoin) {{^$} {}}
+	cconfigure chanset -add -group "chan" -flags {n|n} -block 1 -usechan 2 \
+		-alias {%pref_set %pref_chanset} \
+		-regexp {{^([^\ ]+)(?:\ +(.*?))?$} {-> smode sargs}}
 	
-	set ccs(group,chanset) "chan"
-	set ccs(use_chan,chanset) 2
-	set ccs(flags,chanset) {n|n}
-	set ccs(alias,chanset) {%pref_set %pref_chanset}
-	set ccs(block,chanset) 1
-	set ccs(regexp,chanset) {{^([^\ ]+)(?:\ +(.*?))?$} {-> smode sargs}}
+	cconfigure chaninfo -add -group "chan" -flags {n|n} -block 5 \
+		-alias {%pref_chaninfo} \
+		-regexp {{^([^\ ]+)?$} {-> smode}}
 	
-	set ccs(group,chaninfo) "chan"
-	set ccs(flags,chaninfo) {n|n}
-	set ccs(alias,chaninfo) {%pref_chaninfo}
-	set ccs(block,chaninfo) 5
-	set ccs(regexp,chaninfo) {{^([^\ ]+)?$} {-> smode}}
+	cconfigure chansave -add -group "chan" -flags {n|n} -block 5 \
+		-alias {%pref_chansave} \
+		-regexp {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile stfile}}
 	
-	set ccs(group,chansave) "chan"
-	set ccs(flags,chansave) {n|n}
-	set ccs(alias,chansave) {%pref_chansave}
-	set ccs(block,chansave) 5
-	set ccs(regexp,chansave) {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile stfile}}
+	cconfigure chanload -add -group "chan" -flags {n|n} -block 5 \
+		-alias {%pref_chanload} \
+		-regexp {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile stfile}}
 	
-	set ccs(group,chanload) "chan"
-	set ccs(flags,chanload) {n|n}
-	set ccs(alias,chanload) {%pref_chanload}
-	set ccs(block,chanload) 5
-	set ccs(regexp,chanload) {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile stfile}}
+	cconfigure chancopy -add -group "chan" -flags {n|n} -block 5 \
+		-alias {%pref_chancopy} \
+		-regexp {{^([^\ ]+)(?:\s+([\w\.\-]{1,100}))?$} {-> dchan stfile}}
 	
-	set ccs(group,chancopy) "chan"
-	set ccs(flags,chancopy) {n|n}
-	set ccs(alias,chancopy) {%pref_chancopy}
-	set ccs(block,chancopy) 5
-	set ccs(regexp,chancopy) {{^([^\ ]+)(?:\s+([\w\.\-]{1,100}))?$} {-> dchan stfile}}
+	cconfigure chantemplateadd -add -group "chan" -flags {n|n} -block 5 \
+		-alias {%pref_templateadd} \
+		-regexp {{^([^\ ]+)\s+(.+?)$} {-> sfile param}}
 	
-	set ccs(group,chantemplateadd) "chan"
-	set ccs(flags,chantemplateadd) {n|n}
-	set ccs(alias,chantemplateadd) {%pref_templateadd}
-	set ccs(block,chantemplateadd) 5
-	set ccs(regexp,chantemplateadd) {{^([^\ ]+)\s+(.+?)$} {-> sfile param}}
+	cconfigure chantemplatedel -add -group "chan" -flags {n|n} -block 5 \
+		-alias {%pref_templatedel} \
+		-regexp {{^([^\ ]+)\s+(.+?)$} {-> sfile param}}
 	
-	set ccs(group,chantemplatedel) "chan"
-	set ccs(flags,chantemplatedel) {n|n}
-	set ccs(alias,chantemplatedel) {%pref_templatedel}
-	set ccs(block,chantemplatedel) 5
-	set ccs(regexp,chantemplatedel) {{^([^\ ]+)\s+(.+?)$} {-> sfile param}}
-	
-	set ccs(group,chantemplatelist) "chan"
-	set ccs(flags,chantemplatelist) {n|n}
-	set ccs(alias,chantemplatelist) {%pref_templatelist}
-	set ccs(block,chantemplatelist) 5
-	set ccs(regexp,chantemplatelist) {{^([\w\.\-]{1,100})$} {-> sfile}}
+	cconfigure chantemplatelist -add -group "chan" -flags {n|n} -block 5 \
+		-alias {%pref_templatelist} \
+		-regexp {{^([\w\.\-]{1,100})$} {-> sfile}}
 	
 	#############################################################################################################
 	# Процедуры команд управления каналами (CHANNEL).

@@ -5,9 +5,10 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"ban"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.5" \
-				"27-Okt-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль управления списком банов."
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -39,51 +40,29 @@ if {$ccs(mod,name,$modname)} {
 	# 10: nick!*@*.host
 	set ccs(banmask)		4
 	
-	lappend ccs(commands)	"ban"
-	lappend ccs(commands)	"unban"
-	lappend ccs(commands)	"gban"
-	lappend ccs(commands)	"gunban"
-	lappend ccs(commands)	"banlist"
-	lappend ccs(commands)	"resetbans"
+	cconfigure ban -add -group "ban" -flags {o|o} -block 1 \
+		-alias {%pref_ban} \
+		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime reason stick}}
 	
-	set ccs(group,ban) "ban"
-	set ccs(flags,ban) {o|o}
-	set ccs(alias,ban) {%pref_ban}
-	set ccs(block,ban) 1
-	set ccs(regexp,ban) {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime reason stick}}
+	cconfigure unban -add -group "ban" -flags {o|o} -block 1 \
+		-alias {%pref_unban} \
+		-regexp {{^([^\ ]+)$} {-> sban}}
 	
-	set ccs(group,unban) "ban"
-	set ccs(flags,unban) {o|o}
-	set ccs(alias,unban) {%pref_unban}
-	set ccs(block,unban) 1
-	set ccs(regexp,unban) {{^([^\ ]+)$} {-> sban}}
+	cconfigure gban -add -group "ban" -flags {o} -block 1 -usechan 0 \
+		-alias {%pref_gban} \
+		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime reason stick}}
 	
-	set ccs(group,gban) "ban"
-	set ccs(use_chan,gban) 0
-	set ccs(flags,gban) {o}
-	set ccs(alias,gban) {%pref_gban}
-	set ccs(block,gban) 1
-	set ccs(regexp,gban) {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime reason stick}}
+	cconfigure gunban -add -group "ban" -flags {o} -block 1 -usechan 0 \
+		-alias {%pref_gunban} \
+		-regexp {{^([^\ ]+)$} {-> sban}}
 	
-	set ccs(group,gunban) "ban"
-	set ccs(use_chan,gunban) 0
-	set ccs(flags,gunban) {o}
-	set ccs(alias,gunban) {%pref_gunban}
-	set ccs(block,gunban) 1
-	set ccs(regexp,gunban) {{^([^\ ]+)$} {-> sban}}
+	cconfigure banlist -add -group "ban" -flags {o|o} -block 3 -usechan 3 \
+		-alias {%pref_banlist %pref_bans} \
+		-regexp {{^((?!global)[^\ ]+)?(?:\s*(global))?$} {-> smask sglobal}}
 	
-	set ccs(group,banlist) "ban"
-	set ccs(use_chan,banlist) 3
-	set ccs(flags,banlist) {o|o}
-	set ccs(alias,banlist) {%pref_banlist %pref_bans}
-	set ccs(block,banlist) 3
-	set ccs(regexp,banlist) {{^((?!global)[^\ ]+)?(?:\s*(global))?$} {-> smask sglobal}}
-	
-	set ccs(group,resetbans) "ban"
-	set ccs(flags,resetbans) {o|o}
-	set ccs(alias,resetbans) {%pref_resetbans}
-	set ccs(block,resetbans) 5
-	set ccs(regexp,resetbans) {{^$} {}}
+	cconfigure resetbans -add -group "ban" -flags {o|o} -block 5 \
+		-alias {%pref_resetbans} \
+		-regexp {{^$} {}}
 	
 	setudef str ccs-banmask
 	setudef str ccs-unban_level
