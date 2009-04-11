@@ -105,46 +105,46 @@ if {$ccs(mod,name,$modname)} {
 	set ccs(flag,global,H)		{n}
 	set ccs(flag,local,H)		{n}
 	
-	cconfigure adduser -add -group "user" -flags {m} -block 3 -usechan 0 \
+	cconfigure adduser -add 1 -group "user" -flags {m} -block 3 -usechan 0 \
 		-alias {%pref_adduser} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))?$} {-> dnick dhost}}
 	
-	cconfigure deluser -add -group "user" -flags {m} -block 3 -usechan 0 \
+	cconfigure deluser -add 1 -group "user" -flags {m} -block 3 -usechan 0 \
 		-alias {%pref_deluser} \
 		-regexp {{^([^\ ]+)$} {-> dnick}}
 	
-	cconfigure addhost -add -group "user" -flags {m} -block 1 -usechan 0 \
+	cconfigure addhost -add 1 -group "user" -flags {m} -block 1 -usechan 0 \
 		-alias {%pref_addmask %pref_addhost %pref_+host} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick dhost}}
 	
-	cconfigure delhost -add -group "user" -flags {m} -block 1 -usechan 0 \
+	cconfigure delhost -add 1 -group "user" -flags {m} -block 1 -usechan 0 \
 		-alias {%pref_clearhosts %pref_delhost %pref_-host} \
 		-regexp {{^([^\ ]+)(?:\ +(-m))?(?:\ +([^\ ]+))$} {-> dnick dmaskflag dhost}}
 	
-	cconfigure chattr -add -group "user" -flags {n|n m|m o|o l|l} -block 1 -usechan 3 \
+	cconfigure chattr -add 1 -group "user" -flags {n|n m|m o|o l|l} -block 1 -usechan 3 \
 		-alias {%pref_chattr} \
 		-regexp {{^([^\ ]+)(?:\ +([a-z\+\-]+))(?:\ +(global))?$} {-> dnick sflag sglobal}}
 	
-	cconfigure userlist -add -group "user" -flags {o} -block 5 -usechan 3 \
+	cconfigure userlist -add 1 -group "user" -flags {o} -block 5 -usechan 3 \
 		-alias {%pref_userlist}
 	
-	cconfigure resetpass -add -group "user" -flags {m} -block 3 -usechan 0 \
+	cconfigure resetpass -add 1 -group "user" -flags {m} -block 3 -usechan 0 \
 		-alias {%pref_resetpass} \
 		-regexp {{^([^\ ]+)$} {-> dnick}}
 	
-	cconfigure chhandle -add -group "user" -flags {m} -block 3 -usechan 0 \
+	cconfigure chhandle -add 1 -group "user" -flags {m} -block 3 -usechan 0 \
 		-alias {%pref_chhandle} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick newhandle}}
 	
-	cconfigure setinfo -add -group "user" -flags {m|m} -block 3 \
+	cconfigure setinfo -add 1 -group "user" -flags {m|m} -block 3 \
 		-alias {%pref_setinfo} \
 		-regexp {{^([^\ ]+)(?:\ +(.*?))$} {-> dnick sinfo}}
 	
-	cconfigure delinfo -add -group "user" -flags {m|m} -block 1 \
+	cconfigure delinfo -add 1 -group "user" -flags {m|m} -block 1 \
 		-alias {%pref_delinfo} \
 		-regexp {{^([^\ ]+)$} {-> dnick sinfo}}
 	
-	cconfigure match -add -group "user" -flags {lf|lf} -block 5 -usechan 3 \
+	cconfigure match -add 1 -group "user" -flags {lf|lf} -block 5 -usechan 3 \
 		-alias {%pref_match} \
 		-regexp {{^(.+?)$} {-> smask}}
 	

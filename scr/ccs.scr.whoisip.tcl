@@ -66,7 +66,7 @@ if {$ccs(scr,name,$scrname)} {
 	
 	lappend ccs(scr_commands)	"whoisip"
 	
-	cconfigure whoisip -add -group "info" -flags {-|-} -block 5 -useauth 0 -usechan 0 -usebotnet 0 -usemode 1 \
+	cconfigure whoisip -add 1 -group "info" -flags {-|-} -block 5 -useauth 0 -usechan 0 -usebotnet 0 -usemode 1 \
 		-alias {%pref_whoisip} \
 		-regexp {{^([^\ ]+)$} {-> stext}}
 	

@@ -48,23 +48,23 @@ if {$ccs(mod,name,$modname)} {
 	# сервера.
 	set ccs(regbanwhohash)		10000
 	
-	cconfigure regbanlist -add -group "regban" -flags {o} -block 3 \
+	cconfigure regbanlist -add 1 -group "regban" -flags {o} -block 3 \
 		-alias {%pref_regbanlist} \
 		-regexp {{^$} {}}
 	
-	cconfigure regban -add -group "regban" -flags {o} -block 3 \
+	cconfigure regban -add 1 -group "regban" -flags {o} -block 3 \
 		-alias {%pref_regban %pref_addregban} \
 		-regexp {{^(.*?)$} {-> text}}
 	
-	cconfigure regunban -add -group "regban" -flags {o} -block 3 -usechan 3 \
+	cconfigure regunban -add 1 -group "regban" -flags {o} -block 3 -usechan 3 \
 		-alias {%pref_regunban %pref_delregban} \
 		-regexp {{^(\d+)$} {-> rid}}
 	
-	cconfigure regbantest -add -group "regban" -flags {o} -block 5 \
+	cconfigure regbantest -add 1 -group "regban" -flags {o} -block 5 \
 		-alias {%pref_regbantest} \
 		-regexp {{^$} {}}
 	
-	cconfigure regbanaction -add -group "regban" -flags {o} -block 5 \
+	cconfigure regbanaction -add 1 -group "regban" -flags {o} -block 5 \
 		-alias {%pref_regbanaction} \
 		-regexp {{^$} {}}
 	

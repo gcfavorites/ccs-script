@@ -28,27 +28,27 @@ if {$ccs(mod,name,$modname)} {
 	# 10: nick!*@*.host
 	set ccs(invitemask)		4
 	
-	cconfigure invite -add -group "invite" -flags {o|o} -block 1 \
+	cconfigure invite -add 1 -group "invite" -flags {o|o} -block 1 \
 		-alias {%pref_invite} \
 		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
 	
-	cconfigure uninvite -add -group "invite" -flags {o|o} -block 1 \
+	cconfigure uninvite -add 1 -group "invite" -flags {o|o} -block 1 \
 		-alias {%pref_uninvite} \
 		-regexp {{^([^\ ]+)$} {-> sinvite}}
 	
-	cconfigure ginvite -add -group "invite" -flags {o} -block 1 -usechan 0 \
+	cconfigure ginvite -add 1 -group "invite" -flags {o} -block 1 -usechan 0 \
 		-alias {%pref_ginvite} \
 		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
 	
-	cconfigure guninvite -add -group "invite" -flags {o} -block 1 -usechan 0 \
+	cconfigure guninvite -add 1 -group "invite" -flags {o} -block 1 -usechan 0 \
 		-alias {%pref_guninvite} \
 		-regexp {{^([^\ ]+)$} {-> sinvite}}
 	
-	cconfigure invitelist -add -group "invite" -flags {o|o} -block 3 -usechan 3 \
+	cconfigure invitelist -add 1 -group "invite" -flags {o|o} -block 3 -usechan 3 \
 		-alias {%pref_invitelist %pref_invites} \
 		-regexp {{^((?!global)[^\ ]+)?(?:\s*(global))?$} {-> smask sglobal}}
 	
-	cconfigure resetinvites -add -group "invite" -flags {o|o} -block 5 \
+	cconfigure resetinvites -add 1 -group "invite" -flags {o|o} -block 5 \
 		-alias {%pref_resetinvites} \
 		-regexp {{^$} {}}
 	

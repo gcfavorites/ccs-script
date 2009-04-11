@@ -28,51 +28,51 @@ if {$ccs(mod,name,$modname)} {
 	# Сохранять старые файлы настроек в bak директории (1 - да, 0 - нет)
 	set ccs(bakchanset)		1
 	
-	cconfigure channels -add -group "chan" -flags {o|o} -block 5 -useauth 0 -usechan 0 \
+	cconfigure channels -add 1 -group "chan" -flags {o|o} -block 5 -useauth 0 -usechan 0 \
 		-alias {%pref_channels} \
 		-regexp {{^$} {}}
 	
-	cconfigure chanadd -add -group "chan" -flags {n} -block 3 -usechan 0 \
+	cconfigure chanadd -add 1 -group "chan" -flags {n} -block 3 -usechan 0 \
 		-alias {%pref_chanadd %pref_addchan} \
 		-regexp {{^([^\ ]+)$} {-> dchan}}
 	
-	cconfigure chandel -add -group "chan" -flags {n} -block 3 -usechan 0 \
+	cconfigure chandel -add 1 -group "chan" -flags {n} -block 3 -usechan 0 \
 		-alias {%pref_chandel %pref_delchan} \
 		-regexp {{^([^\ ]+)$} {-> dchan}}
 	
-	cconfigure rejoin -add -group "chan" -flags {m|m} -block 3 \
+	cconfigure rejoin -add 1 -group "chan" -flags {m|m} -block 3 \
 		-alias {%pref_rejoin} \
 		-regexp {{^$} {}}
 	
-	cconfigure chanset -add -group "chan" -flags {n|n} -block 1 -usechan 2 \
+	cconfigure chanset -add 1 -group "chan" -flags {n|n} -block 1 -usechan 2 \
 		-alias {%pref_set %pref_chanset} \
 		-regexp {{^([^\ ]+)(?:\ +(.*?))?$} {-> smode sargs}}
 	
-	cconfigure chaninfo -add -group "chan" -flags {n|n} -block 5 \
+	cconfigure chaninfo -add 1 -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chaninfo} \
 		-regexp {{^([^\ ]+)?$} {-> smode}}
 	
-	cconfigure chansave -add -group "chan" -flags {n|n} -block 5 \
+	cconfigure chansave -add 1 -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chansave} \
 		-regexp {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile stfile}}
 	
-	cconfigure chanload -add -group "chan" -flags {n|n} -block 5 \
+	cconfigure chanload -add 1 -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chanload} \
 		-regexp {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile stfile}}
 	
-	cconfigure chancopy -add -group "chan" -flags {n|n} -block 5 \
+	cconfigure chancopy -add 1 -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chancopy} \
 		-regexp {{^([^\ ]+)(?:\s+([\w\.\-]{1,100}))?$} {-> dchan stfile}}
 	
-	cconfigure chantemplateadd -add -group "chan" -flags {n|n} -block 5 \
+	cconfigure chantemplateadd -add 1 -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_templateadd} \
 		-regexp {{^([^\ ]+)\s+(.+?)$} {-> sfile param}}
 	
-	cconfigure chantemplatedel -add -group "chan" -flags {n|n} -block 5 \
+	cconfigure chantemplatedel -add 1 -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_templatedel} \
 		-regexp {{^([^\ ]+)\s+(.+?)$} {-> sfile param}}
 	
-	cconfigure chantemplatelist -add -group "chan" -flags {n|n} -block 5 \
+	cconfigure chantemplatelist -add 1 -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_templatelist} \
 		-regexp {{^([\w\.\-]{1,100})$} {-> sfile}}
 	
