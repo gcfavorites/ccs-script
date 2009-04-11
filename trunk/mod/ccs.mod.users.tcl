@@ -12,9 +12,9 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"users"
 addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.6" \
-				"03-Mar-2009" \
-				"Модуль управление юзер листом бота."
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль управления юзер листом бота."
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -105,92 +105,48 @@ if {$ccs(mod,name,$modname)} {
 	set ccs(flag,global,H)		{n}
 	set ccs(flag,local,H)		{n}
 	
-	lappend ccs(commands)	"adduser"
-	lappend ccs(commands)	"deluser"
-	lappend ccs(commands)	"addhost"
-	lappend ccs(commands)	"delhost"
-	lappend ccs(commands)	"chattr"
-	lappend ccs(commands)	"userlist"
-	lappend ccs(commands)	"resetpass"
-	lappend ccs(commands)	"chhandle"
-	lappend ccs(commands)	"setinfo"
-	lappend ccs(commands)	"delinfo"
-	lappend ccs(commands)	"match"
+	cconfigure adduser -add -group "user" -flags {m} -block 3 -usechan 0 \
+		-alias {%pref_adduser} \
+		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))?$} {-> dnick dhost}}
 	
-	set ccs(group,adduser) "user"
-	set ccs(use_chan,adduser) 0
-	set ccs(flags,adduser) {m}
-	set ccs(alias,adduser) {%pref_adduser}
-	set ccs(block,adduser) 3
-	set ccs(regexp,adduser) {{^([^\ ]+)(?:\ +([^\ ]+))?$} {-> dnick dhost}}
+	cconfigure deluser -add -group "user" -flags {m} -block 3 -usechan 0 \
+		-alias {%pref_deluser} \
+		-regexp {{^([^\ ]+)$} {-> dnick}}
 	
-	set ccs(group,deluser) "user"
-	set ccs(use_chan,deluser) 0
-	set ccs(flags,deluser) {m}
-	set ccs(alias,deluser) {%pref_deluser}
-	set ccs(block,deluser) 3
-	set ccs(regexp,deluser) {{^([^\ ]+)$} {-> dnick}}
+	cconfigure addhost -add -group "user" -flags {m} -block 1 -usechan 0 \
+		-alias {%pref_addmask %pref_addhost %pref_+host} \
+		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick dhost}}
 	
-	set ccs(group,addhost) "user"
-	set ccs(use_chan,addhost) 0
-	set ccs(flags,addhost) {m}
-	set ccs(alias,addhost) {%pref_addmask %pref_addhost %pref_+host}
-	set ccs(block,addhost) 1
-	set ccs(regexp,addhost) {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick dhost}}
+	cconfigure delhost -add -group "user" -flags {m} -block 1 -usechan 0 \
+		-alias {%pref_clearhosts %pref_delhost %pref_-host} \
+		-regexp {{^([^\ ]+)(?:\ +(-m))?(?:\ +([^\ ]+))$} {-> dnick dmaskflag dhost}}
 	
-	set ccs(group,delhost) "user"
-	set ccs(use_chan,delhost) 0
-	set ccs(flags,delhost) {m}
-	set ccs(alias,delhost) {%pref_clearhosts %pref_delhost %pref_-host}
-	set ccs(block,delhost) 1
-	set ccs(regexp,delhost) {{^([^\ ]+)(?:\ +(-m))?(?:\ +([^\ ]+))$} {-> dnick dmaskflag dhost}}
+	cconfigure chattr -add -group "user" -flags {n|n m|m o|o l|l} -block 1 -usechan 3 \
+		-alias {%pref_chattr} \
+		-regexp {{^([^\ ]+)(?:\ +([a-z\+\-]+))(?:\ +(global))?$} {-> dnick sflag sglobal}}
 	
-	set ccs(group,chattr) "user"
-	set ccs(use_chan,chattr) 3
-	set ccs(flags,chattr) {n|n m|m o|o l|l}
-	set ccs(alias,chattr) {%pref_chattr}
-	set ccs(block,chattr) 1
-	set ccs(regexp,chattr) {{^([^\ ]+)(?:\ +([a-z\+\-]+))(?:\ +(global))?$} {-> dnick sflag sglobal}}
+	cconfigure userlist -add -group "user" -flags {o} -block 5 -usechan 3 \
+		-alias {%pref_userlist}
 	
-	set ccs(group,userlist) "user"
-	set ccs(use_chan,userlist) 3
-	set ccs(flags,userlist) {o}
-	set ccs(alias,userlist) {%pref_userlist}
-	set ccs(block,userlist) 5
-	#set ccs(regexp,userlist) {{^(.*?)?$} {-> sflag}}
+	cconfigure resetpass -add -group "user" -flags {m} -block 3 -usechan 0 \
+		-alias {%pref_resetpass} \
+		-regexp {{^([^\ ]+)$} {-> dnick}}
 	
-	set ccs(group,resetpass) "user"
-	set ccs(use_chan,resetpass) 0
-	set ccs(flags,resetpass) {m}
-	set ccs(alias,resetpass) {%pref_resetpass}
-	set ccs(block,resetpass) 3
-	set ccs(regexp,resetpass) {{^([^\ ]+)$} {-> dnick}}
+	cconfigure chhandle -add -group "user" -flags {m} -block 3 -usechan 0 \
+		-alias {%pref_chhandle} \
+		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick newhandle}}
 	
-	set ccs(group,chhandle) "user"
-	set ccs(use_chan,chhandle) 0
-	set ccs(flags,chhandle) {m}
-	set ccs(alias,chhandle) {%pref_chhandle}
-	set ccs(block,chhandle) 3
-	set ccs(regexp,chhandle) {{^([^\ ]+)(?:\ +([^\ ]+))$} {-> dnick newhandle}}
+	cconfigure setinfo -add -group "user" -flags {m|m} -block 3 \
+		-alias {%pref_setinfo} \
+		-regexp {{^([^\ ]+)(?:\ +(.*?))$} {-> dnick sinfo}}
 	
-	set ccs(group,setinfo) "user"
-	set ccs(flags,setinfo) {m|m}
-	set ccs(alias,setinfo) {%pref_setinfo}
-	set ccs(block,setinfo) 3
-	set ccs(regexp,setinfo) {{^([^\ ]+)(?:\ +(.*?))$} {-> dnick sinfo}}
+	cconfigure delinfo -add -group "user" -flags {m|m} -block 1 \
+		-alias {%pref_delinfo} \
+		-regexp {{^([^\ ]+)$} {-> dnick sinfo}}
 	
-	set ccs(group,delinfo) "user"
-	set ccs(flags,delinfo) {m|m}
-	set ccs(alias,delinfo) {%pref_delinfo}
-	set ccs(block,delinfo) 1
-	set ccs(regexp,delinfo) {{^([^\ ]+)$} {-> dnick sinfo}}
-	
-	set ccs(group,match) "user"
-	set ccs(use_chan,match) 3
-	set ccs(flags,match) {lf|lf}
-	set ccs(alias,match) {%pref_match}
-	set ccs(block,match) 5
-	set ccs(regexp,match) {{^(.+?)$} {-> smask}}
+	cconfigure match -add -group "user" -flags {lf|lf} -block 5 -usechan 3 \
+		-alias {%pref_match} \
+		-regexp {{^(.+?)$} {-> smask}}
 	
 	#############################################################################################################
 	#############################################################################################################

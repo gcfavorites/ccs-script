@@ -5,9 +5,10 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"invite"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.2" \
-				"26-Okt-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль управления списком инвайтов."
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -27,51 +28,29 @@ if {$ccs(mod,name,$modname)} {
 	# 10: nick!*@*.host
 	set ccs(invitemask)		4
 	
-	lappend ccs(commands)	"invite"
-	lappend ccs(commands)	"uninvite"
-	lappend ccs(commands)	"ginvite"
-	lappend ccs(commands)	"guninvite"
-	lappend ccs(commands)	"invitelist"
-	lappend ccs(commands)	"resetinvites"
+	cconfigure invite -add -group "invite" -flags {o|o} -block 1 \
+		-alias {%pref_invite} \
+		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
 	
-	set ccs(group,invite) "invite"
-	set ccs(flags,invite) {o|o}
-	set ccs(alias,invite) {%pref_invite}
-	set ccs(block,invite) 1
-	set ccs(regexp,invite) {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
+	cconfigure uninvite -add -group "invite" -flags {o|o} -block 1 \
+		-alias {%pref_uninvite} \
+		-regexp {{^([^\ ]+)$} {-> sinvite}}
 	
-	set ccs(group,uninvite) "invite"
-	set ccs(flags,uninvite) {o|o}
-	set ccs(alias,uninvite) {%pref_uninvite}
-	set ccs(block,uninvite) 1
-	set ccs(regexp,uninvite) {{^([^\ ]+)$} {-> sinvite}}
+	cconfigure ginvite -add -group "invite" -flags {o} -block 1 -usechan 0 \
+		-alias {%pref_ginvite} \
+		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
 	
-	set ccs(group,ginvite) "invite"
-	set ccs(use_chan,ginvite) 0
-	set ccs(flags,ginvite) {o}
-	set ccs(alias,ginvite) {%pref_ginvite}
-	set ccs(block,ginvite) 1
-	set ccs(regexp,ginvite) {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
+	cconfigure guninvite -add -group "invite" -flags {o} -block 1 -usechan 0 \
+		-alias {%pref_guninvite} \
+		-regexp {{^([^\ ]+)$} {-> sinvite}}
 	
-	set ccs(group,guninvite) "invite"
-	set ccs(use_chan,guninvite) 0
-	set ccs(flags,guninvite) {o}
-	set ccs(alias,guninvite) {%pref_guninvite}
-	set ccs(block,guninvite) 1
-	set ccs(regexp,guninvite) {{^([^\ ]+)$} {-> sinvite}}
+	cconfigure invitelist -add -group "invite" -flags {o|o} -block 3 -usechan 3 \
+		-alias {%pref_invitelist %pref_invites} \
+		-regexp {{^((?!global)[^\ ]+)?(?:\s*(global))?$} {-> smask sglobal}}
 	
-	set ccs(group,invitelist) "invite"
-	set ccs(use_chan,invitelist) 3
-	set ccs(flags,invitelist) {o|o}
-	set ccs(alias,invitelist) {%pref_invitelist %pref_invites}
-	set ccs(block,invitelist) 3
-	set ccs(regexp,invitelist) {{^((?!global)[^\ ]+)?(?:\s*(global))?$} {-> smask sglobal}}
-	
-	set ccs(group,resetinvites) "invite"
-	set ccs(flags,resetinvites) {o|o}
-	set ccs(alias,resetinvites) {%pref_resetinvites}
-	set ccs(block,resetinvites) 5
-	set ccs(regexp,resetinvites) {{^$} {}}
+	cconfigure resetinvites -add -group "invite" -flags {o|o} -block 5 \
+		-alias {%pref_resetinvites} \
+		-regexp {{^$} {}}
 	
 	#############################################################################################################
 	#############################################################################################################

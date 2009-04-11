@@ -5,42 +5,28 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"say"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.1" \
-				"20-Okt-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль отправки сообщений от имени бота."
 
 if {$ccs(mod,name,$modname)} {
 	
-	lappend ccs(commands)	"broadcast"
-	lappend ccs(commands)	"say"
-	lappend ccs(commands)	"msg"
-	lappend ccs(commands)	"act"
+	cconfigure broadcast -add -group "other" -flags {o} -block 10 -usechan 0 \
+		-alias {%pref_broadcast} \
+		-regexp {{^(?:([@\+]|@\+)\s+)?(.+?)$} {-> smod stext}}
 	
-	set ccs(group,broadcast) "other"
-	set ccs(use_chan,broadcast) 0
-	set ccs(flags,broadcast) {o}
-	set ccs(alias,broadcast) {%pref_broadcast}
-	set ccs(block,broadcast) 10
-	set ccs(regexp,broadcast) {{^(?:([@\+]|@\+)\s+)?(.+?)$} {-> smod stext}}
+	cconfigure say -add -group "other" -flags {m} -block 3 \
+		-alias {%pref_say} \
+		-regexp {{^(?:([@\+]|@\+)\s+)?(act)?(?:\ *(.+?))$} {-> smod sact stext}}
 	
-	set ccs(group,say) "other"
-	set ccs(flags,say) {m}
-	set ccs(alias,say) {%pref_say}
-	set ccs(block,say) 3
-	set ccs(regexp,say) {{^(?:([@\+]|@\+)\s+)?(act)?(?:\ *(.+?))$} {-> smod sact stext}}
+	cconfigure msg -add -group "other" -flags {m} -block 3 -usechan 0 \
+		-alias {%pref_msg} \
+		-regexp {{^([^\ ]+)(?:\ +(act))?(?:\ +(.*?))$} {-> dnick sact stext}}
 	
-	set ccs(group,msg) "other"
-	set ccs(use_chan,msg) 0
-	set ccs(flags,msg) {m}
-	set ccs(alias,msg) {%pref_msg}
-	set ccs(block,msg) 3
-	set ccs(regexp,msg) {{^([^\ ]+)(?:\ +(act))?(?:\ +(.*?))$} {-> dnick sact stext}}
-	
-	set ccs(group,act) "other"
-	set ccs(flags,act) {m}
-	set ccs(alias,act) {%pref_act}
-	set ccs(block,act) 3
-	set ccs(regexp,act) {{^(?:([@\+]|@\+)\s+)?(.+?)$} {-> smod stext}}
+	cconfigure act -add -group "other" -flags {m} -block 3 \
+		-alias {%pref_act} \
+		-regexp {{^(?:([@\+]|@\+)\s+)?(.+?)$} {-> smod stext}}
 	
 	#############################################################################################################
 	#############################################################################################################

@@ -5,9 +5,10 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"exempt"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.2" \
-				"26-Okt-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль управления списком исключений."
 
 if {$ccs(mod,name,$modname)} {
 	
@@ -27,45 +28,29 @@ if {$ccs(mod,name,$modname)} {
 	# 10: nick!*@*.host
 	set ccs(exemptmask)		4
 	
-	lappend ccs(commands)	"exempt"
-	lappend ccs(commands)	"unexempt"
-	lappend ccs(commands)	"gexempt"
-	lappend ccs(commands)	"gunexempt"
-	lappend ccs(commands)	"exemptlist"
-	lappend ccs(commands)	"resetexempts"
+	cconfigure exempt -add -group "exempt" -flags {o|o} -block 1 \
+		-alias {%pref_exempt} \
+		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
 	
-	set ccs(group,exempt) "exempt"
-	set ccs(flags,exempt) {o|o}
-	set ccs(alias,exempt) {%pref_exempt}
-	set ccs(block,exempt) 1
-	set ccs(regexp,exempt) {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
+	cconfigure unexempt -add -group "exempt" -flags {o|o} -block 1 -useauth 0 -usechan 0 -usebotnet 0 \
+		-alias {%pref_unexempt} \
+		-regexp {{^([^\ ]+)$} {-> sexempt}}
 	
-	set ccs(group,unexempt) "exempt"
-	set ccs(flags,unexempt) {o|o}
-	set ccs(alias,unexempt) {%pref_unexempt}
-	set ccs(block,unexempt) 1
-	set ccs(regexp,unexempt) {{^([^\ ]+)$} {-> sexempt}}
+	cconfigure gexempt -add -group "exempt" -flags {o} -block 1 -usechan 0 \
+		-alias {%pref_gexempt} \
+		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
 	
-	set ccs(group,gexempt) "exempt"
-	set ccs(use_chan,gexempt) 0
-	set ccs(flags,gexempt) {o}
-	set ccs(alias,gexempt) {%pref_gexempt}
-	set ccs(block,gexempt) 1
-	set ccs(regexp,gexempt) {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime sreason stick}}
+	cconfigure gunexempt -add -group "exempt" -flags {o} -block 1 -usechan 0 \
+		-alias {%pref_gunexempt} \
+		-regexp {{^([^\ ]+)$} {-> sexempt}}
 	
-	set ccs(group,gunexempt) "exempt"
-	set ccs(use_chan,gunexempt) 0
-	set ccs(flags,gunexempt) {o}
-	set ccs(alias,gunexempt) {%pref_gunexempt}
-	set ccs(block,gunexempt) 1
-	set ccs(regexp,gunexempt) {{^([^\ ]+)$} {-> sexempt}}
+	cconfigure exemptlist -add -group "exempt" -flags {o|o} -block 5 -usechan 3 \
+		-alias {%pref_exemptlist %pref_exempts} \
+		-regexp {{^((?!global)[^\ ]+)?(?:\s*(global))?$} {-> smask sglobal}}
 	
-	set ccs(group,exemptlist) "exempt"
-	set ccs(use_chan,exemptlist) 3
-	set ccs(flags,exemptlist) {o|o}
-	set ccs(alias,exemptlist) {%pref_exemptlist %pref_exempts}
-	set ccs(block,exemptlist) 3
-	set ccs(regexp,exemptlist) {{^((?!global)[^\ ]+)?(?:\s*(global))?$} {-> smask sglobal}}
+	cconfigure resetexempts -add -group "exempt" -flags {o|o} -block 5 \
+		-alias {%pref_resetexempts} \
+		-regexp {{^$} {}}
 	
 	set ccs(group,resetexempts) "exempt"
 	set ccs(flags,resetexempts) {o|o}

@@ -1,6 +1,6 @@
 ##################################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.7.9.
+## Version: 1.8.0.
 ## Script's author: Buster (buster@buster-net.ru) (http://buster-net.ru/index.php?section=irc&theme=scripts).
 ##                                              (http://eggdrop.msk.ru/index.php?section=irc&theme=scripts).
 ## Forum:           http://forum.systemplanet.ru/viewtopic.php?f=3&t=3
@@ -26,6 +26,10 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ##################################################################################################################
 # Список последних изменений:
+#	v1.8.0
+# - Исправлен вывод помощи. В определенной ситуации в помощи не выводился аргумент, требующий указание канала.
+# - Добавлена процедура cconfigure для удобного конфигурирования параметров команд. В связи с этим во всех модулях
+#   переписано присвоение дефолтных настроек.
 #	v1.7.9
 # - Перенесены все процедуры авторизации и управления через ботнет в модуль ccs.mod.bots.tcl
 # - Исправлена корректная загрузка скрипта при отсутствии DNS модуля.
@@ -101,19 +105,23 @@
 #   Расширенная помощь по команде для указанного языка (список строк);
 #
 # set ccs(group,command)
+# -group
 #   Принадлежность команды к определенной группе (строка);
 #
 # set ccs(use,command)
+# -use
 #   Включение/отключение команды (1 - включена, 0 - отключена), значение по умолчанию 1
 #   (если параметр не указан);
 #
 # set ccs(use_auth,command)
+# -useauth
 #   Команда требует авторизацию для её использования (1 - авторизация требуется, 0 - нет), значение
 #   по умолчанию 1 (если параметр не указан);
 #
 # set ccs(use_chan,command)
+# -usechan
 #   Команда использует имя канала, для каких либо действий, в случае управления ботом через приват данная команда
-#   потребует ввести имя канала над которым производиться #   действие. Значение по умолчанию 1
+#   потребует ввести имя канала над которым производиться действие. Значение по умолчанию 1
 #   (если параметр не указан)
 #      0 - канал не используеться;
 #      1 - указание канала обязательно;
@@ -121,23 +129,28 @@
 #      3 - указание канала не обязательно;
 #
 # set ccs(flags,command)
+# -flags
 #   Флаги доступа к команде. Если флаги указываются через вертикальную черту, это будет означать доступность
 #   команды, как для локальных, так и для глобальных пользователей. Если же флаг указывается одной буквой, то
 #   использовать команду смогут только пользователи с глобальным флагом. (дополнительно добавлен один флаг:
 #   %v - при этом пользователь должен быть добавлен в юзерлист);
 #
 # set ccs(alias,command)
+# -alias
 #   Список команд на которые бот будет реагировать для использования данной команды "%pref_" будет заменена на
 #   префикс по умолчанию.
 #
 # set ccs(block,command)
+# -block
 #   Необязательный параметр блокировка использования команды по времени. Задается время в секундах, через которое
 #   будет доступно повторное выполнение команды.
 #
 # set ccs(regexp,command)
+# -regexp
 #   Регулярное выражение, выбирающее данные и передающее обрабатываемой процедуре
 #
 # set ccs(override_level,command)
+# -overridelevel
 #   Переопределение уровня доступа юзера для выполнения команды. Если у юзера не хватает прав (например: в случае
 #   если для команды назначен юзерский флаг), то этим значением можно поднять уровень.
 #   Список стандартных уровней прав назначаемых стандартными флагами:
@@ -163,8 +176,8 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@buster-net.ru> (c)"
-	variable version	"1.7.9"
-	variable date		"30-Mar-2009"
+	variable version	"1.8.0"
+	variable date		"11-Apr-2009"
 	
 	variable ccs
 	
@@ -184,6 +197,234 @@ namespace eval ::ccs {
 		if {[string range $_ 0 $last_nsc] == "[namespace current]::"} {package forget $_}
 	}
 	foreach _ [namespace children [namespace current]] {namespace delete $_}
+	
+	
+	proc configure {args} {
+		
+	}
+	
+	proc cconfigure {command args} {
+		if {[string first " " $command] >= 0} \
+			{return -code error "command name cannot contain spaces (command: '$command', value: '$value')"}
+		variable ccs
+		
+		set lopt1 {group use_auth use_chan use_botnet flags alias block regexp use add use_mode override_level}
+		set lopt2 {group useauth usechan usebotnet flags alias block regexp use add usemode overridelevel}
+		
+		if {[llength $args] == 0} {
+			set r {}
+			foreach opt [lsort $lopt1] {
+				if {[info exists ccs($opt,$command)]} \
+					{lappend r -$opt $ccs($opt,$command)}
+			}
+			return $r
+		}
+		
+		set cget 0
+		if {[llength $args] == 1} {
+			set cget 1
+		}
+		
+		while {[string match -* [lindex $args 0]]} {
+			switch -glob -- [lindex $args 0] {
+				-add {
+					if {[lsearch -exact $ccs(commands) $command] < 0} {lappend ccs(commands) $command}
+				}
+				-gr* {
+					set opt "group"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return ""
+						}
+					} else {
+						set value [Pop args 1]
+						if {[string first " " $value] >= 0} \
+							{return -code error "group name cannot contain spaces \
+								(command: '$command', option '$opt', value: '$value')"}
+						set ccs($opt,$command) $value
+					}
+				}
+				-use {
+					set opt "use"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return 1
+						}
+					} else {
+						set value [Pop args 1]
+						if {![string is digit $value] || $value < 0 || $value > 1} \
+							{return -code error "bad value, must be a digit \[0..1\] \
+								(command: '$command', option '$opt', value: '$value')"}
+						set ccs($opt,$command) $value
+					}
+				}
+				-usem* - -um - -use_m* {
+					set opt "use_mode"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return 1
+						}
+					} else {
+						set value [Pop args 1]
+						if {![string is digit $value] || $value < 0 || $value > 1} \
+							{return -code error "bad value, must be a digit \[0..1\] \
+								(command: '$command', option '$opt', value: '$value')"}
+						set ccs($opt,$command) $value
+					}
+				}
+				-usea* - -ua - -use_a* {
+					set opt "use_auth"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return 1
+						}
+					} else {
+						set value [Pop args 1]
+						if {![string is digit $value] || $value < 0 || $value > 1} \
+							{return -code error "bad value, must be a digit \[0..1\] \
+								(command: '$command', option '$opt', value: '$value')"}
+						set ccs($opt,$command) $value
+					}
+				}
+				-usec* - -uc - -use_c* {
+					set opt "use_chan"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return 1
+						}
+					} else {
+						set value [Pop args 1]
+						if {![string is digit $value] || $value < 0 || $value > 3} \
+							{return -code error "bad value, must be a digit \[0..3\] \
+								(command: '$command', option '$opt', value: '$value')"}
+						set ccs($opt,$command) $value
+					}
+				}
+				-override_level - -ol {
+					set opt "override_level"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return 1
+						}
+					} else {
+						set value [Pop args 1]
+						if {![string is digit $value] || $value < 0 || $value > 9} \
+							{return -code error "bad value, must be a digit \[0..9\] \
+								(command: '$command', option '$opt', value: '$value')"}
+						set ccs($opt,$command) $value
+					}
+				}
+				-useb* - -ub - -use_b* {
+					set opt "use_botnet"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return 1
+						}
+					} else {
+						set value [Pop args 1]
+						if {![string is digit $value] || $value < 0 || $value > 1} \
+							{return -code error "bad value, must be a digit \[0..1\] \
+								(command: '$command', option '$opt', value: '$value')"}
+						set ccs($opt,$command) $value
+					}
+				}
+				-flag* {
+					set opt "flags"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return [list "-|-"]
+						}
+					} else {
+						set value [Pop args 1]
+						set ccs($opt,$command) $value
+					}
+				}
+				-alias* {
+					set opt "alias"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return [list]
+						}
+					} else {
+						set value [Pop args 1]
+						set ccs($opt,$command) $value
+					}
+				}
+				-bl* {
+					set opt "block"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return 0
+						}
+					} else {
+						set value [Pop args 1]
+						if {![string is integer $value] || $value < 0} \
+							{return -code error "bad value, must be a digit \[0..int\] \
+								(command: '$command', option '$opt', value: '$value')"}
+						set ccs($opt,$command) $value
+					}
+				}
+				-reg* {
+					set opt "regexp"
+					if {$cget} {
+						if {[info exists ccs($opt,$command)]} {
+							return $ccs($opt,$command)
+						} else {
+							return ""
+						}
+					} else {
+						set value [Pop args 1]
+						if {![string is space $value]} {
+							if {[llength $value] != 2} \
+								{return -code error "bad value, must be a list {{reg} {var}} \
+									(command: '$command', option '$opt', value: '$value')"}
+							if {[catch {regexp -- [lindex $value 0] ""} errMsg]} \
+								{return -code error "bad value, first list item must be a regular \
+									expression (command: '$command', option '$opt', value: '$value')"}
+						}
+						set ccs($opt,$command) $value
+					}
+				}
+				-- {Pop args; break}
+				default {
+					set opts [join [lsort $lopt2] ", -"]
+					return -code error "bad option [lindex $args 0]:\
+							must be one of -$opts"
+				}
+			}
+			Pop args
+		}
+		
+		return
+		
+	}
+	
+	proc Pop {varname {nth 0}} {
+		upvar $varname args
+		set r [lindex $args $nth]
+		set args [lreplace $args $nth $nth]
+		return $r
+	}
 	
 	#############################################################################################################
 	# Префиксы по умолчанию для команд управления. pub - для канала, msg - для приватаm, dcc - патилайн.
@@ -401,24 +642,13 @@ namespace eval ::ccs {
 	
 	sourcefile r0 $ccs(ccsdir) ccs.r0.tcl 0
 	
-	lappend ccs(commands)	"help"
-	lappend ccs(commands)	"update"
+	cconfigure update -add -group "system" -usechan 0 -flags {n} -block 5 \
+		-alias {%pref_updateccs %pref_ccsupdate} \
+		-regexp {{^(list|download|update|template)(?:\ +(.*?))?$} {-> stype stext}}
 	
-	set ccs(group,update)		"system"
-	set ccs(use_chan,update)	0
-	set ccs(flags,update)		{n}
-	set ccs(alias,update)		{%pref_updateccs %pref_ccsupdate}
-	set ccs(block,update)		5
-	set ccs(regexp,update)		{{^(list|download|update|template)(?:\ +(.*?))?$} {-> stype stext}}
-	
-	set ccs(group,help)			"info"
-	set ccs(use_auth,help)		0
-	set ccs(use_chan,help)		3
-	set ccs(use_botnet,help)	0
-	set ccs(flags,help)			{%v}
-	set ccs(alias,help)			{%pref_helps}
-	set ccs(block,help)			3
-	set ccs(regexp,help)		{{^(.+?)$} {-> stext}}
+	cconfigure help -add -group "info" -useauth 0 -usechan 3 -usebotnet 0 -block 3 -flags {%v} \
+		-alias {%pref_helps} \
+		-regexp {{^(.+?)$} {-> stext}}
 	
 	#############################################################################################################
 	# Процедуры обработки биндов приватных и канальных сообщений
@@ -763,10 +993,11 @@ namespace eval ::ccs {
 		if {$par_limit && [check_isnull $schan]} {put_msg [sprintf ccs #200] -speed 3; return 0}
 		
 		set find 0
+		if {[string equal $onick $ochan]} {set type "msg"} else {set type "pub"}
 		if {$par_access || $par_commands || $par_group || $par_limit || $par_scr} {
 			if {[llength $lcommands] > 0} {
 				foreach _ $lcommands {
-					set lout_text [get_help $_ "pub" $par_access $par_commands [expr [llength $lcommands] == 1]]
+					set lout_text [get_help $_ $type $par_access $par_commands [expr [llength $lcommands] == 1]]
 					if {[llength $lout_text] > 0} {
 						if {!$find && [llength $lcommands] > 1} {
 							put_msg [sprintf ccs #101 $::ccs::version $::ccs::date $::ccs::author \
@@ -783,7 +1014,7 @@ namespace eval ::ccs {
 					if {$par_group && ![string equal -nocase $group $ccs(group,$_)]} continue
 					if {$par_limit && ![check_matchattr $shand $schan $ccs(flags,$_)]} continue
 					
-					set lout_text [get_help $_ "pub" $par_access $par_commands 0]
+					set lout_text [get_help $_ $type $par_access $par_commands 0]
 					if {[llength $lout_text] > 0} {
 						if {!$find} {
 							put_msg [sprintf ccs #101 $::ccs::version $::ccs::date $::ccs::author \
@@ -1650,7 +1881,6 @@ namespace eval ::ccs {
 	}
 	
 	# Удалить
-	proc addmod {name author version date {description ""}} {addfileinfo mod $name $author $version $date $description}
 	proc addlang {name lang author version date {description ""}} {addfileinfo lang "$name,$lang" $author $version $date $description}
 	
 	proc get_fileinfo {type {only_on 0}} {

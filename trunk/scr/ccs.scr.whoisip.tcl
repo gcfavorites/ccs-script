@@ -22,8 +22,8 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set scrname		"whoisip"
 addfileinfo scr $scrname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.2" \
-				"30-Mar-2009" \
+				"1.3.0" \
+				"11-Apr-2009" \
 				"Скрипт выдающий информацию по IP адресу"
 
 if {$ccs(scr,name,$scrname)} {
@@ -66,15 +66,9 @@ if {$ccs(scr,name,$scrname)} {
 	
 	lappend ccs(scr_commands)	"whoisip"
 	
-	set ccs(group,whoisip)		"info"
-	set ccs(use_auth,whoisip)	0
-	set ccs(use_chan,whoisip)	0
-	set ccs(flags,whoisip)		{-|-}
-	set ccs(alias,whoisip)		{%pref_whoisip}
-	set ccs(block,whoisip)		5
-	set ccs(regexp,whoisip)		{{^([^\ ]+)$} {-> stext}}
-	set ccs(use_botnet,whoisip)	0
-	set ccs(use_mode,whoisip)	1
+	cconfigure whoisip -add -group "info" -flags {-|-} -block 5 -useauth 0 -usechan 0 -usebotnet 0 -usemode 1 \
+		-alias {%pref_whoisip} \
+		-regexp {{^([^\ ]+)$} {-> stext}}
 	
 	set ccs(args,ru,whoisip)	{<nick/host/ip/gate/longip>}
 	set ccs(help,ru,whoisip)	{Выяснить всю информацию о хосте}

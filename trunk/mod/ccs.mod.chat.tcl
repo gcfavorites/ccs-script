@@ -5,13 +5,12 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"chat"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.0" \
-				"16-Jun-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"ћодуль DCC соединени€ бота с клиентом."
 
 if {$ccs(mod,name,$modname)} {
-	
-	lappend ccs(commands)	"chat"
 	
 	#############################################################################################################
 	# ѕорт по которому будет производитьс€ DCC коннект. ≈сли порт 0, то будет производитьс€ поиск открытых портов
@@ -22,12 +21,9 @@ if {$ccs(mod,name,$modname)} {
 	# системы
 	set ccs(dccip)			""
 	
-	set ccs(group,chat) "other"
-	set ccs(use_chan,chat) 0
-	set ccs(flags,chat) {p}
-	set ccs(alias,chat) {%pref_chat}
-	set ccs(block,chat) 5
-	set ccs(regexp,chat) {{^$} {}}
+	cconfigure chat -add -group "other" -flags {p} -block 5 -usechan 0 \
+		-alias {%pref_chat} \
+		-regexp {{^$} {}}
 	
 	#############################################################################################################
 	#############################################################################################################

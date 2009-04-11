@@ -13,8 +13,8 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"base"
 addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.7" \
-				"14-Mar-2009" \
+				"1.3.0" \
+				"11-Apr-2009" \
 				"Модуль предоставляющий базовые команды не попадающие под другие группы."
 
 if {$ccs(mod,name,$modname)} {
@@ -29,81 +29,41 @@ if {$ccs(mod,name,$modname)} {
 	# переопределено выставлением канального флага ccs-vtopicuser
 	set ccs(vtopicuser)			1
 	
-	lappend ccs(commands)	"kick"
-	lappend ccs(commands)	"inv"
-	lappend ccs(commands)	"topic"
-	lappend ccs(commands)	"addtopic"
-	lappend ccs(commands)	"ops"
-	lappend ccs(commands)	"admins"
-	lappend ccs(commands)	"whom"
-	lappend ccs(commands)	"whois"
-	lappend ccs(commands)	"info"
+	cconfigure kick -add -group "mode" -flags {o|o} -block 1 \
+		-alias {%pref_kick} \
+		-regexp {{^([^\ ]+)(?:\ +(.*?))?$} {-> dnick reason}}
 	
-	set ccs(group,kick) "mode"
-	set ccs(flags,kick) {o|o}
-	set ccs(alias,kick) {%pref_kick}
-	set ccs(block,kick) 1
-	set ccs(regexp,kick) {{^([^\ ]+)(?:\ +(.*?))?$} {-> dnick reason}}
+	cconfigure inv -add -group "other" -flags {m|m} -block 5 \
+		-alias {%pref_inv} \
+		-regexp {{^([^\ ]+)$} {-> dnick}}
 	
-	set ccs(group,inv) "other"
-	set ccs(flags,inv) {m|m}
-	set ccs(alias,inv) {%pref_inv}
-	set ccs(block,inv) 5
-	set ccs(regexp,inv) {{^([^\ ]+)$} {-> dnick}}
+	cconfigure topic -add -group "chan" -flags {o|o T|T} -block 3 \
+		-alias {%pref_topic} \
+		-regexp {{^(.+?)$} {-> stext}}
 	
-	set ccs(group,topic) "chan"
-	set ccs(flags,topic) {o|o T|T}
-	set ccs(alias,topic) {%pref_topic}
-	set ccs(block,topic) 3
-	set ccs(regexp,topic) {{^(.+?)$} {-> stext}}
+	cconfigure addtopic -add -group "chan" -flags {o|o T|T} -block 5 \
+		-alias {%pref_addtopic %pref_добавить} \
+		-regexp {{^(.+?)$} {-> stext}}
 	
-	set ccs(group,addtopic) "chan"
-	set ccs(flags,addtopic) {o|o T|T}
-	set ccs(alias,addtopic) {%pref_addtopic %pref_добавить}
-	set ccs(block,addtopic) 5
-	set ccs(regexp,addtopic) {{^(.+?)$} {-> stext}}
+	cconfigure ops -add -group "info" -flags {-|-} -block 5 -useauth 0 -usebotnet 0 \
+		-alias {%pref_ops} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,ops) "info"
-	set ccs(use_auth,ops) 0
-	set ccs(use_botnet,ops) 0
-	set ccs(flags,ops) {-|-}
-	set ccs(alias,ops) {%pref_ops}
-	set ccs(block,ops) 5
-	set ccs(regexp,ops) {{^$} {}}
+	cconfigure admins -add -group "info" -flags {-|-} -block 5 -useauth 0 -usechan 0 -usebotnet 0 \
+		-alias {%pref_admins} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,admins) "info"
-	set ccs(use_auth,admins) 0
-	set ccs(use_chan,admins) 0
-	set ccs(use_botnet,admins) 0
-	set ccs(flags,admins) {-|-}
-	set ccs(alias,admins) {%pref_admins}
-	set ccs(block,admins) 5
-	set ccs(regexp,admins) {{^$} {}}
+	cconfigure whom -add -group "info" -flags {p} -block 5 -useauth 0 -usechan 0 -usebotnet 0 \
+		-alias {%pref_whom} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,whom) "info"
-	set ccs(use_auth,whom) 0
-	set ccs(use_chan,whom) 0
-	set ccs(use_botnet,whom) 0
-	set ccs(flags,whom) {p}
-	set ccs(alias,whom) {%pref_whom}
-	set ccs(block,whom) 5
-	set ccs(regexp,whom) {{^$} {}}
+	cconfigure whois -add -group "user" -flags {%v} -block 2 -useauth 0 -usechan 3 \
+		-alias {%pref_whois} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,whois) "user"
-	set ccs(use_auth,whois) 0
-	set ccs(use_chan,whois) 3
-	set ccs(flags,whois) {%v}
-	set ccs(alias,whois) {%pref_whois}
-	set ccs(block,whois) 2
-	set ccs(regexp,whois) {{^([^\ ]+)?$} {-> dnick}}
-	
-	set ccs(group,info) "info"
-	set ccs(use_auth,info) 0
-	set ccs(use_chan,info) 0
-	set ccs(flags,info) {%v}
-	set ccs(alias,info) {%pref_info}
-	set ccs(block,info) 5
-	set ccs(regexp,info) {{^(mod|scr|lang|mask|lib)?$} {-> dname}}
+	cconfigure info -add -group "info" -flags {%v} -block 5 -useauth 0 -usechan 0 \
+		-alias {%pref_info} \
+		-regexp {{^(mod|scr|lang|mask|lib)?$} {-> dname}}
 	
 	setudef str ccs-vkickuser
 	setudef str ccs-vtopicuser

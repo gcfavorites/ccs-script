@@ -5,18 +5,12 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"chanserv"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.2" \
-				"26-Okt-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль управление ChanServ."
 
 if {$ccs(mod,name,$modname)} {
-	
-	lappend ccs(commands)	"csop"
-	lappend ccs(commands)	"csdeop"
-	lappend ccs(commands)	"cshop"
-	lappend ccs(commands)	"csdehop"
-	lappend ccs(commands)	"csvoice"
-	lappend ccs(commands)	"csdevoice"
 	
 	#############################################################################################################
 	# Список шаблонов отсылаемых команд
@@ -33,45 +27,29 @@ if {$ccs(mod,name,$modname)} {
 	set ccs(chanserv,voice)		"ChanServ VOICE %chan %nick"
 	set ccs(chanserv,devoice)	"ChanServ DEVOICE %chan %nick"
 	
-	set ccs(group,csop) "chanserv"
-	set ccs(flags,csop) {o|o}
-	set ccs(alias,csop) {%pref_csop}
-	set ccs(block,csop) 1
-	set ccs(regexp,csop) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure csop -add -group "chanserv" -flags {o|o} -block 1 \
+		-alias {%pref_csop} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,csdeop) "chanserv"
-	set ccs(flags,csdeop) {o|o}
-	set ccs(alias,csdeop) {%pref_csdeop}
-	set ccs(block,csdeop) 1
-	set ccs(regexp,csdeop) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure csdeop -add -group "chanserv" -flags {o|o} -block 1 \
+		-alias {%pref_csdeop} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,cshop) "chanserv"
-	set ccs(use,cshop) 0
-	set ccs(flags,cshop) {l|l}
-	set ccs(alias,cshop) {%pref_cshop}
-	set ccs(block,cshop) 1
-	set ccs(regexp,cshop) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure cshop -add -group "chanserv" -flags {l|l} -use 0 -block 1 \
+		-alias {%pref_cshop} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,csdehop) "chanserv"
-	set ccs(use,csdehop) 0
-	set ccs(flags,csdehop) {l|l}
-	set ccs(alias,csdehop) {%pref_csdehop}
-	set ccs(block,csdehop) 1
-	set ccs(regexp,csdehop) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure csdehop -add -group "chanserv" -flags {l|l} -use 0 -block 1 \
+		-alias {%pref_csdehop} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,csvoice) "chanserv"
-	set ccs(use_auth,csvoice) 0
-	set ccs(flags,csvoice) {v|v o|o}
-	set ccs(alias,csvoice) {%pref_csvoice}
-	set ccs(block,csvoice) 1
-	set ccs(regexp,csvoice) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure csvoice -add -group "chanserv" -flags {v|v o|o} -block 1 -useauth 0 \
+		-alias {%pref_csvoice} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	set ccs(group,csdevoice) "chanserv"
-	set ccs(use_auth,csdevoice) 0
-	set ccs(flags,csdevoice) {v|v o|o}
-	set ccs(alias,csdevoice) {%pref_csdevoice}
-	set ccs(block,csdevoice) 1
-	set ccs(regexp,csdevoice) {{^([^\ ]+)?$} {-> dnick}}
+	cconfigure csdevoice -add -group "chanserv" -flags {v|v o|o} -block 1 -useauth 0 \
+		-alias {%pref_csdevoice} \
+		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
 	
 	#############################################################################################################

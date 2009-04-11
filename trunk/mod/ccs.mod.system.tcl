@@ -5,90 +5,52 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
 set modname		"system"
-addmod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.2.0" \
-				"16-Jun-2008"
+addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
+				"1.3.0" \
+				"11-Apr-2009" \
+				"Модуль с системными командами управления ботом."
 
 if {$ccs(mod,name,$modname)} {
 	
-	lappend ccs(commands)	"servers"
-	lappend ccs(commands)	"addserver"
-	lappend ccs(commands)	"delserver"
-	lappend ccs(commands)	"save"
-	lappend ccs(commands)	"reload"
-	lappend ccs(commands)	"backup"
-	lappend ccs(commands)	"die"
-	lappend ccs(commands)	"rehash"
-	lappend ccs(commands)	"restart"
-	lappend ccs(commands)	"jump"
+	cconfigure servers -add -group "system" -flags {m} -block 5 -usechan 0 \
+		-alias {%pref_servers} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,servers) "system"
-	set ccs(use_chan,servers) 0
-	set ccs(flags,servers) {m}
-	set ccs(alias,servers) {%pref_servers}
-	set ccs(block,servers) 5
-	set ccs(regexp,servers) {{^$} {}}
+	cconfigure addserver -add -group "system" -flags {m} -block 1 -usechan 0 \
+		-alias {%pref_addserver} \
+		-regexp {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)$} {-> sserver sport spass}}
 	
-	set ccs(group,addserver) "system"
-	set ccs(use_chan,addserver) 0
-	set ccs(flags,addserver) {m}
-	set ccs(alias,addserver) {%pref_addserver}
-	set ccs(block,addserver) 1
-	set ccs(regexp,addserver) {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)$} {-> sserver sport spass}}
+	cconfigure delserver -add -group "system" -flags {m} -block 1 -usechan 0 \
+		-alias {%pref_delserver} \
+		-regexp {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)$} {-> sserver sport spass}}
 	
-	set ccs(group,delserver) "system"
-	set ccs(use_chan,delserver) 0
-	set ccs(flags,delserver) {m}
-	set ccs(alias,delserver) {%pref_delserver}
-	set ccs(block,delserver) 1
-	set ccs(regexp,delserver) {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)$} {-> sserver sport spass}}
+	cconfigure save -add -group "system" -flags {m} -block 3 -usechan 0 \
+		-alias {%pref_save} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,save) "system"
-	set ccs(use_chan,save) 0
-	set ccs(flags,save) {m}
-	set ccs(alias,save) {%pref_save}
-	set ccs(block,save) 3
-	set ccs(regexp,save) {{^$} {}}
+	cconfigure reload -add -group "system" -flags {m} -block 3 -usechan 0 \
+		-alias {%pref_reload} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,reload) "system"
-	set ccs(use_chan,reload) 0
-	set ccs(flags,reload) {m}
-	set ccs(alias,reload) {%pref_reload}
-	set ccs(block,reload) 3
-	set ccs(regexp,reload) {{^$} {}}
+	cconfigure backup -add -group "system" -flags {m} -block 3 -usechan 0 \
+		-alias {%pref_backup} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,backup) "system"
-	set ccs(use_chan,backup) 0
-	set ccs(flags,backup) {m}
-	set ccs(alias,backup) {%pref_backup}
-	set ccs(block,backup) 3
-	set ccs(regexp,backup) {{^$} {}}
+	cconfigure die -add -group "system" -flags {n} -usechan 0 \
+		-alias {%pref_die} \
+		-regexp {{^(.*?)$} {-> stext}}
 	
-	set ccs(group,die) "system"
-	set ccs(use_chan,die) 0
-	set ccs(flags,die) {n}
-	set ccs(alias,die) {%pref_die}
-	set ccs(regexp,die) {{^(.*?)$} {-> stext}}
+	cconfigure rehash -add -group "system" -flags {m} -block 5 -usechan 0 \
+		-alias {%pref_rehash} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,rehash) "system"
-	set ccs(use_chan,rehash) 0
-	set ccs(flags,rehash) {m}
-	set ccs(alias,rehash) {%pref_rehash}
-	set ccs(block,rehash) 5
-	set ccs(regexp,rehash) {{^$} {}}
+	cconfigure restart -add -group "system" -flags {m} -usechan 0 \
+		-alias {%pref_restart} \
+		-regexp {{^$} {}}
 	
-	set ccs(group,restart) "system"
-	set ccs(use_chan,restart) 0
-	set ccs(flags,restart) {m}
-	set ccs(alias,restart) {%pref_restart}
-	set ccs(regexp,restart) {{^$} {}}
-	
-	set ccs(group,jump) "system"
-	set ccs(use_chan,jump) 0
-	set ccs(flags,jump) {m}
-	set ccs(alias,jump) {%pref_jump}
-	set ccs(block,jump) 5
-	set ccs(regexp,jump) {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)?$} {-> sserver sport spass}}
+	cconfigure jump -add -group "system" -flags {m} -block 5 -usechan 0 \
+		-alias {%pref_jump} \
+		-regexp {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)?$} {-> sserver sport spass}}
 	
 	#############################################################################################################
 	# Процедуры системных команд
