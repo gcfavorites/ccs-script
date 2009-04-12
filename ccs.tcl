@@ -1,6 +1,6 @@
 ##################################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.8.0.
+## Version: 1.8.1.
 ## Script's author: Buster (buster@buster-net.ru) (http://buster-net.ru/index.php?section=irc&theme=scripts).
 ##                                              (http://eggdrop.msk.ru/index.php?section=irc&theme=scripts).
 ## Forum:           http://forum.systemplanet.ru/viewtopic.php?f=3&t=3
@@ -12,9 +12,9 @@
 #  1) Распаковать архив в директорию scripts;
 #  2) Прописать скрипт в конфигурационном файле, не забывая указать правильный путь source scripts/ccs/ccs.tcl
 #  3) Настроить дополнительные параметры по желания. Все изменения должны производиться _только_ в файлах
-#     ccs.rX.tcl. Если соответствующая настройка присутствует в файле, то необходимо разкомментировать
+#     ccs.rсX.tcl. Если соответствующая настройка присутствует в файле, то необходимо разкомментировать
 #     параметр и изменить по желанию. Если какой ни будь из параметров присутствует только в скрипте, то следует
-#     скопировать строку и добавить её в соответсвующий ccs.rX.tcl с измененным значением;
+#     скопировать строку и добавить её в соответсвующий ccs.rсX.tcl с измененным значением;
 #  4) Перезапустить бота командой .rehash через патилайн.
 ##################################################################################################################
 # Помощь по командам осуществляеться через команду !helps, флаги помощи:
@@ -26,64 +26,16 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ##################################################################################################################
 # Список последних изменений:
+#	v1.8.1
+# - Изменены файлы инициализации загрузки. Теперь их три ccs.rc0.tcl, ccs.rc1.tcl, ccs.rc2.tcl. В первом можно
+#   указать модули, скрипты, языки которые не должны загружаться, во втором можно переопределить любые параметры,
+#   третий запускается после поднимания биндов.
+# - Исправлена возможность использования префиксов * и % для команд патилайна.
+# - Для команды !info добавлен вывод информации по пользовательским флагам
 #	v1.8.0
 # - Исправлен вывод помощи. В определенной ситуации в помощи не выводился аргумент, требующий указание канала.
 # - Добавлена процедура cconfigure для удобного конфигурирования параметров команд. В связи с этим во всех модулях
 #   переписано присвоение дефолтных настроек.
-#	v1.7.9
-# - Перенесены все процедуры авторизации и управления через ботнет в модуль ccs.mod.bots.tcl
-# - Исправлена корректная загрузка скрипта при отсутствии DNS модуля.
-#	v1.7.8
-# - Для команды !ccsupdate добавлена загрузка шаблонов настроек ccs.rX.tcl. (!ccsupdate template)
-#	v1.7.7
-# - Добавлен флаг ccs(usecolors). Если какой либо скрипт использует цветовую раскраску и для данного скрипта есть
-#   черно белая цветовая гамма, то выставляя этот параметр в 1 можно задействовать её.
-# - Для скрипта whoisip добавлена поддержка старого модуля eggdrop для DNS запросов.
-# - Для скрипта whoisip добавлена черно белая цветовая раскраска.
-#	v1.7.6
-# - Добавлена переменная ccs(permission_secret_chan) указывающая флаг доступа для работы с секретными каналами.
-# - Для команды !channels добавлен вывод секретных каналов, если у запрашиваемого достаточно прав.
-# - Добавлена команда !match показывающая список юзеров, сидящих на канале, с указанной хостмаской.
-# - Добавлен параметр ccs(datadir) хранящий путь к директории с данными.
-# - Изменена директория по умолчанию для сохранения логов.
-# - Изменена директория по умолчанию для сохранения банов модуля regban. Если такие баны существовали то следует
-#   переместить файл данных в директорию data и сделать .rehash
-# - Для скрипта whoisip интегрирована поддержка библиотеки DNS.
-# - Для скрипта whoisip улучшена работа с запросами IPv6. Разрешение прямой и обратной зоны для хостов.
-# - Для скрипта whoisip в качестве дополнительной информации выводятся NS, MX, CNAME записи.
-# - Файл ccs.addonce.tcl заменен на ряд файлов (ccs.r0.tcl ccs.r1.tcl ccs.r2.tcl ccs.r3.tcl ccs.r4.tcl ccs.r5.tcl
-#   ccs.r6.tcl) загрузка каждого из которых происходит в определенный момент времени. Более подробная информация о
-#   том в какой момент загружается тот или иной файл можно найти в самом файле.
-#	v1.7.5
-# - 	Добавлено свойство ccs(override_level,command) с помощью которого можно переопределить уровень доступа юзера
-#   для выполнения команды. Более подробная информация в описании всех параметров команд.
-# - Для модуля logs добавлено ограничение уровня сообщений, записываемое в лог файл.
-# - Для команды !info добавлен вывод списка порядковых номеров хостмасок
-# - Для модуля regban добавлены две новые команды !regbantest и !regbanaction
-#	v1.7.4
-# - Убраны скобки { } при выводе хостов в команде !whois
-# - Для команды !delhost теперь по умолчанию используется указание полной хостмаски, чтобы указать маску хостмаски
-#   необходимо перед маской поставить ключ -m
-# - Добавлена поддержка загрузки дополнительных библиотек
-# - Для файлов добавлена поддержка хранения описания. Которая так же отображается при загрузке файлов из
-#   репозитория
-#	v1.7.3
-# - Исправлено формирование дефолтной маски при добавление бота
-# - Исправлено использование "*" в команде обновления !ccsupdate и изменен текст помощи.
-#	v1.7.2
-# - Для команд работы с сохранением канальных флагов и шаблонов расширен список используемых символов для имени
-#   файла.
-# - Для команды !info добавлена возможность просмотра установленных скриптов/модулей/языковых файлах.
-#	v1.7.1
-# - Поправлено снятие бана не прописанного на боте, в случае если установлена опция unban_level.
-# - Для команд !banlist !exemptlist !invitelist добавлен вывод списка банов/исключений/инвайтов с канала.
-# - Для команд !exemptlist !invitelist добавлена возможность просмотра списка исключений/инвайтов по маске.
-# - Поправлено выставление глобального бана по нику.
-# - Добавлена возможность снимать баны по порядковому номеру.
-# - Для модулей logs regban chan изменены дирректории по умолчанию для сохранения файлов
-# - Оптимизирован вывод цветовой раскладки при выводе нескольких строк.
-# - Добавлена поддержка загрузки и обновления скрипов из репозитория.
-# - Создан первый тестовый скрипт whoisip показывающий всю информацию об IPv4 адрессе.
 ##################################################################################################################
 # Поный список изменений начиная с версии 1.1.0 можно прочитать в файле ChangeLog.
 ##################################################################################################################
@@ -176,8 +128,8 @@ namespace eval ::ccs {
 	#############################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@buster-net.ru> (c)"
-	variable version	"1.8.0"
-	variable date		"11-Apr-2009"
+	variable version	"1.8.1"
+	variable date		"12-Apr-2009"
 	
 	variable ccs
 	
@@ -634,6 +586,7 @@ namespace eval ::ccs {
 	}
 	
 	proc sourcefile {type path mask list {debuglevel 1}} {
+		global errorInfo
 		
 		set fcount 0
 		if {$list} {set lfile [get_filelist $path $mask]} else {set lfile [list "$path/$mask"]}
@@ -648,14 +601,12 @@ namespace eval ::ccs {
 				}
 			} errMsg]} {
 				debug "error load file ($type): \002$_\002"
-				debug "($errMsg)"
+				debug "($errorInfo)"
 			}
 		}
 		if {$list} {debug "loaded file ($type). $fcount files"}
 		
 	}
-	
-	sourcefile r0 $ccs(ccsdir) ccs.r0.tcl 0
 	
 	cconfigure update -add 1 -group "system" -usechan 0 -flags {n} -block 5 \
 		-alias {%pref_updateccs %pref_ccsupdate} \
@@ -937,17 +888,17 @@ namespace eval ::ccs {
 			}
 			4 {
 				
-				for {set i 0} {$i <= 6} {incr i} {
+				for {set i 0} {$i < 3} {incr i} {
 					foreach _ $ccs(urls) {
 						
-						set data [get_httpdata "$_/ccs.r${i}-template.tcl"]
+						set data [get_httpdata "$_/ccs.rc${i}-template.tcl"]
 						if {[string is space $data]} continue
 						set data [encoding convertfrom cp1251 $data]
 						
-						if {[file exists "$ccs(ccsdir)/ccs.r${i}.tcl"]} {
-							set file "ccs.r${i}-template.tcl"
+						if {[file exists "$ccs(ccsdir)/ccs.rc${i}.tcl"]} {
+							set file "ccs.rc${i}-template.tcl"
 						} else {
-							set file "ccs.r${i}.tcl"
+							set file "ccs.rc${i}.tcl"
 						}
 						if {[catch {
 							savefile "$ccs(ccsdir)/$file" $data
@@ -1178,7 +1129,7 @@ namespace eval ::ccs {
 			}
 		} errMsg]} {
 			set data ""
-			put_msg [sprintf ccs #194 $errMsg]
+			put_msg [sprintf ccs #194 $url $errMsg]
 		}
 		return $data
 		
@@ -2248,13 +2199,17 @@ namespace eval ::ccs {
 				if {$ccs(pref_dcc) != "."} {
 					# Прописываем бинды управления для DCC команд
 					incr curr 2
-					bind filt -|- "[string map [list %pref_ $ccs(pref_dcc)] $_]" [namespace current]::filt_cmd_$command
-					bind filt -|- "[string map [list %pref_ $ccs(pref_dcc)] $_] *" [namespace current]::filt_cmd_$command
+					set alias [string map [list %pref_ $ccs(pref_dcc)] $_]
+					set alias [string map [list * \\* % \\%] $alias]
+					bind filt -|- "$alias" [namespace current]::filt_cmd_$command
+					bind filt -|- "$alias *" [namespace current]::filt_cmd_$command
 					eval "
 						proc [namespace current]::filt_cmd_$command {idx text} {
+							global lastbind
 							set hand \[idx2hand \$idx\]
 							set nick \[hand2nick \$hand\]
 							set uhost \[getchanhost \$nick\]
+							set lastbind \[join \[lindex \[split \$text\] 0\]\]
 							set text \[join \[lrange \[split \$text\] 1 end\]\]
 							launch_cmd \$nick \$hand \$uhost \"*\" \$idx \$idx \[list\] \$text \"$command\"
 							return \"\"
@@ -2351,28 +2306,28 @@ namespace eval ::ccs {
 	
 	#############################################################################################################
 	# Начальная подгатовка переменных и загрузка модулей
-	
-	addfileinfo mod ccs $author $version $date
-	
-	sourcefile r1 $ccs(ccsdir) ccs.r1.tcl 0
-	sourcefile lib $ccs(libdir) ccs.lib.*.tcl 1 2
-	sourcefile r2 $ccs(ccsdir) ccs.r2.tcl 0
-	sourcefile mod $ccs(moddir) ccs.mod.*.tcl 1 2
-	sourcefile r3 $ccs(ccsdir) ccs.r3.tcl 0
-	sourcefile scr $ccs(scrdir) ccs.scr.*.tcl 1 2
-	sourcefile r4 $ccs(ccsdir) ccs.r4.tcl 0
-	sourcefile lang $ccs(langdir) ccs.lang.*.tcl 1 3
 	if {[file exists $ccs(ccsdir)/ccs.addonce.tcl] && \
 		[file isfile $ccs(ccsdir)/ccs.addonce.tcl] && \
-		![file exists $ccs(ccsdir)/ccs.r5.tcl]} {
-		catch {file rename $ccs(ccsdir)/ccs.addonce.tcl $ccs(ccsdir)/ccs.r5.tcl}
+		![file exists $ccs(ccsdir)/ccs.rc1.tcl]} {
+		catch {file rename $ccs(ccsdir)/ccs.addonce.tcl $ccs(ccsdir)/ccs.rc1.tcl}
 	}
-	sourcefile r5 $ccs(ccsdir) ccs.r5.tcl 0
-	#sourcefile addonce $ccs(ccsdir) ccs.addonce.tcl 0
+	if {[file exists $ccs(ccsdir)/ccs.r5.tcl] && \
+		[file isfile $ccs(ccsdir)/ccs.r5.tcl] && \
+		![file exists $ccs(ccsdir)/ccs.rc1.tcl]} {
+		catch {file rename $ccs(ccsdir)/ccs.r5.tcl $ccs(ccsdir)/ccs.rc1.tcl}
+	}
 	
+	sourcefile rc0	$ccs(ccsdir)	ccs.rc0.tcl		0
+	sourcefile lib	$ccs(libdir)	ccs.lib.*.tcl	1 2
+	sourcefile mod	$ccs(moddir)	ccs.mod.*.tcl	1 2
+	sourcefile scr	$ccs(scrdir)	ccs.scr.*.tcl	1 2
+	sourcefile lang	$ccs(langdir)	ccs.lang.*.tcl	1 3
+	sourcefile rc1	$ccs(ccsdir)	ccs.rc1.tcl		0
 	binds_up
 	binds_rename
-	sourcefile r6 $ccs(ccsdir) ccs.r6.tcl 0
+	sourcefile rc2	$ccs(ccsdir)	ccs.rc2.tcl		0
+	
+	addfileinfo mod ccs $author $version $date
 	
 	debug "v$version \[$date\] by $author loaded"
 	

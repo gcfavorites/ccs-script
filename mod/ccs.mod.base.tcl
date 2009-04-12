@@ -2,6 +2,8 @@
 ## Модуль с базовыми командами управления
 ##################################################################################################################
 # Список последних изменений:
+#	v1.3.1
+# - Для команды !info добавлен вывод информации по пользовательским флагам
 #	v1.2.7
 # - Для команды !info добавлен вывод библиотек
 #	v1.2.6
@@ -13,8 +15,8 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for
 
 set modname		"base"
 addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
+				"1.3.1" \
+				"12-Apr-2009" \
 				"Модуль предоставляющий базовые команды не попадающие под другие группы."
 
 if {$ccs(mod,name,$modname)} {
@@ -63,7 +65,7 @@ if {$ccs(mod,name,$modname)} {
 	
 	cconfigure info -add 1 -group "info" -flags {%v} -block 5 -useauth 0 -usechan 0 \
 		-alias {%pref_info} \
-		-regexp {{^(mod|scr|lang|mask|lib)?$} {-> dname}}
+		-regexp {{^(?:(mod|scr|lang|lib|mask|flag)\s+(.*?))?$} {-> dname dflag}}
 	
 	setudef str ccs-vkickuser
 	setudef str ccs-vtopicuser
@@ -260,13 +262,13 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_info {} {
-		importvars [list onick ochan obot snick shand schan command dname]
+		importvars [list onick ochan obot snick shand schan command dname dflag]
 		variable author
 		variable version
 		variable date
 		variable ccs
 		
-		switch -- $dname {
+		switch -exact -- $dname {
 			mod {
 				set lmod [get_fileinfo mod]
 				foreach _ $lmod {
@@ -299,6 +301,47 @@ if {$ccs(mod,name,$modname)} {
 			}
 			mask {
 				put_msg "\0021:\002 *!user@host, \0022:\002 *!*user@host, \0023:\002 *!*@host, \0024:\002 *!*user@*.host, \0025:\002 *!*@*.host, \0026:\002 nick!user@host, \0027:\002 nick!*user@host, \0028:\002 nick!*@host, \0029:\002 nick!*user@*.host, \00210:\002 nick!*@*.host"
+			}
+			flag {
+				
+				switch -exact -- $dflag {
+					n {put_msg [sprintf base #151]}
+					m {put_msg [sprintf base #152]}
+					t {put_msg [sprintf base #153]}
+					a {put_msg [sprintf base #154]}
+					o {put_msg [sprintf base #155]}
+					y {put_msg [sprintf base #156]}
+					l {put_msg [sprintf base #157]}
+					g {put_msg [sprintf base #158]}
+					v {put_msg [sprintf base #159]}
+					f {put_msg [sprintf base #160]}
+					p {put_msg [sprintf base #161]}
+					q {put_msg [sprintf base #162]}
+					r {put_msg [sprintf base #163]}
+					d {put_msg [sprintf base #164]}
+					k {put_msg [sprintf base #165]}
+					x {put_msg [sprintf base #166]}
+					j {put_msg [sprintf base #167]}
+					c {put_msg [sprintf base #168]}
+					w {put_msg [sprintf base #169]}
+					z {put_msg [sprintf base #170]}
+					e {put_msg [sprintf base #171]}
+					u {put_msg [sprintf base #172]}
+					h {put_msg [sprintf base #173]}
+					b {put_msg [sprintf base #174]}
+					default {
+						
+						if {$dflag == $ccs(flag_auth)} {put_msg [sprintf base #175]
+						} elseif {$dflag == $ccs(flag_auth_botnet)} {put_msg [sprintf base #176]
+						} elseif {$dflag == $ccs(flag_botnet_check)} {put_msg [sprintf base #177]
+						} elseif {$dflag == $ccs(flag_auth_perm)} {put_msg [sprintf base #178]
+						} elseif {$dflag == $ccs(flag_locked)} {put_msg [sprintf base #179]
+						} elseif {$dflag == [string range $ccs(flag_protect) 0 0]} {put_msg [sprintf base #180]
+						} elseif {$dflag == $ccs(flag_cmd_bot)} {put_msg [sprintf base #181]}
+						
+					}
+				}
+				
 			}
 			default {
 				set lout [list]
