@@ -818,13 +818,17 @@ if {$ccs(mod,name,$modname)} {
 				if {$ccs(pref_dcccmd) != "." && $ccs(pref_dcccmd) != $ccs(pref_dcc)} {
 					# Прописываем бинды управления через ботнет для DCC команд
 					incr curr 2
-					bind filt -|- "[string map [list %pref_ $ccs(pref_dcccmd)] $_]" [namespace current]::filt_cmdbot_$command
-					bind filt -|- "[string map [list %pref_ $ccs(pref_dcccmd)] $_] *" [namespace current]::filt_cmdbot_$command
+					set alias [string map [list %pref_ $ccs(pref_dcccmd)] $_]
+					set alias [string map [list * \\* % \\%] $alias]
+					bind filt -|- "$alias" [namespace current]::filt_cmdbot_$command
+					bind filt -|- "$alias *" [namespace current]::filt_cmdbot_$command
 					eval "
 						proc [namespace current]::filt_cmdbot_$command {idx text} {
+							global lastbind
 							set hand \[idx2hand \$idx\]
 							set nick \[hand2nick \$hand\]
 							set uhost \[getchanhost \$nick\]
+							set lastbind \[join \[lindex \[split \$text\] 0\]\]
 							set text \[join \[lrange \[split \$text\] 1 end\]\]
 							launch_cmdbot \$nick \$hand \$uhost \"*\" \$idx \$idx \$text \"$command\"
 							return \"\"
