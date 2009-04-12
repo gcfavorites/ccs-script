@@ -65,7 +65,7 @@ if {$ccs(mod,name,$modname)} {
 	
 	cconfigure info -add 1 -group "info" -flags {%v} -block 5 -useauth 0 -usechan 0 \
 		-alias {%pref_info} \
-		-regexp {{^(?:(mod|scr|lang|lib|mask|flag)\s+(.*?))?$} {-> dname dflag}}
+		-regexp {{^(?:(mod|scr|lang|lib|mask|flag)\s+([a-zA-Z]))?$} {-> dname dflag}}
 	
 	setudef str ccs-vkickuser
 	setudef str ccs-vtopicuser
@@ -331,14 +331,14 @@ if {$ccs(mod,name,$modname)} {
 					b {put_msg [sprintf base #174]}
 					default {
 						
-						if {$dflag == $ccs(flag_auth)} {put_msg [sprintf base #175]
-						} elseif {$dflag == $ccs(flag_auth_botnet)} {put_msg [sprintf base #176]
-						} elseif {$dflag == $ccs(flag_botnet_check)} {put_msg [sprintf base #177]
-						} elseif {$dflag == $ccs(flag_auth_perm)} {put_msg [sprintf base #178]
-						} elseif {$dflag == $ccs(flag_locked)} {put_msg [sprintf base #179]
-						} elseif {$dflag == [string range $ccs(flag_protect) 0 0]} {put_msg [sprintf base #180]
-						} elseif {$dflag == $ccs(flag_cmd_bot)} {put_msg [sprintf base #181]}
-						
+						if {$dflag == $ccs(flag_auth)} {put_msg [sprintf base #175 $ccs(flag_auth)]
+						} elseif {$dflag == $ccs(flag_auth_botnet)} {put_msg [sprintf base #176 $ccs(flag_auth_botnet)]
+						} elseif {$dflag == $ccs(flag_botnet_check)} {put_msg [sprintf base #177 $ccs(flag_botnet_check)]
+						} elseif {$dflag == $ccs(flag_auth_perm)} {put_msg [sprintf base #178 $ccs(flag_auth_perm)]
+						} elseif {$dflag == $ccs(flag_locked)} {put_msg [sprintf base #179 $ccs(flag_locked)]
+						} elseif {$dflag == [string range $ccs(flag_protect) 0 0]} {put_msg [sprintf base #180 $ccs(flag_protect)]
+						} elseif {$dflag == $ccs(flag_cmd_bot)} {put_msg [sprintf base #181 $ccs(flag_cmd_bot)]
+						} else {put_msg [sprintf base #182 $dflag]}
 					}
 				}
 				
