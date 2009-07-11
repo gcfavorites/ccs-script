@@ -1,19 +1,17 @@
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-addfileinfo lib "ip" "Buster <buster@buster-net.ru> (c)" \
-				"2.0.0" \
-				"14-Mar-2009" \
-				"Библиотека с функциями обработки IP адресов"
+pkg_add lib {ip} "Buster <buster@buster-net.ru> (c)" "2.0.2" "13-Apr-2009" \
+	"Библиотека с функциями обработки IP адресов"
 
 if {[package versions [namespace current]::ip] == ""} {
-	package ifneeded [namespace current]::ip 2.0.0 "namespace eval [namespace current] {source [info script]}"
+	package ifneeded [namespace current]::ip 2.0.2 "namespace eval [namespace current] {source [info script]}"
 	return
 }
 
 namespace eval ip {
 	
 	variable author			"Buster <buster@buster-net.ru> (c)"
-	variable version		"2.0.0"
+	variable version		"2.0.2"
 	variable date			"14-Mar-2009"
 	variable description	"Библиотека с функциями обработки IP адресов"
 	# Часть функций взята из tcllib-1.11.1 ip.tcl by Pat Thoyts <patthoyts@users.sourceforge.net>
@@ -313,6 +311,15 @@ namespace eval ip {
 		{::0/0}				{not allocated}	{}
 	}
 	
+	if {[info command lreverse] == ""} {
+		proc lreverse l {
+			set r {}
+			set i [llength $l]
+			while {[incr i -1]} {lappend r [lindex $l $i]}
+			lappend r [lindex $l 0]
+		}
+	}
+	
 	proc gate_to_ipv4 {text} {
 		
 		if {[string index $text 0] == "~"} {
@@ -338,7 +345,7 @@ namespace eval ip {
 	
 	proc ipv6_to_ipv4 {ip} {
 		
-		if {![ipv6_in_net 2002::/16 $ip]} {return ""}
+		if {![include 2002::/16 $ip]} {return ""}
 		set ip [normalize6 $ip]
 		set ip [string map [list ":" ""] $ip]
 		set ip [string range $ip 4 11]

@@ -1,46 +1,35 @@
-##################################################################################################################
+####################################################################################################
 ## Модуль настройки языков
-##################################################################################################################
+####################################################################################################
 
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-set modname		"lang"
-addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
-				"Модуль локализации (установка языка по умолчанию для каналов и пользователей)."
+set _name	{lang}
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+	"Модуль локализации (установка языка по умолчанию для каналов и пользователей)."
 
-if {$ccs(mod,name,$modname)} {
+if {[pkg_info mod $_name on]} {
 	
-	cconfigure langlist -add 1 -group "lang" -flags {%v} -block 3 -usechan 0 \
+	cmd_configure langlist -control -group "lang" -flags {%v} -block 3 -use_chan 0 \
 		-alias {%pref_langlist} \
 		-regexp {{^([^\ ]+)?$} {-> mod}}
 	
-	cconfigure chansetlang -add 1 -group "lang" -flags {m|m} -block 3 \
+	cmd_configure chansetlang -control -group "lang" -flags {m|m} -block 3 \
 		-alias {%pref_chansetlang} \
 		-regexp {{^([^\ ]+)?$} {-> lang}}
 	
-	cconfigure chlang -add 1 -group "lang" -flags {m} -block 3 -usechan 0 \
+	cmd_configure chlang -control -group "lang" -flags {m} -block 3 -use_chan 0 \
 		-alias {%pref_chlang} \
 		-regexp {{^([^\ ]+)(?:\ +([^\ ]+))?$} {-> dnick lang}}
 	
-	#############################################################################################################
-	#############################################################################################################
-	#############################################################################################################
-	
-	#############################################################################################################
+	################################################################################################
 	# Процедуры команд отправки сообщений (MESSAGE).
 	
 	proc cmd_langlist {} {
-		importvars [list onick ochan obot snick shand schan command mod]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command mod]
 		
-		set lmod [list]
-		foreach _ [array names ccs -glob "mod,name,*"] {
-			if {!$ccs($_)} continue
-			set modname [lindex [split $_ ,] 2]
-			lappend lmod $modname
-		}
+		set lmod [pkg_list mod 1]
 		
 		if {$mod == ""} {
 			put_msg [sprintf lang #101 [join $lmod ", "]]
@@ -48,21 +37,16 @@ if {$ccs(mod,name,$modname)} {
 			return 1
 		} else {
 			
-			if {[lsearch $lmod $mod] < 0} {
+			if {[lsearch -exact $lmod $mod] < 0} {
 				put_msg [sprintf lang #101 [join $lmod ", "]]
 				return 0
 			}
 			
-			set author $ccs(mod,author,$mod)
-			set version $ccs(mod,version,$mod)
-			set date $ccs(mod,date,$mod)
-			put_msg [sprintf lang #102 $mod $version $date $author]
-			foreach line [array names ccs -glob "lang,name,$mod,*"] {
-				set land [lindex [split $line ,] 3]
-				set author $ccs(lang,author,$mod,$land)
-				set version $ccs(lang,version,$mod,$land)
-				set date $ccs(lang,date,$mod,$land)
-				put_msg [sprintf lang #103 $land $version $date $author]
+			put_msg [sprintf lang #102 $mod [pkg_info mod $mod version] [pkg_info mod $mod date] [pkg_info mod $mod author]]
+			foreach _ [pkg_list lang 1] {
+				lassign $_ m l
+				if {$m != $mod} continue
+				put_msg [sprintf lang #103 $l [pkg_info lang $_ version] [pkg_info lang $_ date] [pkg_info lang $_ author]]
 			}
 			return 1
 			
@@ -72,8 +56,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chansetlang {} {
-		importvars [list onick ochan obot snick shand schan command lang]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command lang]
 		
 		if {$lang == ""} {
 			set lang [channel get $schan ccs-default_lang]
@@ -83,13 +67,12 @@ if {$ccs(mod,name,$modname)} {
 				put_msg [sprintf lang #110 $schan $lang]
 			}
 		} else {
-			set llang [list]
-			foreach _ [array names ccs -glob "lang,name,*,*"] {
-				if {!$ccs($_)} continue
-				set slang [lindex [split $_ ,] 3]
-				lappend llang $slang
+			set llang {}
+			foreach _ [pkg_list lang 1] {
+				lassign $_ m l
+				if {[lsearch -exact $llang $l] < 0} {lappend llang $l}
 			}
-			set llang [lsort -unique $llang]
+			set llang [lsort $llang]
 			
 			if {[string equal -nocase $lang "default"]} {
 				channel set $schan ccs-default_lang ""
@@ -110,8 +93,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chlang {} {
-		importvars [list onick ochan obot snick shand schan command dnick lang]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command dnick lang]
 		
 		set dhand [get_hand $dnick]
 		if {[check_notavailable {-getting_users -locked -nopermition1 -notvalidhandle} -shand $shand -dnick $dnick -dhand $dhand -dchan $schan]} {return 0}
@@ -119,22 +102,21 @@ if {$ccs(mod,name,$modname)} {
 		if {$lang == ""} {
 			set lang [getuser $dhand XTRA ccs-default_lang]
 			if {$lang == ""} {
-				put_msg [sprintf lang #111 [get_nick $dnick $dhand]]
+				put_msg [sprintf lang #111 [StrNick -nick $dnick -hand $dhand]]
 			} else {
-				put_msg [sprintf lang #112 [get_nick $dnick $dhand] $lang]
+				put_msg [sprintf lang #112 [StrNick -nick $dnick -hand $dhand] $lang]
 			}
 		} else {
-			set llang [list]
-			foreach _ [array names ccs -glob "lang,name,*,*"] {
-				if {!$ccs($_)} continue
-				set slang [lindex [split $_ ,] 3]
-				lappend llang $slang
+			set llang {}
+			foreach _ [pkg_list lang 1] {
+				lassign $_ m l
+				if {[lsearch -exact $llang $l] < 0} {lappend llang $l}
 			}
-			set llang [lsort -unique $llang]
+			set llang [lsort $llang]
 			
 			if {[string equal -nocase $lang "default"]} {
 				setuser $dhand XTRA ccs-default_lang ""
-				put_msg [sprintf lang #107 [get_nick $dnick $dhand]]
+				put_msg [sprintf lang #107 [StrNick -nick $dnick -hand $dhand]]
 				return 1
 			} else {
 				if {[lsearch $llang $lang] < 0} {
@@ -142,7 +124,7 @@ if {$ccs(mod,name,$modname)} {
 					return 0
 				}
 				setuser $dhand XTRA ccs-default_lang $lang
-				put_msg [sprintf lang #108 [get_nick $dnick $dhand] $lang]
+				put_msg [sprintf lang #108 [StrNick -nick $dnick -hand $dhand] $lang]
 				return 1
 			}
 		}

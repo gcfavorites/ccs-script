@@ -1,82 +1,81 @@
-##################################################################################################################
+####################################################################################################
 ## Модуль с канальными командами управления
-##################################################################################################################
+####################################################################################################
 # Список последних изменений:
 #	v1.2.7
 # - Для команды !channels добавлен вывод секретных каналов если у запрашиваемого достаточно прав.
 # - Заменена функция lsearch_equal
 
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-set modname		"chan"
-addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
-				"Модуль управления списком каналов и настроек канальных флагов."
+set _name	{chan}
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+	"Модуль управления списком каналов и настроек канальных флагов."
 
-if {$ccs(mod,name,$modname)} {
+if {[pkg_info mod $_name on]} {
 	
-	#############################################################################################################
+	################################################################################################
 	# Путь и маска файлов сохранения настроек каналов. %s в имени будет заменен на имя настроек.
-	set ccs(chansetfile)		"$ccs(datadir)/ccs.chanset.%s.dat"
+	set options(chansetfile)		"$options(dir_data)/ccs.chanset.%s.dat"
 	
-	#############################################################################################################
-	# Путь и маска файлов сохранения шаблонов настроек каналов. %s в имени будет заменен на имя шаблона.
-	set ccs(chantemplatefile)	"$ccs(datadir)/ccs.chantemplate.%s.dat"
+	################################################################################################
+	# Путь и маска файлов сохранения шаблонов настроек каналов. %s в имени будет заменен на имя
+	# шаблона.
+	set options(chantemplatefile)	"$options(dir_data)/ccs.chantemplate.%s.dat"
 	
-	#############################################################################################################
+	################################################################################################
 	# Сохранять старые файлы настроек в bak директории (1 - да, 0 - нет)
-	set ccs(bakchanset)		1
+	set options(bakchanset)			1
 	
-	cconfigure channels -add 1 -group "chan" -flags {o|o} -block 5 -useauth 0 -usechan 0 \
+	cmd_configure channels -control -group "chan" -flags {o|o} -block 5 -use_auth 0 -use_chan 0 \
 		-alias {%pref_channels} \
 		-regexp {{^$} {}}
 	
-	cconfigure chanadd -add 1 -group "chan" -flags {n} -block 3 -usechan 0 \
+	cmd_configure chanadd -control -group "chan" -flags {n} -block 3 -use_chan 0 \
 		-alias {%pref_chanadd %pref_addchan} \
 		-regexp {{^([^\ ]+)$} {-> dchan}}
 	
-	cconfigure chandel -add 1 -group "chan" -flags {n} -block 3 -usechan 0 \
+	cmd_configure chandel -control -group "chan" -flags {n} -block 3 -use_chan 0 \
 		-alias {%pref_chandel %pref_delchan} \
 		-regexp {{^([^\ ]+)$} {-> dchan}}
 	
-	cconfigure rejoin -add 1 -group "chan" -flags {m|m} -block 3 \
+	cmd_configure rejoin -control -group "chan" -flags {m|m} -block 3 \
 		-alias {%pref_rejoin} \
 		-regexp {{^$} {}}
 	
-	cconfigure chanset -add 1 -group "chan" -flags {n|n} -block 1 -usechan 2 \
+	cmd_configure chanset -control -group "chan" -flags {n|n} -block 1 -use_chan 2 \
 		-alias {%pref_set %pref_chanset} \
 		-regexp {{^([^\ ]+)(?:\ +(.*?))?$} {-> smode sargs}}
 	
-	cconfigure chaninfo -add 1 -group "chan" -flags {n|n} -block 5 \
+	cmd_configure chaninfo -control -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chaninfo} \
 		-regexp {{^([^\ ]+)?$} {-> smode}}
 	
-	cconfigure chansave -add 1 -group "chan" -flags {n|n} -block 5 \
+	cmd_configure chansave -control -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chansave} \
 		-regexp {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile stfile}}
 	
-	cconfigure chanload -add 1 -group "chan" -flags {n|n} -block 5 \
+	cmd_configure chanload -control -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chanload} \
 		-regexp {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile stfile}}
 	
-	cconfigure chancopy -add 1 -group "chan" -flags {n|n} -block 5 \
+	cmd_configure chancopy -control -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chancopy} \
 		-regexp {{^([^\ ]+)(?:\s+([\w\.\-]{1,100}))?$} {-> dchan stfile}}
 	
-	cconfigure chantemplateadd -add 1 -group "chan" -flags {n|n} -block 5 \
+	cmd_configure chantemplateadd -control -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_templateadd} \
 		-regexp {{^([^\ ]+)\s+(.+?)$} {-> sfile param}}
 	
-	cconfigure chantemplatedel -add 1 -group "chan" -flags {n|n} -block 5 \
+	cmd_configure chantemplatedel -control -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_templatedel} \
 		-regexp {{^([^\ ]+)\s+(.+?)$} {-> sfile param}}
 	
-	cconfigure chantemplatelist -add 1 -group "chan" -flags {n|n} -block 5 \
+	cmd_configure chantemplatelist -control -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_templatelist} \
 		-regexp {{^([\w\.\-]{1,100})$} {-> sfile}}
 	
-	#############################################################################################################
+	################################################################################################
 	# Процедуры команд управления каналами (CHANNEL).
 	
 	proc get_chaninfo {ind par} {
@@ -126,15 +125,16 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chantemplatelist {} {
-		variable ccs
-		importvars [list onick ochan obot snick shand schan command sfile param]
+		upvar out out
+		variable options
+		importvars [list snick shand schan command sfile param]
 		
-		set filename [string map [list %s $sfile] $ccs(chantemplatefile)]
+		set filename [string map [list %s $sfile] $options(chantemplatefile)]
 		
 		if {![file exists $filename]} {put_msg [sprintf chan #120 $sfile]; return 0}
 		
 		if {[catch {
-			set data [loadfile $filename]
+			set data [LoadFile $filename]
 		} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
 		
 		put_msg [sprintf chan #130 $sfile [join $data ", "]]
@@ -144,13 +144,14 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chantemplateadd {} {
-		variable ccs
-		importvars [list onick ochan obot snick shand schan command sfile param]
+		upvar out out
+		variable options
+		importvars [list snick shand schan command sfile param]
 		
-		set filename [string map [list %s $sfile] $ccs(chantemplatefile)]
+		set filename [string map [list %s $sfile] $options(chantemplatefile)]
 		
 		if {[catch {
-			set data [loadfile $filename]
+			set data [LoadFile $filename]
 		} errMsg]} {set data [list]}
 		
 		set lparam [split $param]
@@ -162,7 +163,7 @@ if {$ccs(mod,name,$modname)} {
 		set ind 0
 		foreach _ [channel info $schan] {
 			incr ind
-			foreach {name flag res1 res2} [get_chaninfo $ind $_] break
+			lassign [get_chaninfo $ind $_] name flag res1 res2
 			lappend lver $name
 		}
 		
@@ -188,7 +189,7 @@ if {$ccs(mod,name,$modname)} {
 		}
 		
 		if {[catch {
-			savefile $filename $data
+			SaveFile $filename $data
 		} errMsg]} {put_msg [sprintf ccs #192 $errMsg]; return 0}
 		
 		set lout [list]
@@ -204,15 +205,16 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chantemplatedel {} {
-		variable ccs
-		importvars [list onick ochan obot snick shand schan command sfile param]
+		upvar out out
+		variable options
+		importvars [list snick shand schan command sfile param]
 		
-		set filename [string map [list %s $sfile] $ccs(chantemplatefile)]
+		set filename [string map [list %s $sfile] $options(chantemplatefile)]
 		
 		if {![file exists $filename]} {put_msg [sprintf chan #120 $sfile]; return 0}
 		
 		if {[catch {
-			set data [loadfile $filename]
+			set data [LoadFile $filename]
 		} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
 		
 		set lparam [split $param]
@@ -240,7 +242,7 @@ if {$ccs(mod,name,$modname)} {
 		foreach _ $data {if {[lsearch -exact $ldel $_] < 0} {lappend newdata $_}}
 		
 		if {[catch {
-			savefile $filename $newdata
+			SaveFile $filename $newdata
 		} errMsg]} {put_msg [sprintf ccs #192 $errMsg]; return 0}
 		
 		set lout [list]
@@ -255,17 +257,18 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chansave {} {
-		variable ccs
-		importvars [list onick ochan obot snick shand schan command sfile stfile]
+		upvar out out
+		variable options
+		importvars [list snick shand schan command sfile stfile]
 		
-		set filename [string map [list %s $sfile] $ccs(chansetfile)]
+		set filename [string map [list %s $sfile] $options(chansetfile)]
 		
 		if {![string is space $stfile]} {
 			
-			set tfilename [string map [list %s $stfile] $ccs(chantemplatefile)]
+			set tfilename [string map [list %s $stfile] $options(chantemplatefile)]
 			if {![file exists $tfilename]} {put_msg [sprintf chan #120 $stfile]; return 0}
 			if {[catch {
-				set tdata [loadfile $tfilename]
+				set tdata [LoadFile $tfilename]
 			} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
 			set usetemplate 1
 			
@@ -277,14 +280,14 @@ if {$ccs(mod,name,$modname)} {
 		set ind 0
 		foreach _ [channel info $schan] {
 			incr ind
-			foreach {name flag res1 res2} [get_chaninfo $ind $_] break
+			lassign [get_chaninfo $ind $_] name flag res1 res2
 			if {$usetemplate && [lsearch -exact $tdata $name] < 0} continue
 			lappend data [list $name $flag $res2]
 			lappend lok $name
 		}
 		
 		if {[catch {
-			savefile $filename $data [expr {$ccs(bakchanset) ? "-bak" : "" }]
+			SaveFile -backup $options(bakchanset) -- $filename $data
 		} errMsg]} {put_msg [sprintf ccs #192 $errMsg]; return 0}
 		if {$usetemplate} {
 			put_msg [sprintf chan #112 $schan $sfile $stfile]
@@ -298,21 +301,22 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chanload {} {
-		variable ccs
-		importvars [list onick ochan obot snick shand schan command sfile stfile]
+		upvar out out
+		variable options
+		importvars [list snick shand schan command sfile stfile]
 		
-		set filename [string map [list %s $sfile] $ccs(chansetfile)]
+		set filename [string map [list %s $sfile] $options(chansetfile)]
 		if {![file exists $filename]} {put_msg [sprintf chan #119 $sfile]; return 0}
 		if {[catch {
-			set data [loadfile $filename]
+			set data [LoadFile $filename]
 		} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
 		
 		if {![string is space $stfile]} {
 			
-			set tfilename [string map [list %s $stfile] $ccs(chantemplatefile)]
+			set tfilename [string map [list %s $stfile] $options(chantemplatefile)]
 			if {![file exists $tfilename]} {put_msg [sprintf chan #120 $stfile]; return 0}
 			if {[catch {
-				set tdata [loadfile $tfilename]
+				set tdata [LoadFile $tfilename]
 			} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
 			set usetemplate 1
 			
@@ -351,18 +355,19 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chancopy {} {
-		variable ccs
-		importvars [list onick ochan obot snick shand schan command dchan stfile]
+		upvar out out
+		variable options
+		importvars [list snick shand schan command dchan stfile]
 		
 		if {[check_notavailable {-notvalidchan} -dchan $dchan]} {return 0}
-		if {![check_matchattr $shand $dchan $ccs(flags,$command)]} {put_msg [sprintf ccs #118]; return 0}
+		if {![check_matchattr $shand $dchan [cmd_configure $command -flags]]} {put_msg [sprintf ccs #118]; return 0}
 		
 		if {![string is space $stfile]} {
 			
-			set tfilename [string map [list %s $stfile] $ccs(chantemplatefile)]
+			set tfilename [string map [list %s $stfile] $options(chantemplatefile)]
 			if {![file exists $tfilename]} {put_msg [sprintf chan #120 $stfile]; return 0}
 			if {[catch {
-				set tdata [loadfile $tfilename]
+				set tdata [LoadFile $tfilename]
 			} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
 			set usetemplate 1
 			
@@ -372,7 +377,7 @@ if {$ccs(mod,name,$modname)} {
 		set ind 0
 		foreach _ [channel info $schan] {
 			incr ind
-			foreach {name flag res1 res2} [get_chaninfo $ind $_] break
+			lassign [get_chaninfo $ind $_] name flag res1 res2
 			if {$usetemplate && [lsearch -exact $tdata $name] < 0} continue
 			lappend lok $name
 			if {$flag} {channel set $dchan $res2} else {channel set $dchan $name $res2}
@@ -389,10 +394,11 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_channels {} {
-		variable ccs
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		variable options
+		importvars [list snick shand schan command]
 		
-		set permission_secret_chan [check_matchattr $shand $schan $ccs(permission_secret_chan)]
+		set permission_secret_chan [check_matchattr $shand $schan $options(permission_secret_chan)]
 		set chans [list]
 		foreach _ [channels] {
 			if {[botonchan $_]} {set people [llength [chanlist $_]]} else {set people "b"}
@@ -413,7 +419,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chanadd {} {
-		importvars [list onick ochan obot snick shand schan command dchan]
+		upvar out out
+		importvars [list snick shand schan command dchan]
 		
 		if {[check_notavailable {-validchan} -dchan $dchan]} {return 0}
 		
@@ -425,7 +432,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chandel {} {
-		importvars [list onick ochan obot snick shand schan command dchan]
+		upvar out out
+		importvars [list snick shand schan command dchan]
 		
 		if {[check_notavailable {-notvalidchan -isstaticchan} -dchan $dchan]} {return 0}
 		
@@ -437,7 +445,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_rejoin {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		
 		channel set $schan +inactive
 		channel set $schan -inactive
@@ -446,11 +455,12 @@ if {$ccs(mod,name,$modname)} {
 		
 	}
 	
-	#############################################################################################################
+	################################################################################################
 	# Процедуры команд управления настройками канала (CHANSET).
 	
 	proc cmd_chanset {} {
-		importvars [list onick ochan obot snick shand schan command smode sargs]
+		upvar out out
+		importvars [list snick shand schan command smode sargs]
 		
 		if {[string index $smode 0] == "+" || [string index $smode 0] == "-"} {
 			if {[catch {
@@ -485,7 +495,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_chaninfo {} {
-		importvars [list onick ochan obot snick shand schan command smode]
+		upvar out out
+		importvars [list snick shand schan command smode]
 		
 		if {[string is space $smode]} {
 			
@@ -540,16 +551,16 @@ if {$ccs(mod,name,$modname)} {
 				
 			}
 			
-			put_msg "[join $out_group1 ", "]." -speed 3
-			put_msg "$out_group6." -speed 3
-			put_msg "$out_group7." -speed 3
-			put_msg "$out_group8." -speed 3
-			put_msg "$out_group9." -speed 3
-			put_msg "$out_group10." -speed 3
-			put_msg "\002Other modes:\002 [join $out_group2 ", "]." -speed 3
-			put_msg "\002User defined channel flags:\002 [join $out_group3 ", "]." -speed 3
-			put_msg "\002User defined channel strings:\002 [join $out_group4 ", "]." -speed 3
-			put_msg "\002Flood settings:\002 [join $out_group5 ", "]." -speed 3
+			put_msg -speed 3 -- "[join $out_group1 ", "]."
+			put_msg -speed 3 -- "$out_group6."
+			put_msg -speed 3 -- "$out_group7."
+			put_msg -speed 3 -- "$out_group8."
+			put_msg -speed 3 -- "$out_group9."
+			put_msg -speed 3 -- "$out_group10."
+			put_msg -speed 3 -- "\002Other modes:\002 [join $out_group2 ", "]."
+			put_msg -speed 3 -- "\002User defined channel flags:\002 [join $out_group3 ", "]."
+			put_msg -speed 3 -- "\002User defined channel strings:\002 [join $out_group4 ", "]."
+			put_msg -speed 3 -- "\002Flood settings:\002 [join $out_group5 ", "]."
 			
 		} else {
 			if {[catch {set getmode [channel get $schan $smode]}]} {
@@ -557,15 +568,14 @@ if {$ccs(mod,name,$modname)} {
 				set find 0
 				set ind 0
 				foreach _ [channel info $schan] {
-					
 					incr ind
-					foreach {name flag res1 res2} [get_chaninfo $ind $_] break
+					lassign [get_chaninfo $ind $_] name flag res1 res2
 					if {[string match -nocase $smode $name]} {
 						set find 1
 						if {$flag} {
-							put_msg [sprintf chan #108 $res2] -speed 3
+							put_msg -speed 3 -- [sprintf chan #108 $res2]
 						} else {
-							put_msg [sprintf chan #110 $name $res1] -speed 3
+							put_msg -speed 3 -- [sprintf chan #110 $name $res1]
 						}
 					}
 					
@@ -579,7 +589,7 @@ if {$ccs(mod,name,$modname)} {
 				foreach _ [channel info $schan] {
 					incr ind
 					if {$ind < 20} continue
-					foreach {name flag res1 res2} [get_chaninfo $ind $_] break
+					lassign [get_chaninfo $ind $_] name flag res1 res2
 					if {$name == $smode} {set flag1 $flag; break}
 				}
 				if {$flag1} {
@@ -595,7 +605,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc notavailable-notvalidchan {} {
-		importvars [list snick shand schan onick ochan obot command]
+		upvar 2 out out
+		importvars [list snick shand schan command]
 		upvar dchan dchan
 		if {![validchan $dchan]} {
 			put_msg [sprintf chan #104 $dchan]
@@ -605,7 +616,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc notavailable-isstaticchan {} {
-		importvars [list snick shand schan onick ochan obot command]
+		upvar 2 out out
+		importvars [list snick shand schan command]
 		upvar dchan dchan
 		if {![isdynamic $dchan]} {
 			put_msg [sprintf chan #105 $dchan]

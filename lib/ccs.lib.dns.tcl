@@ -1,9 +1,7 @@
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-addfileinfo lib "dns" "Buster <buster@buster-net.ru> (c)" \
-				"1.0.0" \
-				"14-Mar-2009" \
-				"Библиотека с функциями обработки DNS запросов"
+pkg_add lib {dns} "Buster <buster@buster-net.ru> (c)" "1.0.0" "14-Mar-2009" \
+	"Библиотека с функциями обработки DNS запросов"
 
 if {[package versions [namespace current]::dns] == ""} {
 	package ifneeded [namespace current]::dns 1.0.0 "namespace eval [namespace current] {source [info script]}"
@@ -909,13 +907,14 @@ namespace eval dns {
 	# Description:
 	#   Reverse a list. Code from http://wiki.tcl.tk/tcl/43
 	#
-	proc lreverse {lst} {
-		set res {}
-		set i [llength $lst]
-		while {$i} {lappend res [lindex $lst [incr i -1]]}
-		return $res
+	if {[info command lreverse] == ""} {
+		proc lreverse l {
+			set r {}
+			set i [llength $l]
+			while {[incr i -1]} {lappend r [lindex $l $i]}
+			lappend r [lindex $l 0]
+		}
 	}
-	
 	# -------------------------------------------------------------------------
 	
 	proc KeyOf {arrayname value {default {}}} {

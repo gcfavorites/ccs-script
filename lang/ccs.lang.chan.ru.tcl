@@ -1,103 +1,103 @@
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
-set modname		"chan"
-set modlang		"ru"
-addlang $modname $modlang \
+set _name		"chan"
+set _lang		"ru"
+pkg_add lang [list $_name $_lang] \
 				"Buster <buster@buster-net.ru> (c)" \
-				"1.2.5" \
-				"17-Sep-2008"
+				"1.4.0" \
+				"01-Jul-2009"
 
-if {$ccs(lang,name,$modname,$modlang)} {
+if {[pkg_info lang [list $_name $_lang] on]} {
 	
-	set ccs(args,ru,channels) {}
-	set ccs(help,ru,channels) {Выводит список каналов}
-	set ccs(help2,ru,channels) {
+	set_text -type args -- $_lang channels {}
+	set_text -type help -- $_lang channels {Выводит список каналов}
+	set_text -type help2 -- $_lang channels {
 		{Выводит список каналов, на которых сидит бот (его статус на канале и количество пользователей на нём)}
 	}
 	
-	set ccs(args,ru,chanadd) {<канал>}
-	set ccs(help,ru,chanadd) {Добавляет \002канал\002}
+	set_text -type args -- $_lang chanadd {<канал>}
+	set_text -type help -- $_lang chanadd {Добавляет \002канал\002}
 	
-	set ccs(args,ru,chandel) {<канал>}
-	set ccs(help,ru,chandel) {Удаляет \002канал\002}
+	set_text -type args -- $_lang chandel {<канал>}
+	set_text -type help -- $_lang chandel {Удаляет \002канал\002}
 	
-	set ccs(args,ru,rejoin) {}
-	set ccs(help,ru,rejoin) {Даёт команду боту перезайти на канал}
+	set_text -type args -- $_lang rejoin {}
+	set_text -type help -- $_lang rejoin {Даёт команду боту перезайти на канал}
 	
-	set ccs(args,ru,chanset) {<[+/-]параметр> [значение]}
-	set ccs(help,ru,chanset) {Изменение параметров канала}
-	set ccs(help2,ru,chanset) {
+	set_text -type args -- $_lang chanset {<[+/-]параметр> [значение]}
+	set_text -type help -- $_lang chanset {Изменение параметров канала}
+	set_text -type help2 -- $_lang chanset {
 		{Изменение параметров канала (например, «+bitch» или «flood-chan 5:10»). Аналог команды «chanset» в консоли.}
 	}
 	
-	set ccs(args,ru,chaninfo) {[параметр]}
-	set ccs(help,ru,chaninfo) {Просмотр параметров канала}
-	set ccs(help2,ru,chaninfo) {
+	set_text -type args -- $_lang chaninfo {[параметр]}
+	set_text -type help -- $_lang chaninfo {Просмотр параметров канала}
+	set_text -type help2 -- $_lang chaninfo {
 		{Просмотр параметров канала. Если параметр не указан, то будут показаны все параметры. Возможно указание маски, используя подстановочные символы * и ?.}
 	}
 	
-	set ccs(args,ru,chansave) {<имя_файла> [имя_шаблона]}
-	set ccs(help,ru,chansave) {Сохранение настроек текущего канала в файл}
-	set ccs(help2,ru,chansave) {
+	set_text -type args -- $_lang chansave {<имя_файла> [имя_шаблона]}
+	set_text -type help -- $_lang chansave {Сохранение настроек текущего канала в файл}
+	set_text -type help2 -- $_lang chansave {
 		{Сохранение настроек текущего канала в файл. При указании имени файла шаблона будут сохранены только те параметры и флаги, которые указанны в шаблоне.}
 	}
 	
-	set ccs(args,ru,chanload) {<имя_файла> [имя_шаблона]}
-	set ccs(help,ru,chanload) {Восстановление настроек из файла для текущего канала}
-	set ccs(help2,ru,chanload) {
+	set_text -type args -- $_lang chanload {<имя_файла> [имя_шаблона]}
+	set_text -type help -- $_lang chanload {Восстановление настроек из файла для текущего канала}
+	set_text -type help2 -- $_lang chanload {
 		{Восстановление настроек из файла для текущего канала. При указании имени файла шаблона будут восстановлены только те параметры и флаги, которые указанны в шаблоне.}
 	}
 	
-	set ccs(args,ru,chancopy) {<канал_приемник> [имя_шаблона]}
-	set ccs(help,ru,chancopy) {Копирование настроек текущего канала на указанный}
-	set ccs(help2,ru,chancopy) {
+	set_text -type args -- $_lang chancopy {<канал_приемник> [имя_шаблона]}
+	set_text -type help -- $_lang chancopy {Копирование настроек текущего канала на указанный}
+	set_text -type help2 -- $_lang chancopy {
 		{Копирование настроек текущего канала на указанный. При указании имени файла шаблона будут скопированы только те параметры и флаги, которые указанны в шаблоне.}
 	}
 	
-	set ccs(args,ru,chantemplateadd) {<имя_шаблона> <параметр1 параметр2 ...>}
-	set ccs(help,ru,chantemplateadd) {Добавление в шаблон списка параметров}
+	set_text -type args -- $_lang chantemplateadd {<имя_шаблона> <параметр1 параметр2 ...>}
+	set_text -type help -- $_lang chantemplateadd {Добавление в шаблон списка параметров}
 	
-	set ccs(args,ru,chantemplatedel) {<имя_шаблона> <параметр1 параметр2 ...>}
-	set ccs(help,ru,chantemplatedel) {Удаление из шаблона списка параметров}
+	set_text -type args -- $_lang chantemplatedel {<имя_шаблона> <параметр1 параметр2 ...>}
+	set_text -type help -- $_lang chantemplatedel {Удаление из шаблона списка параметров}
 	
-	set ccs(args,ru,chantemplatelist) {<имя_шаблона>}
-	set ccs(help,ru,chantemplatelist) {Просмотр списка параметров в шаблоне}
+	set_text -type args -- $_lang chantemplatelist {<имя_шаблона>}
+	set_text -type help -- $_lang chantemplatelist {Просмотр списка параметров в шаблоне}
 	
 	#############################################################################################################
 	#############################################################################################################
 	#############################################################################################################
 	
-	set ccs(text,chan,ru,#101) "Каналы: %s."
-	set ccs(text,chan,ru,#102) "Канал \002%s\002 удален."
-	set ccs(text,chan,ru,#103) "Канал \002%s\002 добавлен."
-	set ccs(text,chan,ru,#104) "Канал \002%s\002 не прописан на боте."
-	set ccs(text,chan,ru,#105) "Канал \002%s\002 является постоянным и не может быть удалён с помощью скрипта (Вы можете поставить +inactive)."
-	set ccs(text,chan,ru,#106) "Настройки \002%s\002 не существует!"
-	set ccs(text,chan,ru,#107) "Флаг канала изменен на \002%s\002"
-	set ccs(text,chan,ru,#108) "Значение флага канала: \002%s\002"
-	set ccs(text,chan,ru,#109) "Параметр \002%s\002 канала изменен на \"\002%s\002\""
-	set ccs(text,chan,ru,#110) "Значение параметра \002%s\002 канала: \"\002%s\002\""
-	set ccs(text,chan,ru,#111) "Настройки канала \002%s\002 сохранены в файле \"\002%s\002\""
-	set ccs(text,chan,ru,#112) "Настройки канала \002%s\002 сохранены в файле \"\002%s\002\" используя шаблон \"\002%s\002\""
-	set ccs(text,chan,ru,#113) "Настройки канала \002%s\002 восстановлены из файла \"\002%s\002\""
-	set ccs(text,chan,ru,#114) "Настройки канала \002%s\002 восстановлены из файла \"\002%s\002\" используя шаблон \"\002%s\002\""
-	set ccs(text,chan,ru,#115) "Настройки канала \002%s\002 частично восстановлены из файла \"\002%s\002\", список не восстановленых параметров: \002%s\002"
-	set ccs(text,chan,ru,#116) "Настройки канала \002%s\002 частично восстановлены из файла \"\002%s\002\" используя шаблон \"\002%s\002\", список не восстановленых параметров: \002%s\002"
-	set ccs(text,chan,ru,#117) "Настройки канала \002%s\002 скопированы на \002%s\002"
-	set ccs(text,chan,ru,#118) "Настройки канала \002%s\002 скопированы на \002%s\002 используя шаблон \"\002%s\002\""
-	set ccs(text,chan,ru,#119) "Файла \"\002%s\002\" с настройками не существует."
-	set ccs(text,chan,ru,#120) "Файла \"\002%s\002\" шаблона не существует."
-	set ccs(text,chan,ru,#121) "Нету новых параметров для записи в шаблон \"\002%s\002\"; %s."
-	set ccs(text,chan,ru,#122) "Нету параметров для удаления из шаблона \"\002%s\002\"; %s."
-	set ccs(text,chan,ru,#123) "В шаблон \"\002%s\002\" записаны новые параметры; %s."
-	set ccs(text,chan,ru,#124) "Из шаблона \"\002%s\002\" были удалены параметры; %s."
-	set ccs(text,chan,ru,#125) "новые: \002%s\002"
-	set ccs(text,chan,ru,#126) "ошибочные: \002%s\002"
-	set ccs(text,chan,ru,#127) "старые: \002%s\002"
-	set ccs(text,chan,ru,#128) "удаленные: \002%s\002"
-	set ccs(text,chan,ru,#129) "отсутствующие: \002%s\002"
-	set ccs(text,chan,ru,#130) "Список параметров в шаблоне \"\002%s\002\": \002%s\002."
-	set ccs(text,chan,ru,#131) "Результирующий список параметров: \002%s\002."
+	set_text $_lang $_name #101 "Каналы: %s."
+	set_text $_lang $_name #102 "Канал \002%s\002 удален."
+	set_text $_lang $_name #103 "Канал \002%s\002 добавлен."
+	set_text $_lang $_name #104 "Канал \002%s\002 не прописан на боте."
+	set_text $_lang $_name #105 "Канал \002%s\002 является постоянным и не может быть удалён с помощью скрипта (Вы можете поставить +inactive)."
+	set_text $_lang $_name #106 "Настройки \002%s\002 не существует!"
+	set_text $_lang $_name #107 "Флаг канала изменен на \002%s\002"
+	set_text $_lang $_name #108 "Значение флага канала: \002%s\002"
+	set_text $_lang $_name #109 "Параметр \002%s\002 канала изменен на \"\002%s\002\""
+	set_text $_lang $_name #110 "Значение параметра \002%s\002 канала: \"\002%s\002\""
+	set_text $_lang $_name #111 "Настройки канала \002%s\002 сохранены в файле \"\002%s\002\""
+	set_text $_lang $_name #112 "Настройки канала \002%s\002 сохранены в файле \"\002%s\002\" используя шаблон \"\002%s\002\""
+	set_text $_lang $_name #113 "Настройки канала \002%s\002 восстановлены из файла \"\002%s\002\""
+	set_text $_lang $_name #114 "Настройки канала \002%s\002 восстановлены из файла \"\002%s\002\" используя шаблон \"\002%s\002\""
+	set_text $_lang $_name #115 "Настройки канала \002%s\002 частично восстановлены из файла \"\002%s\002\", список не восстановленых параметров: \002%s\002"
+	set_text $_lang $_name #116 "Настройки канала \002%s\002 частично восстановлены из файла \"\002%s\002\" используя шаблон \"\002%s\002\", список не восстановленых параметров: \002%s\002"
+	set_text $_lang $_name #117 "Настройки канала \002%s\002 скопированы на \002%s\002"
+	set_text $_lang $_name #118 "Настройки канала \002%s\002 скопированы на \002%s\002 используя шаблон \"\002%s\002\""
+	set_text $_lang $_name #119 "Файла \"\002%s\002\" с настройками не существует."
+	set_text $_lang $_name #120 "Файла \"\002%s\002\" шаблона не существует."
+	set_text $_lang $_name #121 "Нету новых параметров для записи в шаблон \"\002%s\002\"; %s."
+	set_text $_lang $_name #122 "Нету параметров для удаления из шаблона \"\002%s\002\"; %s."
+	set_text $_lang $_name #123 "В шаблон \"\002%s\002\" записаны новые параметры; %s."
+	set_text $_lang $_name #124 "Из шаблона \"\002%s\002\" были удалены параметры; %s."
+	set_text $_lang $_name #125 "новые: \002%s\002"
+	set_text $_lang $_name #126 "ошибочные: \002%s\002"
+	set_text $_lang $_name #127 "старые: \002%s\002"
+	set_text $_lang $_name #128 "удаленные: \002%s\002"
+	set_text $_lang $_name #129 "отсутствующие: \002%s\002"
+	set_text $_lang $_name #130 "Список параметров в шаблоне \"\002%s\002\": \002%s\002."
+	set_text $_lang $_name #131 "Результирующий список параметров: \002%s\002."
 	
 }

@@ -1,62 +1,61 @@
-##################################################################################################################
+####################################################################################################
 ## Модуль с системными командами управления
-##################################################################################################################
+####################################################################################################
 
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-set modname		"system"
-addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
-				"Модуль с системными командами управления ботом."
+set _name	{system}
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+	"Модуль с системными командами управления ботом."
 
-if {$ccs(mod,name,$modname)} {
+if {[pkg_info mod $_name on]} {
 	
-	cconfigure servers -add 1 -group "system" -flags {m} -block 5 -usechan 0 \
+	cmd_configure servers -control -group "system" -flags {m} -block 5 -use_chan 0 \
 		-alias {%pref_servers} \
 		-regexp {{^$} {}}
 	
-	cconfigure addserver -add 1 -group "system" -flags {m} -block 1 -usechan 0 \
+	cmd_configure addserver -control -group "system" -flags {m} -block 1 -use_chan 0 \
 		-alias {%pref_addserver} \
 		-regexp {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)$} {-> sserver sport spass}}
 	
-	cconfigure delserver -add 1 -group "system" -flags {m} -block 1 -usechan 0 \
+	cmd_configure delserver -control -group "system" -flags {m} -block 1 -use_chan 0 \
 		-alias {%pref_delserver} \
 		-regexp {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)$} {-> sserver sport spass}}
 	
-	cconfigure save -add 1 -group "system" -flags {m} -block 3 -usechan 0 \
+	cmd_configure save -control -group "system" -flags {m} -block 3 -use_chan 0 \
 		-alias {%pref_save} \
 		-regexp {{^$} {}}
 	
-	cconfigure reload -add 1 -group "system" -flags {m} -block 3 -usechan 0 \
+	cmd_configure reload -control -group "system" -flags {m} -block 3 -use_chan 0 \
 		-alias {%pref_reload} \
 		-regexp {{^$} {}}
 	
-	cconfigure backup -add 1 -group "system" -flags {m} -block 3 -usechan 0 \
+	cmd_configure backup -control -group "system" -flags {m} -block 3 -use_chan 0 \
 		-alias {%pref_backup} \
 		-regexp {{^$} {}}
 	
-	cconfigure die -add 1 -group "system" -flags {n} -usechan 0 \
+	cmd_configure die -control -group "system" -flags {n} -use_chan 0 \
 		-alias {%pref_die} \
 		-regexp {{^(.*?)$} {-> stext}}
 	
-	cconfigure rehash -add 1 -group "system" -flags {m} -block 5 -usechan 0 \
+	cmd_configure rehash -control -group "system" -flags {m} -block 5 -use_chan 0 \
 		-alias {%pref_rehash} \
 		-regexp {{^$} {}}
 	
-	cconfigure restart -add 1 -group "system" -flags {m} -usechan 0 \
+	cmd_configure restart -control -group "system" -flags {m} -use_chan 0 \
 		-alias {%pref_restart} \
 		-regexp {{^$} {}}
 	
-	cconfigure jump -add 1 -group "system" -flags {m} -block 5 -usechan 0 \
+	cmd_configure jump -control -group "system" -flags {m} -block 5 -use_chan 0 \
 		-alias {%pref_jump} \
 		-regexp {{^(?:([^\ :]+)(?:[\:\ ](\d+)(?:[\:\ ]([^\ ]+))?)?)?$} {-> sserver sport spass}}
 	
-	#############################################################################################################
+	################################################################################################
 	# Процедуры системных команд
 	
 	proc cmd_rehash {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		
 		put_msg [sprintf system #101]
 		save
@@ -68,7 +67,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_restart {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		
 		if {[check_notavailable {-getting_users}]} {return 0}
 		
@@ -80,7 +80,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_jump {} {
-		importvars [list onick ochan obot snick shand schan command sserver sport spass]
+		upvar out out
+		importvars [list snick shand schan command sserver sport spass]
 		
 		if {[check_notavailable {-getting_users}]} {return 0}
 		
@@ -99,24 +100,26 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_servers {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		global servers serveraddress
 		
-		put_msg [sprintf system #104] -speed 3
+		put_msg -speed 3 -- [sprintf system #104]
 		foreach line $servers {
 			set l_server [lindex [split $line] 0]
 			set l_hub [lindex [split $line] 1]
 			if {$l_server == $serveraddress} {set l_server "\002$l_server\002"}
-			put_msg "» $l_server [expr {[string is space $l_hub] ? "" : "($l_hub)"}]" -speed 3
+			put_msg -speed 3 -- "» $l_server [expr {[string is space $l_hub] ? "" : "($l_hub)"}]"
 		}
-		put_msg [sprintf system #105] -speed 3
+		put_msg -speed 3 -- [sprintf system #105]
 		put_log ""
 		return 1
 		
 	}
 	
 	proc cmd_addserver {} {
-		importvars [list onick ochan obot snick shand schan command sserver sport spass]
+		upvar out out
+		importvars [list snick shand schan command sserver sport spass]
 		global servers
 		
 		if {[string is space $sport]} {
@@ -130,20 +133,21 @@ if {$ccs(mod,name,$modname)} {
 		foreach line $servers {
 			set l_server [lindex [split $line] 0]
 			if {$l_server == $s_server || [string match $s_server:* $l_server]} {
-				put_msg [sprintf system #106 $s_server] -speed 3
+				put_msg -speed 3 -- [sprintf system #106 $s_server]
 				return 0
 			}
 		}
 		
 		lappend servers $s_server
-		put_msg [sprintf system #107 $s_server] -speed 3
+		put_msg -speed 3 -- [sprintf system #107 $s_server]
 		put_log "$s_server"
 		return 1
 		
 	}
 	
 	proc cmd_delserver {} {
-		importvars [list onick ochan obot snick shand schan command sserver sport spass]
+		upvar out out
+		importvars [list snick shand schan command sserver sport spass]
 		global servers
 		
 		if {[string is space $sport]} {
@@ -161,18 +165,19 @@ if {$ccs(mod,name,$modname)} {
 			if {$l_server == $s_server || [string match $s_server:* $l_server]} {
 				set servers [lreplace $servers $ind $ind]
 				set del 1
-				put_msg [sprintf system #108 $l_server] -speed 3
+				put_msg -speed 3 -- [sprintf system #108 $l_server]
 				put_log "$s_server"
 			}
 			incr ind
 		}
-		if {!$del} {put_msg [sprintf system #109 $s_server] -speed 3; return 0}
+		if {!$del} {put_msg -speed 3 -- [sprintf system #109 $s_server]; return 0}
 		return 1
 		
 	}
 	
 	proc cmd_save {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		
 		if {[check_notavailable {-getting_users}]} {return 0}
 		
@@ -184,7 +189,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_reload {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		
 		if {[check_notavailable {-getting_users}]} {return 0}
 		
@@ -196,7 +202,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_backup {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		
 		if {[check_notavailable {-getting_users}]} {return 0}
 		
@@ -208,7 +215,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_die {} {
-		importvars [list onick ochan obot snick shand schan command stext]
+		upvar out out
+		importvars [list snick shand schan command stext]
 		
 		if {[check_notavailable {-getting_users}]} {return 0}
 		

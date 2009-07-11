@@ -1,41 +1,35 @@
-##################################################################################################################
+####################################################################################################
 ## Модуль для вызова DCC коннекта от бота. По просьбе vindi ;)
-##################################################################################################################
+####################################################################################################
 
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-set modname		"chat"
-addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
-				"Модуль DCC соединения бота с клиентом."
+set _name	{chat}
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+	"Модуль DCC соединения бота с клиентом."
 
-if {$ccs(mod,name,$modname)} {
+if {[pkg_info mod $_name on]} {
 	
-	#############################################################################################################
-	# Порт по которому будет производиться DCC коннект. Если порт 0, то будет производиться поиск открытых портов
-	set ccs(dccport)		0
+	################################################################################################
+	# Порт по которому будет производиться DCC коннект. Если порт 0, то будет производиться поиск
+	# открытых портов
+	set options(dccport)		0
 	
-	#############################################################################################################
-	# IP адрес, через который будет производиться коннект, если поле оставить пустым IP адрес будет браться из
-	# системы
-	set ccs(dccip)			""
+	################################################################################################
+	# IP адрес, через который будет производиться коннект, если поле оставить пустым IP адрес будет
+	# браться из системы
+	set options(dccip)			""
 	
-	cconfigure chat -add 1 -group "other" -flags {p} -block 5 -usechan 0 \
+	cmd_configure chat -control -group "other" -flags {p} -block 5 -use_chan 0 \
 		-alias {%pref_chat} \
 		-regexp {{^$} {}}
 	
-	#############################################################################################################
-	#############################################################################################################
-	#############################################################################################################
-	
-	set ccs(text,traf,en,#101) "Stats about \002%s\002 not found. Valid group are: \002IRC, BotNet, Partyline, Transfer, Misc, Total."
-	
 	proc cmd_chat {} {
-		importvars [list onick ochan obot snick shand schan command]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command]
+		variable options
 		
-		set port $ccs(dccport)
+		set port $options(dccport)
 		if {$port == 0} {
 			foreach _ [dcclist] {
 				if {[lindex $_ 3] == "TELNET"} {
@@ -46,7 +40,7 @@ if {$ccs(mod,name,$modname)} {
 		}
 		if {$port == 0} {put_msg [sprintf chat #101];return 0}
 		
-		if {$ccs(dccip) == ""} {set ip [myip]} else {set ip $ccs(dccip)}
+		if {$options(dccip) == ""} {set ip [myip]} else {set ip $options(dccip)}
 		
 		putserv "PRIVMSG $snick :\001DCC CHAT chat $ip $port\001"
 		

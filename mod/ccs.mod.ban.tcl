@@ -1,32 +1,30 @@
-##################################################################################################################
+####################################################################################################
 ## Модуль управления банами
-##################################################################################################################
+####################################################################################################
 
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-set modname		"ban"
-addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
-				"Модуль управления списком банов."
+set _name	{ban}
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "15-Apr-2009" \
+	"Модуль управления списком банов."
 
-if {$ccs(mod,name,$modname)} {
+if {[pkg_info mod $_name on]} {
 	
-	#############################################################################################################
+	################################################################################################
 	# Отображать в причине бана дату/время снятия бана. (0 - нет, 1 - да)
-	set ccs(bandate)		1
+	set options(bandate)		1
 	
-	#############################################################################################################
+	################################################################################################
 	# Проверять при снятии бана уровень доступа того, кто поставил бан.
 	#   0 - снять бан может любой при наличии прав
 	#   1 - снять бан может любой человек с равными правами поставившему бан или большими
 	#   2 - снять бан может человек поставивший бан или с большими правами
 	# Значение может быть переопределено выставлением канального флага ccs-unban_level
-	set ccs(unban_level)	0
+	set options(unban_level)	0
 	
-	#############################################################################################################
-	# Значение по умолчанию, которое определяет маску по умолчанию для выставления банов. Значение может быть
-	# переопределено выставлением канального флага ccs-banmask.
+	################################################################################################
+	# Значение по умолчанию, которое определяет маску по умолчанию для выставления банов.
+	# Значение может быть переопределено выставлением канального флага ccs-banmask.
 	# Доступные значения:
 	# 1: *!user@host
 	# 2: *!*user@host
@@ -38,41 +36,42 @@ if {$ccs(mod,name,$modname)} {
 	# 8: nick!*@host
 	# 9: nick!*user@*.host
 	# 10: nick!*@*.host
-	set ccs(banmask)		4
+	set options(banmask)		4
 	
-	cconfigure ban -add 1 -group "ban" -flags {o|o} -block 1 \
+	cmd_configure ban -control -group "ban" -flags {o|o} -block 1 \
 		-alias {%pref_ban} \
 		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime reason stick}}
 	
-	cconfigure unban -add 1 -group "ban" -flags {o|o} -block 1 \
+	cmd_configure unban -control -group "ban" -flags {o|o} -block 1 \
 		-alias {%pref_unban} \
 		-regexp {{^([^\ ]+)$} {-> sban}}
 	
-	cconfigure gban -add 1 -group "ban" -flags {o} -block 1 -usechan 0 \
+	cmd_configure gban -control -group "ban" -flags {o} -block 1 -use_chan 0 \
 		-alias {%pref_gban} \
 		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ *(.*?))+?(?:\ +(stick))?$} {-> dnick stime reason stick}}
 	
-	cconfigure gunban -add 1 -group "ban" -flags {o} -block 1 -usechan 0 \
+	cmd_configure gunban -control -group "ban" -flags {o} -block 1 -use_chan 0 \
 		-alias {%pref_gunban} \
 		-regexp {{^([^\ ]+)$} {-> sban}}
 	
-	cconfigure banlist -add 1 -group "ban" -flags {o|o} -block 3 -usechan 3 \
+	cmd_configure banlist -control -group "ban" -flags {o|o} -block 3 -use_chan 3 \
 		-alias {%pref_banlist %pref_bans} \
 		-regexp {{^((?!global)[^\ ]+)?(?:\s*(global))?$} {-> smask sglobal}}
 	
-	cconfigure resetbans -add 1 -group "ban" -flags {o|o} -block 5 \
+	cmd_configure resetbans -control -group "ban" -flags {o|o} -block 5 \
 		-alias {%pref_resetbans} \
 		-regexp {{^$} {}}
 	
 	setudef str ccs-banmask
 	setudef str ccs-unban_level
 	
-	#############################################################################################################
+	################################################################################################
 	# Процедуры команд управления банами (+b)
 	
 	proc cmd_ban {} {
-		importvars [list onick ochan obot snick shand schan command dnick stime reason stick]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command dnick stime reason stick]
+		variable options
 		
 		set stick [expr ![string is space $stick]]
 		if {$stime == ""} {set stime [channel get $schan ban-time]}
@@ -101,7 +100,7 @@ if {$ccs(mod,name,$modname)} {
 			put_log "$dstick $dhost \002(permanently)\002."
 		} else {
 			set btime [expr $stime * 60]
-			if {$ccs(bandate)} {set reason [sprintf ban #104 $reason [ctime [expr [unixtime] + $btime]]]}
+			if {$options(bandate)} {set reason [sprintf ban #104 $reason [ctime [expr [unixtime] + $btime]]]}
 			put_msg [sprintf ban #103 $sstick $dhost [xdate [duration $btime]]]
 			put_log "$dstick $dhost at [duration $btime]."
 		}
@@ -124,22 +123,21 @@ if {$ccs(mod,name,$modname)} {
 		}
 		
 		foreach _ $data {
-			foreach {ban comment expire added timeactive bywho} $_ break
-			if {[string equal -nocase $ban $sban]} {
-				return $_
-			}
+			lassign $_ ban comment expire added timeactive bywho
+			if {[string equal -nocase $ban $sban]} {return $_}
 		}
 		return [list]
 		
 	}
 	
 	proc cmd_unban {} {
-		importvars [list onick ochan obot snick shand schan command sban]
+		upvar out out
+		importvars [list snick shand schan command sban]
 		
 		if {[set unban_level [get_options "unban_level" $schan]] > 0} {
 			set fban [find_ban $sban $schan]
 			if {[llength $fban] > 0} {
-				foreach {ban comment expire added timeactive dnick} $fban break
+				lassign $fban ban comment expire added timeactive dnick
 				if {[validuser $dnick] && $shand != $dnick} {
 					set saccess [get_accesshand $shand $schan 1]
 					set daccess [get_accesshand $dnick $schan]
@@ -174,8 +172,9 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_gban {} {
-		importvars [list onick ochan obot snick shand schan command dnick stime reason stick]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command dnick stime reason stick]
+		variable options
 		
 		set stick [expr ![string is space $stick]]
 		if {$stime == ""} {set stime 1440}
@@ -204,7 +203,7 @@ if {$ccs(mod,name,$modname)} {
 			put_log "$dstick $dhost \002(permanently)\002."
 		} else {
 			set btime [expr $stime * 60]
-			if {$ccs(bandate)} {set reason [sprintf ban #104 $reason [ctime [expr [unixtime] + $btime]]]}
+			if {$options(bandate)} {set reason [sprintf ban #104 $reason [ctime [expr [unixtime] + $btime]]]}
 			put_msg [sprintf ban #110 $sstick $dhost [xdate [duration $btime]]]
 			put_log "$dstick $dhost at [duration $btime]."
 		}
@@ -214,13 +213,13 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_gunban {} {
-		importvars [list onick ochan obot snick shand schan command sban]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command sban]
 		
 		if {[set unban_level [get_options "unban_level"]] > 0} {
 			set fban [find_ban $sban]
 			if {[llength $fban] > 0} {
-				foreach {ban comment expire added timeactive dnick} [find_ban $sban] break
+				lassign [find_ban $sban] ban comment expire added timeactive dnick
 				if {[validuser $dnick] && $shand != $dnick} {
 					set saccess [get_accesshand $shand * 1]
 					set daccess [get_accesshand $dnick *]
@@ -251,18 +250,18 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_banlist {} {
-		importvars [list onick ochan obot snick shand schan command smask sglobal]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command smask sglobal]
 		
 		set global [expr ![string is space $sglobal]]
 		if {$smask != ""} {set text_m " [sprintf ban #116 $smask]"} else {set text_m ""}
 		if {$global} {
-			put_msg [sprintf ban #113 $text_m] -speed 3
+			put_msg -speed 3 -- [sprintf ban #113 $text_m]
 			set date [banlist]
 			set cbans [list]
 		} else {
 			if {[check_isnull $schan]} {put_help; return 0}
-			put_msg [sprintf ban #114 $schan $text_m] -speed 3
+			put_msg -speed 3 -- [sprintf ban #114 $schan $text_m]
 			set date [banlist $schan]
 			set cbans [chanbans $schan]
 		}
@@ -270,8 +269,8 @@ if {$ccs(mod,name,$modname)} {
 		set find 0
 		set ind 1
 		foreach _ $date {
+			lassign $_ ban comment expire added timeactive bywho
 			
-			foreach {ban comment expire added timeactive bywho} $_ break
 			if {$smask != "" && ![string match -nocase $smask $ban]} {continue}
 			if {$expire == 0} {
 				set expire [sprintf ban #117]
@@ -286,7 +285,7 @@ if {$ccs(mod,name,$modname)} {
 				set stick [isbansticky $ban $schan]
 				set ind1 0
 				foreach _1 $cbans {
-					foreach {ban1 bywho1 age1} $_1 break
+					lassign $_1 ban1 bywho1 age1
 					if {[string match -nocase $ban1 $ban]} {
 						set text_cb " [sprintf ban #123 $bywho1 [xdate [duration $age1]]]"
 						set cbans [lreplace $cbans $ind1 $ind1]
@@ -295,29 +294,30 @@ if {$ccs(mod,name,$modname)} {
 					incr ind1
 				}
 			}
-			put_msg [sprintf ban #119 $ind $ban [expr {$stick ? " ([sprintf ban #105])" : ""}] $comment $expire $passed $bywho $text_cb] -speed 3
+			put_msg -speed 3 -- [sprintf ban #119 $ind $ban [expr {$stick ? " ([sprintf ban #105])" : ""}] $comment $expire $passed $bywho $text_cb]
 			set find 1
 			
 			incr ind
 		}
-		if {!$find} {put_msg [sprintf ban #115] -speed 3}
+		if {!$find} {put_msg -speed 3 -- [sprintf ban #115]}
 		
 		set tout 0
 		foreach _ $cbans {
-			foreach {ban bywho age} $_ break
+			lassign $_ ban bywho age
 			if {$smask != "" && ![string match -nocase $smask $ban]} {continue}
-			if {!$tout} {put_msg [sprintf ban #124] -speed 3; set tout 1}
-			put_msg [sprintf ban #125 $ban $bywho [xdate [duration $age]]] -speed 3
+			if {!$tout} {put_msg -speed 3 -- [sprintf ban #124]; set tout 1}
+			put_msg -speed 3 -- [sprintf ban #125 $ban $bywho [xdate [duration $age]]]
 		}
 		
-		put_msg [sprintf ban #120] -speed 3
+		put_msg -speed 3 -- [sprintf ban #120]
 		put_log ""
 		return 1
 		
 	}
 	
 	proc cmd_resetbans {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		
 		resetbans $schan
 		put_msg [sprintf ban #121]

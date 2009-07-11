@@ -1,55 +1,90 @@
-##################################################################################################################
+####################################################################################################
 ## Модуль логирования в файл
-##################################################################################################################
+####################################################################################################
 # Список последних изменений:
 #	v1.2.5
 # - Изменена директория по умолчанию для сохранения логов
 
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-set modname		"logs"
-addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
-				"Модуль логирования (сохранения всех действий пользователей в файл)."
+set _name	{logs}
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+	"Модуль логирования (сохранения всех действий пользователей в файл)."
 
-if {$ccs(mod,name,$modname)} {
+if {[pkg_info mod $_name on]} {
 	
-	#############################################################################################################
+	################################################################################################
 	# Имя файла и путь ведения логов. По умолчанию в папку со скриптом с именем ccs.log
-	set ccs(logsfile)			"$ccs(datadir)/ccs.log"
+	set options(logsfile)			"$options(dir_data)/ccs.log"
 	
-	#############################################################################################################
+	################################################################################################
 	# Максимальный уровень сообщений, которые необходимо записывать в лог файл
-	set ccs(logslevel)			3
+	set options(logslevel)			3
 	
-	proc put_log {text args} {
-		importvars [list snick shand schan command] $args [list level 1]
-		variable ccs
+	proc put_log {args} {
+		upvar snick snick shand shand schan schan command command
+		variable options
 		
-		set lout [list]
-		if {![check_isnull $snick] && ![check_isnull $shand]} {
-			lappend lout "<<$snick[expr {$snick != $shand ? " ($shand)" : ""}]>>"
-		} elseif {![check_isnull $snick]} {
-			lappend lout "<<$snick>>"
-		} elseif {![check_isnull $shand]} {
-			lappend lout "<<($shand)>>"
+		set opts(-return) ""; # выход из процедуры после вывода сообщения
+		set opts(-level)  1;  # уровень отладки
+		if {[info exists snick]}   { set opts(-snick)   $snick   } else { set opts(-snick)   "" }
+		if {[info exists shand]}   { set opts(-shand)   $shand   } else { set opts(-shand)   "" }
+		if {[info exists schan]}   { set opts(-schan)   $schan   } else { set opts(-schan)   "" }
+		if {[info exists command]} { set opts(-command) $command } else { set opts(-command) "" }
+		
+		set upreturn 0
+		
+		if {[llength $args] > 1} {
+			while {[string match -* [lindex $args 0]]} {
+				switch -glob -- [lindex $args 0] {
+					-return  { set opts(-return)  [Pop args 1]; set upreturn 1 }
+					-level   { set opts(-level)   [Pop args 1] }
+					-snick   { set opts(-snick)   [Pop args 1] }
+					-shand   { set opts(-shand)   [Pop args 1] }
+					-schan   { set opts(-schan)   [Pop args 1] }
+					-command { set opts(-command) [Pop args 1] }
+					-- { Pop args; break }
+					default {
+						set opt [join [lsort [array names opts -*]] ", "]
+						return -code error "bad option [lindex $args 0]: must be $opt"
+					}
+				}
+				Pop args
+			}
 		}
 		
-		if {![check_isnull $schan]} {lappend lout "!$schan!"}
-		if {$command != ""} {lappend lout "[string toupper $command]"}
-		lappend lout $text
+		if {[llength $args] != 1} {
+			return -code error "wrong # args: should be \"put_log ?switches? text\""
+		}
 		
-		debug [join $lout] $level
+		set text [lindex $args 0]
 		
-		if {$ccs(logslevel) >= $level} {
+		set r {}
+		if {![check_isnull $opts(-snick)]} {
+			if {![check_isnull $opts(-shand)] && $opts(-snick) != $opts(-shand)} {
+				lappend r "<<$opts(-snick)($opts(-shand))>>"
+			} else {
+				lappend r "<<$opts(-snick)>>"
+			}
+		} elseif {![check_isnull $opts(-shand)]} {
+			lappend r "<<($opts(-shand))>>"
+		}
+		
+		if {![check_isnull $opts(-schan)]} {lappend r "!$opts(-schan)!"}
+		if {$opts(-command) != ""} {lappend r [string toupper $opts(-command)]}
+		lappend r $text
+		
+		debug [join $r] $opts(-level)
+		
+		if {$options(logslevel) >= $opts(-level)} {
 			if {[catch {
-				savefile $ccs(logsfile) "\[[clock format [unixtime] -format "%d-%b-%y %H:%M:%S"]\] [join $lout]" -append
+				SaveFile -access a -- $options(logsfile) "\[[clock format [unixtime] -format "%d-%b-%y %H:%M:%S"]\] [join $lout]"
 			} errMsg]} {
 				return 0
 			}
 		}
-		return 1
+		
+		if {$upreturn} {return -code return $opts(-return)}
 		
 	}
 	
