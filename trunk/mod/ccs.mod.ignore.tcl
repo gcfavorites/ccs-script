@@ -1,20 +1,22 @@
-##################################################################################################################
+####################################################################################################
 ## ћодуль управлени€ игнорами
-##################################################################################################################
+####################################################################################################
 
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-set modname		"ignore"
-addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
-				"ћодуль управлени€ списком игноров."
+set _name	{ignore}
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+	"ћодуль управлени€ списком игноров."
 
-if {$ccs(mod,name,$modname)} {
+if {[pkg_info mod $_name on]} {
 	
-	#############################################################################################################
-	# «начение по умолчанию, которое определ€ет маску по умолчанию дл€ выставлени€ игнора. «начение может быть
-	# переопределено выставлением канального флага ccs-ignoremask.
+	################################################################################################
+	# ќтображать в причине дату/врем€ сн€ти€ игнора. (0 - нет, 1 - да)
+	set options(ignoredate)		1
+	
+	################################################################################################
+	# «начение по умолчанию, которое определ€ет маску по умолчанию дл€ выставлени€ игнора.
+	# «начение может быть переопределено выставлением канального флага ccs-ignoremask.
 	# ƒоступные значени€:
 	# 1: *!user@host
 	# 2: *!*user@host
@@ -26,28 +28,29 @@ if {$ccs(mod,name,$modname)} {
 	# 8: nick!*@host
 	# 9: nick!*user@*.host
 	# 10: nick!*@*.host
-	set ccs(ignoremask)			4
+	set options(ignoremask)			4
 	
-	cconfigure addignore -add 1 -group "other" -flags {o} -block 3 -usechan 0 \
+	cmd_configure addignore -control -group "other" -flags {o} -block 3 -use_chan 0 \
 		-alias {%pref_addignore %pref_+ignore} \
 		-regexp {{^([^\ ]+)(?:\ +(\d+))?(?:\ +(.*?))?$} {-> dnick stime reason}}
 	
-	cconfigure delignore -add 1 -group "other" -flags {o} -block 1 -usechan 0 \
+	cmd_configure delignore -control -group "other" -flags {o} -block 1 -use_chan 0 \
 		-alias {%pref_delignore %pref_-ignore} \
 		-regexp {{^([^\ ]+)$} {-> ignore}}
 	
-	cconfigure ignorelist -add 1 -group "other" -flags {m} -block 3 -usechan 0 \
+	cmd_configure ignorelist -control -group "other" -flags {m} -block 3 -use_chan 0 \
 		-alias {%pref_ignorelist %pref_ignores} \
 		-regexp {{^$} {}}
 	
 	setudef str ccs-ignoremask
 	
-	#############################################################################################################
+	################################################################################################
 	# ѕроцедуры команд управлени€ игнорами (IGNORES).
 	
 	proc cmd_addignore {} {
-		importvars [list onick ochan obot snick shand schan command dnick stime reason]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command dnick stime reason]
+		variable options
 		
 		if {$stime == ""} {set stime 1440}
 		if {$reason == ""} {set reason [sprintf ignore #101]}
@@ -66,7 +69,7 @@ if {$ccs(mod,name,$modname)} {
 			put_log "$dhost \002(permanently)\002."
 		} else {
 			set btime [expr $stime * 60]
-			if {$ccs(bandate)} {set reason [sprintf ignore #107 $reason [ctime [expr [unixtime] + $btime]]]}
+			if {$options(ignoredate)} {set reason [sprintf ignore #107 $reason [ctime [expr [unixtime] + $btime]]]}
 			put_msg [sprintf ignore #102 $dhost [xdate [duration $btime]]]
 			put_log "$dhost at [duration $btime]."
 		}
@@ -76,7 +79,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_delignore {} {
-		importvars [list onick ochan obot snick shand schan command ignore]
+		upvar out out
+		importvars [list snick shand schan command ignore]
 		
 		if {![killignore $ignore]} {put_msg [sprintf ignore #105 $ignore]; return 0}
 		put_msg [sprintf ignore #104 $ignore]
@@ -86,23 +90,24 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_ignorelist {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		
-		put_msg [sprintf ignore #106] -speed 3
+		put_msg -speed 3 -- [sprintf ignore #106]
 		set date [ignorelist]
 		
 		if {[llength $date] == 0} {
-			put_msg [sprintf ignore #110] -speed 3
+			put_msg -speed 3 -- [sprintf ignore #110]
 		} else {
 			foreach _ $date {
-				foreach {what comment expire added by} $_ break
+				lassign $_ what comment expire added by
 				if {$expire == 0} {set expire [sprintf ignore #107]} else {
 					set expire [sprintf ignore #108 [xdate [duration [expr $expire - [unixtime]]]]]
 				}
-				put_msg [sprintf ignore #109 $what $comment $expire [xdate [duration [expr [unixtime] - $added]]] $by] -speed 3
+				put_msg -speed 3 -- [sprintf ignore #109 $what $comment $expire [xdate [duration [expr [unixtime] - $added]]] $by]
 			}
 		}
-		put_msg [sprintf ignore #111] -speed 3
+		put_msg -speed 3 -- [sprintf ignore #111]
 		put_log ""
 		return 1
 		

@@ -1,21 +1,21 @@
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
-set modname		"regban"
-set modlang		"ru"
-addfileinfo lang "$modname,$modlang" \
+set _name		"regban"
+set _lang		"ru"
+pkg_add lang [list $_name $_lang] \
 				"Buster <buster@buster-net.ru> (c)" \
-				"1.2.2" \
-				"29-Mar-2009"
+				"1.4.0" \
+				"01-Jul-2009"
 
-if {$ccs(lang,name,$modname,$modlang)} {
+if {[pkg_info lang [list $_name $_lang] on]} {
 	
-	set ccs(args,ru,regbanlist) {}
-	set ccs(help,ru,regbanlist) {ѕросмотр списка регул€рных банов}
+	set_text -type args -- $_lang regbanlist {}
+	set_text -type help -- $_lang regbanlist {ѕросмотр списка регул€рных банов}
 	
-	set ccs(args,ru,regban) {<[-host {rege}] [-server {rege}] [-status {rege}] [-hops number] [-name {rege}]> [options]}
-	set ccs(help,ru,regban) {¬ыставление регул€рного бана}
-	set ccs(help2,ru,regban) {
+	set_text -type args -- $_lang regban {<[-host {rege}] [-server {rege}] [-status {rege}] [-hops number] [-name {rege}]> [options]}
+	set_text -type help -- $_lang regban {¬ыставление регул€рного бана}
+	set_text -type help2 -- $_lang regban {
 		{¬ыставление регул€рного бана. ƒоступные опции:}
 		{  \002-ban [number]\002 - ƒействие бан. ¬озможно указание маски бана, если маска бана не указана, то беретс€ значение по умолчанию дл€ канала. (список хостмаскок можно посмотреть командой \002%pref_info mask\002)}
 		{  \002-kick [{reason}]\002 - ƒействие кик. ”казание причины не об€зательно.}
@@ -23,22 +23,22 @@ if {$ccs(lang,name,$modname,$modlang)} {
 		{ѕримечание: если существует выполнимое условие с единственной указанной опцией \002-host\002 то услови€ с остальными опци€ми не будут провер€тьс€.}
 	}
 	
-	set ccs(args,ru,regunban) {<id>}
-	set ccs(help,ru,regunban) {”даление регул€рного бана}
+	set_text -type args -- $_lang regunban {<id>}
+	set_text -type help -- $_lang regunban {”даление регул€рного бана}
 	
-	set ccs(args,ru,regbanaction) {}
-	set ccs(help,ru,regbanaction) {“естирование регбанов дл€ всего канала, с выполнением всех действий}
+	set_text -type args -- $_lang regbanaction {}
+	set_text -type help -- $_lang regbanaction {“естирование регбанов дл€ всего канала, с выполнением всех действий}
 	
-	set ccs(args,ru,regbantest) {}
-	set ccs(help,ru,regbantest) {“естирование регбанов дл€ всего канала, с выполнением действи€ "notify" запрашиваемому}
+	set_text -type args -- $_lang regbantest {}
+	set_text -type help -- $_lang regbantest {“естирование регбанов дл€ всего канала, с выполнением действи€ "notify" запрашиваемому}
 	
-	set ccs(text,regban,ru,#101) "–егул€рный бан \002ID: %s\002 добавлен: %s."
-	set ccs(text,regban,ru,#102) "–егул€рный бан \002ID: %s\002 удален: %s."
-	set ccs(text,regban,ru,#103) "–егул€рный бан \002ID: %s\002 не существует."
-	set ccs(text,regban,ru,#104) "--- —писок регул€рных банов \002%s\002 ---"
-	set ccs(text,regban,ru,#105) "*** ѕуст ***"
-	set ccs(text,regban,ru,#106) "---  онец списка регул€рных банов ---"
-	set ccs(text,regban,ru,#107) "–егул€рный бан \002ID: %s\002 %s: %s."
-	set ccs(text,regban,ru,#108) "–егул€рное выражение \"\002%s\002\" не €вл€етьс€ корректным."
+	set_text $_lang $_name #101 "–егул€рный бан \002ID: %s\002 добавлен: %s."
+	set_text $_lang $_name #102 "–егул€рный бан \002ID: %s\002 удален: %s."
+	set_text $_lang $_name #103 "–егул€рный бан \002ID: %s\002 не существует."
+	set_text $_lang $_name #104 "--- —писок регул€рных банов \002%s\002 ---"
+	set_text $_lang $_name #105 "*** ѕуст ***"
+	set_text $_lang $_name #106 "---  онец списка регул€рных банов ---"
+	set_text $_lang $_name #107 "–егул€рный бан \002ID: %s\002 %s: %s."
+	set_text $_lang $_name #108 "–егул€рное выражение \"\002%s\002\" не €вл€етьс€ корректным."
 	
 }

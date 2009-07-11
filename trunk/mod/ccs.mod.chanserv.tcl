@@ -1,75 +1,77 @@
-##################################################################################################################
+####################################################################################################
 ## Модуль управления через ChanServ
-##################################################################################################################
+####################################################################################################
 
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-set modname		"chanserv"
-addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
-				"Модуль управление ChanServ."
+set _name	{chanserv}
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+	"Модуль управление ChanServ."
 
-if {$ccs(mod,name,$modname)} {
+if {[pkg_info mod $_name on]} {
 	
-	#############################################################################################################
+	if {[info exists chanserv]} {unset chanserv}
+	variable chanserv
+	
+	################################################################################################
 	# Список шаблонов отсылаемых команд
-	#set ccs(chanserv,op)		"PRIVMSG ChanServ :OP %chan %nick"
-	#set ccs(chanserv,deop)		"PRIVMSG ChanServ :DEOP %chan %nick"
-	#set ccs(chanserv,hop)		"PRIVMSG ChanServ :HALFOP %chan %nick"
-	#set ccs(chanserv,dehop)		"PRIVMSG ChanServ :DEHALFOP %chan %nick"
-	#set ccs(chanserv,voice)		"PRIVMSG ChanServ :VOICE %chan %nick"
-	#set ccs(chanserv,devoice)	"PRIVMSG ChanServ :DEVOICE %chan %nick"
-	set ccs(chanserv,op)		"ChanServ OP %chan %nick"
-	set ccs(chanserv,deop)		"ChanServ DEOP %chan %nick"
-	set ccs(chanserv,hop)		"ChanServ HALFOP %chan %nick"
-	set ccs(chanserv,dehop)		"ChanServ DEHALFOP %chan %nick"
-	set ccs(chanserv,voice)		"ChanServ VOICE %chan %nick"
-	set ccs(chanserv,devoice)	"ChanServ DEVOICE %chan %nick"
+	#set chanserv(op)		"PRIVMSG ChanServ :OP %chan %nick"
+	#set chanserv(deop)		"PRIVMSG ChanServ :DEOP %chan %nick"
+	#set chanserv(hop)		"PRIVMSG ChanServ :HALFOP %chan %nick"
+	#set chanserv(dehop)		"PRIVMSG ChanServ :DEHALFOP %chan %nick"
+	#set chanserv(voice)		"PRIVMSG ChanServ :VOICE %chan %nick"
+	#set chanserv(devoice)	"PRIVMSG ChanServ :DEVOICE %chan %nick"
+	set chanserv(op)		"ChanServ OP %chan %nick"
+	set chanserv(deop)		"ChanServ DEOP %chan %nick"
+	set chanserv(hop)		"ChanServ HALFOP %chan %nick"
+	set chanserv(dehop)		"ChanServ DEHALFOP %chan %nick"
+	set chanserv(voice)		"ChanServ VOICE %chan %nick"
+	set chanserv(devoice)	"ChanServ DEVOICE %chan %nick"
 	
-	cconfigure csop -add 1 -group "chanserv" -flags {o|o} -block 1 \
+	cmd_configure csop -control -group "chanserv" -flags {o|o} -block 1 \
 		-alias {%pref_csop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure csdeop -add 1 -group "chanserv" -flags {o|o} -block 1 \
+	cmd_configure csdeop -control -group "chanserv" -flags {o|o} -block 1 \
 		-alias {%pref_csdeop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure cshop -add 1 -group "chanserv" -flags {l|l} -use 0 -block 1 \
+	cmd_configure cshop -control -group "chanserv" -flags {l|l} -use 0 -block 1 \
 		-alias {%pref_cshop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure csdehop -add 1 -group "chanserv" -flags {l|l} -use 0 -block 1 \
+	cmd_configure csdehop -control -group "chanserv" -flags {l|l} -use 0 -block 1 \
 		-alias {%pref_csdehop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure csvoice -add 1 -group "chanserv" -flags {v|v o|o} -block 1 -useauth 0 \
+	cmd_configure csvoice -control -group "chanserv" -flags {v|v o|o} -block 1 -use_auth 0 \
 		-alias {%pref_csvoice} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure csdevoice -add 1 -group "chanserv" -flags {v|v o|o} -block 1 -useauth 0 \
+	cmd_configure csdevoice -control -group "chanserv" -flags {v|v o|o} -block 1 -use_auth 0 \
 		-alias {%pref_csdevoice} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
 	
-	#############################################################################################################
-	#############################################################################################################
-	#############################################################################################################
+	################################################################################################
+	################################################################################################
+	################################################################################################
 	
-	#############################################################################################################
+	################################################################################################
 	# Процедуры команд управления Опами и Хопами (OP, HOP).
 	
 	proc cmd_csop {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command dnick]
+		variable chanserv
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-isop} -dnick $snick -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $snick] $ccs(chanserv,op)]
+			putquick [string map [list {%chan} $schan {%nick} $snick] $chanserv(op)]
 			put_log "SELF"
 		} else {
 			if {[check_notavailable {-notonchan -isop -bitch} -dnick $dnick -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $dnick] $ccs(chanserv,op)]
+			putquick [string map [list {%chan} $schan {%nick} $dnick] $chanserv(op)]
 			put_log "$dnick"
 		}
 		return 1
@@ -77,17 +79,18 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_csdeop {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command dnick]
+		variable chanserv
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-notisop} -dnick $snick -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $snick] $ccs(chanserv,deop)]
+			putquick [string map [list {%chan} $schan {%nick} $snick] $chanserv(deop)]
 			put_log "SELF"
 		} else {
 			set dhand [nick2hand $dnick]
 			if {[check_notavailable {-isbotnick -notonchan -protect -nopermition0 -notisop} -shand $shand -dnick $dnick -dhand $dhand -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $dnick] $ccs(chanserv,deop)]
+			putquick [string map [list {%chan} $schan {%nick} $dnick] $chanserv(deop)]
 			put_log "$dnick"
 		}
 		return 1
@@ -96,16 +99,17 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_cshop {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command dnick]
+		variable chanserv
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-ishalfop} -dnick $snick -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $snick] $ccs(chanserv,hop)]
+			putquick [string map [list {%chan} $schan {%nick} $snick] $chanserv(hop)]
 			put_log "SELF"
 		} else {
 			if {[check_notavailable {-notonchan -ishalfop} -dnick $dnick -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $dnick] $ccs(chanserv,hop)]
+			putquick [string map [list {%chan} $schan {%nick} $dnick] $chanserv(hop)]
 			put_log "$dnick"
 		}
 		return 1
@@ -113,37 +117,39 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_csdehop {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command dnick]
+		variable chanserv
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-notishalfop} -dnick $snick -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $snick] $ccs(chanserv,dehop)]
+			putquick [string map [list {%chan} $schan {%nick} $snick] $chanserv(dehop)]
 			put_log "SELF"
 		} else {
 			set dhand [nick2hand $dnick]
 			if {[check_notavailable {-isbotnick -notonchan -protect -nopermition0 -notishalfop} -shand $shand -dnick $dnick -dhand $dhand -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $dnick] $ccs(chanserv,dehop)]
+			putquick [string map [list {%chan} $schan {%nick} $dnick] $chanserv(dehop)]
 			put_log "$dnick"
 		}
 		return 1
 		
 	}
 	
-	#############################################################################################################
+	################################################################################################
 	# Процедуры команд управления войсами (VOICE).
 	
 	proc cmd_csvoice {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command dnick]
+		variable chanserv
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-isvoice} -dnick $snick -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $snick] $ccs(chanserv,voice)]
+			putquick [string map [list {%chan} $schan {%nick} $snick] $chanserv(voice)]
 			put_log "SELF"
 		} else {
 			if {[check_notavailable {-notonchan -isvoice} -dnick $dnick -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $dnick] $ccs(chanserv,voice)]
+			putquick [string map [list {%chan} $schan {%nick} $dnick] $chanserv(voice)]
 			put_log "$dnick"
 		}
 		return 1
@@ -151,17 +157,18 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_csdevoice {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command dnick]
+		variable chanserv
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-notisvoice} -dnick $snick -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $snick] $ccs(chanserv,devoice)]
+			putquick [string map [list {%chan} $schan {%nick} $snick] $chanserv(devoice)]
 			put_log "SELF"
 		} else {
 			set dhand [nick2hand $dnick]
 			if {[check_notavailable {-isbotnick -notonchan -protect -nopermition0 -notisvoice} -shand $shand -dnick $dnick -dhand $dhand -dchan $schan]} {return 0}
-			putquick [string map [list {%chan} $schan {%nick} $dnick] $ccs(chanserv,devoice)]
+			putquick [string map [list {%chan} $schan {%nick} $dnick] $chanserv(devoice)]
 			put_log "$dnick"
 		}
 		return 1

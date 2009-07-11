@@ -1,31 +1,31 @@
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
 
-set modname		"chanserv"
-set modlang		"en"
-addlang $modname $modlang \
+set _name		"chanserv"
+set _lang		"en"
+pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.2.0" \
-				"16-Jun-2008"
+				"1.4.0" \
+				"01-Jul-2009"
 
-if {$ccs(lang,name,$modname,$modlang)} {
+if {[pkg_info lang [list $_name $_lang] on]} {
 	
-	set ccs(args,en,csop) {[nick]}
-	set ccs(help,en,csop) {Gives op status to a selected \002nick\002 via ChanServ, if nick is not specified gives op status to you}
+	set_text -type args -- $_lang csop {[nick]}
+	set_text -type help -- $_lang csop {Gives op status to a selected \002nick\002 via ChanServ, if nick is not specified gives op status to you}
 	
-	set ccs(args,en,csdeop) {[nick]}
-	set ccs(help,en,csdeop) {Deops a selected \002nick\002 via ChanServ, if nick is not specified deops you}
+	set_text -type args -- $_lang csdeop {[nick]}
+	set_text -type help -- $_lang csdeop {Deops a selected \002nick\002 via ChanServ, if nick is not specified deops you}
 	
-	set ccs(args,en,cshop) {[nick]}
-	set ccs(help,en,cshop) {Halfops a selected \002nick\002 via ChanServ, if nick is not specified halfops you}
+	set_text -type args -- $_lang cshop {[nick]}
+	set_text -type help -- $_lang cshop {Halfops a selected \002nick\002 via ChanServ, if nick is not specified halfops you}
 	
-	set ccs(args,en,csdehop) {[nick]}
-	set ccs(help,en,csdehop) {Dehalfops a selected \002nick\002 via ChanServ, if nick is not specified dehalfops you}
+	set_text -type args -- $_lang csdehop {[nick]}
+	set_text -type help -- $_lang csdehop {Dehalfops a selected \002nick\002 via ChanServ, if nick is not specified dehalfops you}
 	
-	set ccs(args,en,csvoice) {[nick]}
-	set ccs(help,en,csvoice) {Voices a selected \002nick\002 via ChanServ, if nick is not specified gives a voice for you}
+	set_text -type args -- $_lang csvoice {[nick]}
+	set_text -type help -- $_lang csvoice {Voices a selected \002nick\002 via ChanServ, if nick is not specified gives a voice for you}
 	
-	set ccs(args,en,csdevoice) {[nick]}
-	set ccs(help,en,csdevoice) {Devoices a selected \002nick\002 via ChanServ, if nick is not specified devoices you}
+	set_text -type args -- $_lang csdevoice {[nick]}
+	set_text -type help -- $_lang csdevoice {Devoices a selected \002nick\002 via ChanServ, if nick is not specified devoices you}
 	
 }

@@ -1,28 +1,22 @@
-##################################################################################################################
+####################################################################################################
 ## Модуль вывода трафика
-##################################################################################################################
+####################################################################################################
 
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-set modname		"traf"
-addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
-				"Модуль выдающий информацию о расходуемом трафике бота."
+set _name	{traf}
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+	"Модуль выдающий информацию о расходуемом трафике бота."
 
-if {$ccs(mod,name,$modname)} {
+if {[pkg_info mod $_name on]} {
 	
-	cconfigure traf -add 1 -group "info" -flags {%v} -block 3 -useauth 0 -usechan 0 -usebotnet 0 \
+	cmd_configure traf -control -group "info" -flags {%v} -block 3 -use_auth 0 -use_chan 0 -use_botnet 0 \
 		-alias {%pref_traf} \
 		-regexp {{^([^\ ]+)?$} {-> stype}}
 	
-	#############################################################################################################
-	#############################################################################################################
-	#############################################################################################################
-	
 	proc cmd_traf {} {
-		importvars [list onick ochan obot snick shand schan command stype]
-		variable ccs
+		upvar out out
+		importvars [list snick shand schan command stype]
 		
 		set flag 0
 		foreach {ttypes today_in total_in today_out total_out} [join [traffic]] {

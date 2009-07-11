@@ -1,59 +1,58 @@
-##################################################################################################################
+####################################################################################################
 ## Модуль с базовыми командами управления
-##################################################################################################################
+####################################################################################################
 
-if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]";return}
+if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
-set modname		"mode"
-addfileinfo mod $modname "Buster <buster@buster-net.ru> (c)" \
-				"1.3.0" \
-				"11-Apr-2009" \
-				"Модуль управления модами канала."
+set _name	{mode}
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+	"Модуль управления модами канала."
 
-if {$ccs(mod,name,$modname)} {
+if {[pkg_info mod $_name on]} {
 	
-	cconfigure op -add 1 -group "mode" -flags {o|o} -block 1 \
+	cmd_configure op -control -group "mode" -flags {o|o} -block 1 \
 		-alias {%pref_op} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure deop -add 1 -group "mode" -flags {o|o} -block 1 \
+	cmd_configure deop -control -group "mode" -flags {o|o} -block 1 \
 		-alias {%pref_deop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure hop -add 1 -group "mode" -flags {l|l} -use 0 -block 1 \
+	cmd_configure hop -control -group "mode" -flags {l|l} -use 0 -block 1 \
 		-alias {%pref_hop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure dehop -add 1 -group "mode" -flags {l|l} -use 0 -block 1 \
+	cmd_configure dehop -control -group "mode" -flags {l|l} -use 0 -block 1 \
 		-alias {%pref_dehop} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure voice -add 1 -group "mode" -flags {v|v o|o} -block 1 -useauth 0 \
+	cmd_configure voice -control -group "mode" -flags {v|v o|o} -block 1 -use_auth 0 \
 		-alias {%pref_voice} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure devoice -add 1 -group "mode" -flags {v|v o|o} -block 1 -useauth 0 \
+	cmd_configure devoice -control -group "mode" -flags {v|v o|o} -block 1 -use_auth 0 \
 		-alias {%pref_devoice} \
 		-regexp {{^([^\ ]+)?$} {-> dnick}}
 	
-	cconfigure allvoice -add 1 -group "mode" -flags {m|m} -block 5 \
+	cmd_configure allvoice -control -group "mode" -flags {m|m} -block 5 \
 		-alias {%pref_allvoice} \
 		-regexp {{^$} {}}
 	
-	cconfigure alldevoice -add 1 -group "mode" -flags {m|m} -block 1 \
+	cmd_configure alldevoice -control -group "mode" -flags {m|m} -block 1 \
 		-alias {%pref_alldevoice} \
 		-regexp {{^$} {}}
 	
-	cconfigure mode -add 1 -group "mode" -flags {o|o} \
+	cmd_configure mode -control -group "mode" -flags {o|o} \
 		-alias {%pref_mode} \
 		-regexp {{^(.+?)$} {-> smode}}
 	
 	
-	#############################################################################################################
+	################################################################################################
 	# Процедуры команд управления Опами и Хопами (OP, HOP).
 	
 	proc cmd_op {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
+		upvar out out
+		importvars [list snick shand schan command dnick]
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-isop} -dnick $snick -dchan $schan]} {return 0}
@@ -73,7 +72,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_deop {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
+		upvar out out
+		importvars [list snick shand schan command dnick]
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-notisop} -dnick $snick -dchan $schan]} {return 0}
@@ -94,7 +94,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_hop {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
+		upvar out out
+		importvars [list snick shand schan command dnick]
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-ishalfop -botisnotmode} -dnick $snick -dchan $schan]} {return 0}
@@ -114,7 +115,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_dehop {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
+		upvar out out
+		importvars [list snick shand schan command dnick]
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-notishalfop -botisnotmode} -dnick $snick -dchan $schan]} {return 0}
@@ -134,11 +136,12 @@ if {$ccs(mod,name,$modname)} {
 		
 	}
 	
-	#############################################################################################################
+	################################################################################################
 	# Процедуры команд управления войсами (VOICE).
 	
 	proc cmd_voice {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
+		upvar out out
+		importvars [list snick shand schan command dnick]
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-isvoice -botisnotmode} -dnick $snick -dchan $schan]} {return 0}
@@ -158,7 +161,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_devoice {} {
-		importvars [list onick ochan obot snick shand schan command dnick]
+		upvar out out
+		importvars [list snick shand schan command dnick]
 		
 		if {[string is space $dnick]} {
 			if {[check_notavailable {-notisvoice -botisnotmode} -dnick $snick -dchan $schan]} {return 0}
@@ -179,7 +183,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_allvoice {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		
 		if {[check_notavailable {-botisnotmode} -dchan $schan]} {return 0}
 		
@@ -192,7 +197,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_alldevoice {} {
-		importvars [list onick ochan obot snick shand schan command]
+		upvar out out
+		importvars [list snick shand schan command]
 		global modes-per-line
 		
 		if {[check_notavailable {-botisnotmode} -dchan $schan]} {return 0}
@@ -206,7 +212,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc cmd_mode {} {
-		importvars [list onick ochan obot snick shand schan command smode]
+		upvar out out
+		importvars [list snick shand schan command smode]
 		
 		if {[check_notavailable {-botisnotmode} -dchan $schan]} {return 0}
 		putserv "MODE $schan $smode"
@@ -216,7 +223,8 @@ if {$ccs(mod,name,$modname)} {
 	}
 	
 	proc notavailable-botisnotmode {} {
-		importvars [list snick shand schan onick ochan obot command]
+		upvar 2 out out
+		importvars [list snick shand schan command]
 		upvar dchan dchan
 		if {![botisop $dchan] && ![botishalfop $dchan]} {
 			put_msg [sprintf mode #101]
