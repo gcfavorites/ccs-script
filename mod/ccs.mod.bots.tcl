@@ -8,7 +8,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{bots}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "11-Jul-2009" \
 	"Модуль управления ботнетом."
 
 if {[pkg_info mod $_name on]} {
@@ -156,7 +156,7 @@ if {[pkg_info mod $_name on]} {
 		set dbotpass [get_botpass $bot]
 		set thand [get_thand $shand $bot]
 		if {[check_notavailable {-notvalidpasscmdbot -notislinked -notisauth} \
-			-snick $snick -shand $shand -dbothand $bot -dbotpass $dbotpass -thand $thand]} continue
+			-snick $snick -shand $shand -dbothand $bot -dbotpass $dbotpass -thand $thand]} {return 0}
 		
 		set code ""
 		for {set x 0} {$x < $options(botnet_lencode)} {incr x} {append code [expr int(rand()*10)]}
@@ -282,7 +282,7 @@ if {[pkg_info mod $_name on]} {
 		set dbotpass [get_botpass $bot]
 		set thand [get_thand $shand $bot]
 		if {[check_notavailable {-notvalidpasscmdbot -notislinked -notisauth} \
-			-shand $shand -thand $thand -dbothand $bot -dbotpass $dbotpass]} continue
+			-shand $shand -thand $thand -dbothand $bot -dbotpass $dbotpass]} {return 0}
 		
 		set code ""
 		for {set x 0} {$x < $options(botnet_lencode)} {incr x} {append code [expr int(rand()*10)]}

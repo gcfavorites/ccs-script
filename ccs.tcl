@@ -158,6 +158,7 @@ namespace eval ::ccs {
 	if {[info exists cmd_options]} { unset cmd_options }
 	if {[info exists text]}        { unset text        }
 	if {[info exists commands]}    { unset commands    }
+	if {[info exists pkg]}         { unset pkg         }
 	
 	foreach _ [lsearch -all -inline [package names] "[namespace current]::*"] {package forget $_}
 	foreach _ [namespace children [namespace current]] {namespace delete $_}
@@ -793,7 +794,7 @@ namespace eval ::ccs {
 			foreach alias [cmd_configure $command -alias] {
 				if {$opts(-required_prefix) && [string first %pref_ $alias] < 0} continue
 				set alias [string map [list %pref_ $pref] $alias]
-				if {$opts(-backslash)} {set alias [string map [list * \\* % \\%] $alias]}
+				if {$opts(-backslash)} {set alias [string map [list * \\* % \\% ~ \\~] $alias]}
 				lappend r $alias
 			}
 		}
@@ -2550,7 +2551,6 @@ namespace eval ::ccs {
 		
 		set data [get_httpdata $url]
 		if {[string is space $data]} {return 0}
-		set data [encoding convertfrom cp1251 $data]
 		
 		if {[catch {
 			SaveFile -backup 1 -binary 1 -- $filename $data
@@ -2586,7 +2586,7 @@ namespace eval ::ccs {
 		}
 		
 		set r {}
-		foreach _ [array names fileinfo -glob "*,data,*"] {lappend r fileinfo($_)}
+		foreach _ [array names fileinfo -glob "*,data,*"] {lappend r $fileinfo($_)}
 		return $r
 		
 	}
