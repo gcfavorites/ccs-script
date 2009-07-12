@@ -3,6 +3,8 @@
 ## Скрипт получения информации об IP адресе
 ####################################################################################################
 # Список последних изменений (changelog):
+#	v1.4.1
+# - Исправлена цветовая раскраска.
 #	v1.3.1
 # - Загрузка библиотек IP и DNS перенесена на момент загрузки биндов. По этой причине следует
 #   перенести настройки модуля DNS, если таковые имеются, в файл ccs.rc2.tcl
@@ -25,7 +27,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{whoisip}
-pkg_add scr $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+pkg_add scr $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "12-Jul-2009" \
 	"Скрипт выдающий информацию по IP адресу"
 
 if {[pkg_info scr $_name on]} {
@@ -86,13 +88,13 @@ if {[pkg_info scr $_name on]} {
 	set_text ru $_name #110	"%s"
 	set_text ru $_name #111	"%s"
 	
-	set_text ru $_name #112	"\00312Whois IPv4: \017\002%s\002; \00312Range: \00303%s\017 (%s); \00312WebGate: \00303%s; \00312IPv4 in IPv6: \00303%s\017%s"
-	set_text ru $_name #113	"\00312Whois IPv6: \017\002%s\002; \00312Range: \00303%s\017 (%s)%s"
+	set_text -color -- ru $_name #112	"\00312Whois IPv4: \017\002%s\002; \00312Range: \00303%s\017 (%s); \00312WebGate: \00303%s; \00312IPv4 in IPv6: \00303%s\017%s"
+	set_text -color -- ru $_name #113	"\00312Whois IPv6: \017\002%s\002; \00312Range: \00303%s\017 (%s)%s"
+	
+	set_text ru $_name #112	"\002Whois IPv4\002: %s; \002Range\002: %s (%s); \002WebGate\002: %s; \002IPv4 in IPv6\002: %s%s"
+	set_text ru $_name #113	"\002Whois IPv6\002: %s; \002Range\002: %s (%s)%s"
 	
 	set_text ru $_name #114	"Библиотека '%s', требуемая для работы скрипта, не загружена. Загрузить её можно командой \002!ccsupdate download -type lib -name %s\002"
-	
-	set_text -color -- ru $_name #112	"\002Whois IPv4\002: %s; \002Range\002: %s (%s); \002WebGate\002: %s; \002IPv4 in IPv6\002: %s%s"
-	set_text -color -- ru $_name #113	"\002Whois IPv6\002: %s; \002Range\002: %s (%s)%s"
 	
 	set_text -color -- ru $_name #netname		"\00312Имя сети: \017%s"
 	set_text -color -- ru $_name #descr			"\00312descr: \017%s"
@@ -162,11 +164,11 @@ if {[pkg_info scr $_name on]} {
 	set_text en $_name #110	"%s"
 	set_text en $_name #111	"%s"
 	
-	set_text en $_name #112	"\00312Whois IPv4: \017\002%s\002; \00312Range: \00303%s\017 (%s); \00312WebGate: \00303%s; \00312IPv4 in IPv6: \00303%s\017%s"
-	set_text en $_name #113	"\00312Whois IPv6: \017\002%s\002; \00312Range: \00303%s\017 (%s)%s"
+	set_text -color -- en $_name #112	"\00312Whois IPv4: \017\002%s\002; \00312Range: \00303%s\017 (%s); \00312WebGate: \00303%s; \00312IPv4 in IPv6: \00303%s\017%s"
+	set_text -color -- en $_name #113	"\00312Whois IPv6: \017\002%s\002; \00312Range: \00303%s\017 (%s)%s"
 	
-	set_text -color -- en $_name #112	"\002Whois IPv4\002: %s; \002Range\002: %s (%s); \002WebGate\002: %s; \002IPv4 in IPv6\002: %s%s"
-	set_text -color -- en $_name #113	"\002Whois IPv6\002: %s; \002Range\002: %s (%s)%s"
+	set_text en $_name #112	"\002Whois IPv4\002: %s; \002Range\002: %s (%s); \002WebGate\002: %s; \002IPv4 in IPv6\002: %s%s"
+	set_text en $_name #113	"\002Whois IPv6\002: %s; \002Range\002: %s (%s)%s"
 	
 	set_text -color -- en $_name #netname		"\00312Network name: \017%s"
 	set_text -color -- en $_name #descr			"\00312descr: \017%s"
