@@ -8,7 +8,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{logs}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "14-Jul-2009" \
 	"Модуль логирования (сохранения всех действий пользователей в файл)."
 
 if {[pkg_info mod $_name on]} {
@@ -78,7 +78,7 @@ if {[pkg_info mod $_name on]} {
 		
 		if {$options(logslevel) >= $opts(-level)} {
 			if {[catch {
-				SaveFile -access a -- $options(logsfile) "\[[clock format [unixtime] -format "%d-%b-%y %H:%M:%S"]\] [join $lout]"
+				SaveFile -access a -- $options(logsfile) "\[[clock format [unixtime] -format "%d-%b-%y %H:%M:%S"]\] [join $r]"
 			} errMsg]} {
 				return 0
 			}
