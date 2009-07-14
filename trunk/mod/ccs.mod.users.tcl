@@ -11,7 +11,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{users}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "14-Jul-2009" \
 	"Модуль управления юзер листом бота."
 
 if {[pkg_info mod $_name on]} {
@@ -366,7 +366,7 @@ if {[pkg_info mod $_name on]} {
 		
 		if {$global} {
 			set newflags [chattr $dhand $sflag]
-			put_msg [sprintf users #115 [[StrNick -nick $dnick -hand $dhand] $newflags]
+			put_msg [sprintf users #115 [StrNick -nick $dnick -hand $dhand] $newflags]
 			put_log "$dhand: $newflags"
 			return 1
 		} else {
