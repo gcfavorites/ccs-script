@@ -12,7 +12,9 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 # Note that this settings template is loaded BEFORE ccs-modules, custom ccs-scripts, css-libs and languages.
 # So, that's allow you to disable some of these features (like disable a lib or custom script for a while).
 ##################################################################################################################
-
+# !!! Do not forget to rename this template-file in to ccs.rc0.tcl (so, you need just remove "-template-EN"
+# part from the filename) !!!
+##################################################################################################################
 
 	#############################################################################################################
 	# Should we load a "ban" module? (0 - enable, 1 - disable)
