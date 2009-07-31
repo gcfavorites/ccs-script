@@ -4,8 +4,8 @@ set _name		"users"
 set _lang		"en"
 pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.4.0" \
-				"01-Jul-2009"
+				"1.4.1" \
+				"30-Jul-2009"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	

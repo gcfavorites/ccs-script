@@ -5,20 +5,31 @@ set _name		"ban"
 set _lang		"en"
 pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.4.0" \
-				"01-Jul-2009"
+				"1.4.1" \
+				"30-Jul-2009"
+				"Language-file for module $_name ($_lang)"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	
 	set_text -type args -- $_lang ban {<nick/host> [expiry] [reason] [stick]}
-	set_text -type help -- $_lang ban {Bans (and kicks if matched user on the chan) a selected \002nick\002 or \002host\002 (nick!ident@host) on the channel . [Expiry] is always minutes, if you not specify [expiry] will be used default value from channel «ban-time» directive. If you specify a \002stick\002, ban will be sticked on the channel.}
-	
+	set_text -type help -- $_lang ban {Bans (and kicks if matched user on the chan) a selected \002nick\002 or \002host\002 (nick!ident@host) on the channel. [Expiry] is always minutes, if you do not specify [expiry] - will be used default value from channel «ban-time» directive. If you specify a \002stick\002, ban will be sticked on the channel.}
+	set_text -type help2 -- $_lang ban {
+		{Bans (and kicks if matched user on the chan) a selected \002nick\002 or \002host\002 (nick!ident@host) on the channel.}
+		{[expiry] is always minutes, if you do not specify [expiry] - will be used default value from channel «ban-time» directive.}
+		{If you specify a \002stick\002 arg - ban will be sticked on the channel.}
+	}
+
 	set_text -type args -- $_lang unban {<host>}
 	set_text -type help -- $_lang unban {Removes a banned \002host\002 on a channel.}
 	
 	set_text -type args -- $_lang gban {<nick/host> [expiry] [reason] [stick]}
-	set_text -type help -- $_lang gban {Sets a global (all bot's channels will be affected) ban for given \002nick\002 or \002host\002 (nick!ident@host). [Expiry] is always minutes, if you not specify [expiry], will be used one day period. If you specify a \002stick\002, ban will be sticked on the channels.}
-	
+	set_text -type help -- $_lang gban {Sets a global (all bot's channels will be affected) ban for given \002nick\002 or \002host\002 (nick!ident@host). [expiry] is always minutes, if you do not specify [expiry], will be used one day period. If you specify a \002stick\002, ban will be sticked on the channels.}
+	set_text -type help2 -- $_lang gban {
+		{Sets a global (all bot's channels will be affected) ban for given \002nick\002 or \002hostmask\002 (nick!ident@host).}
+		{[expiry] is always minutes, if you do not specify [expiry], will be used one day period.}
+		{If you specify a \002stick\002, ban will be sticked on the channels.}
+	}
+
 	set_text -type args -- $_lang gunban {<host>}
 	set_text -type help -- $_lang gunban {Removes global banned \002host\002 from all bot's channels.}
 	
@@ -50,5 +61,9 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #119 "%s. » \002%s\002%s ¤ Reason: «%s» ¤ %s ¤ Ban was added %s weeks ago ¤ Creator: \002%s\002.%s"
 	set_text $_lang $_name #120 "--- End of banlist ---"
 	set_text $_lang $_name #121 "All bans that's doesn't match to internal bot's banlist was removed."
-	
+	set_text $_lang $_name #122 "You don't have enough permissions to remove ban \002%s\002, creator: \002%s\002."
+	set_text $_lang $_name #123 "Set \002%s\002 %s ago."
+	set_text $_lang $_name #124 "--- Channel bans ---"
+	set_text $_lang $_name #125 "» \002%s\002 ¤ Set: \002%s\002 %s ago."
+
 }

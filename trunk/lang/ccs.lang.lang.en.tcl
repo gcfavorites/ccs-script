@@ -5,16 +5,16 @@ set _name		"lang"
 set _lang		"en"
 pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.4.0" \
-				"01-Jul-2009"
+				"1.4.1" \
+				"30-Jul-2009"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	
 	set_text -type args -- $_lang langlist {[mod]}
-	set_text -type help -- $_lang langlist {Shows the list of available languages for the specified module.}
+	set_text -type help -- $_lang langlist {Shows the list of available languages (optional: for the specified module only).}
 	
 	set_text -type args -- $_lang chansetlang {<lang/default>}
-	set_text -type help -- $_lang chansetlang {Sets a channel's default language. Specify \002default\002 to reset the channel language to a script defined.}
+	set_text -type help -- $_lang chansetlang {Sets a channel's default language. Specify \002default\002 to reset the channel language (will be used a value from conf).}
 	
 	set_text -type args -- $_lang chlang {<nick/hand> <lang>}
 	set_text -type help -- $_lang chlang {Sets the language for a given user. Specify the \002default\002 to reset his current language to a channel/script defined.}
