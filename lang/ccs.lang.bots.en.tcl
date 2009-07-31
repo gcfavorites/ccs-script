@@ -4,63 +4,56 @@ set _name		"bots"
 set _lang		"en"
 pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru>" \
-				"1.4.0" \
-				"01-Jul-2009"
+				"1.4.1" \
+				"30-Jul-2009"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	
-	set_text -type args -- $_lang ban {<nick/hostmask> [expiry] [reason] [stick]}
-	set_text -type help -- $_lang ban {Bans a user on the channel.}
-	set_text -type help2 -- $_lang ban {
-		{Bans (and kicks if matched user on the chan) a selected \002nick\002 or \002host\002 (nick!ident@host) on the channel.}
-		{[Expiry] is always minutes, if you do not specify [expiry], default value from channel «ban-time» directive will be used.}
-		{You can specify a custom parameter \002stick\002 to make ban sticky on the channel.}
-	}
+	set_text -type args -- $_lang bots {[tree]}
+	set_text -type help -- $_lang bots {Shows a list of bots linked to current}
 	
-	set_text -type args -- $_lang unban {<hostmask>}
-	set_text -type help -- $_lang unban {Removes a banned \002host\002 on a channel.}
+	set_text -type args -- $_lang botattr {<nick/handle> <+flags/-flags>}
+	set_text -type help -- $_lang botattr {Changes bot's flags}
 	
-	set_text -type args -- $_lang gban {<nick/host> [expiry] [reason] [stick]}
-	set_text -type help -- $_lang gban {Sets a global ban.}
-	set_text -type help2 -- $_lang gban {
-		{Sets a global (all bot's channels will be affected) ban for given \002nick\002 or \002host\002 (nick!ident@host).}
-		{[Expiry] is always minutes, if you do not specify [expiry], one day period will be used.}
-		{You can specify a custom parameter \002stick\002 to make ban sticky on the channels.}
-	}
-
-	set_text -type args -- $_lang gunban {<hostmask>}
-	set_text -type help -- $_lang gunban {Removes global banned \002host\002 from all bot's channels.}
+	set_text -type args -- $_lang chaddr {<nick/handle> <address[:bot_port[/user_port]]>}
+	set_text -type help -- $_lang chaddr {Changes the bot's address and port.}
 	
-	set_text -type args -- $_lang banlist {[mask] [global]}
-	set_text -type help -- $_lang banlist {Output channel banlist. If you specify \002global\002 will be shown a global banlist.}
+	set_text -type args -- $_lang addbot {<handle> <address[:bot_port[/user_port]]> [host]}
+	set_text -type help -- $_lang addbot {Adds bot into userlist. Если порты не прописаны будет присвоен порт по умолчанию 3333. Если порт юзеров не указан то он будет равняться порту ботов}
 	
-	set_text -type args -- $_lang resetbans {}
-	set_text -type help -- $_lang resetbans {Removes all channel bans which is not in the internal bot's banlist.}
+	set_text -type args -- $_lang delbot {<nick/handle>}
+	set_text -type help -- $_lang delbot {Removes a bot from userlist.}
 	
-	set_text $_lang $_name #101 "Requested"
-	set_text $_lang $_name #102 "Added a \002permanent\002%s ban: \037%s\037."
-	set_text $_lang $_name #103 "Added%s ban: \037%s\037 on \002%s\002."
-	set_text $_lang $_name #104 "%s (expires on: %s)."
-	set_text $_lang $_name #105 "\037stick\037"
-	set_text $_lang $_name #106 "Removed%s ban: \002%s\002."
-	set_text $_lang $_name #107 "Ban \002%s\002 on the \002%s\002 does not exist."
-	set_text $_lang $_name #108 "Requested"
-	set_text $_lang $_name #109 "Added new \002permanent\002 global%s ban: \037%s\037."
-	set_text $_lang $_name #110 "Added new global%s ban: \037%s\037 on the %s."
-	set_text $_lang $_name #111 "Removed global%s ban: \002%s\002"
-	set_text $_lang $_name #112 "Global ban \002%s\002 does not exist."
-	set_text $_lang $_name #113 "--- Global banlist%s ---"
-	set_text $_lang $_name #114 "--- Banlist for \002%s\002%s ---"
-	set_text $_lang $_name #115 "*** Empty ***"
-	set_text $_lang $_name #116 "(Mask \002%s\002)"
-	set_text $_lang $_name #117 "\002Permanent\002 ban."
-	set_text $_lang $_name #118 "Expires after %s."
-	set_text $_lang $_name #119 "%s. » \002%s\002%s ¤ Reason: «%s» ¤ %s ¤ Ban was added %s weeks ago ¤ Creator: \002%s\002.%s"
-	set_text $_lang $_name #120 "--- End of banlist ---"
-	set_text $_lang $_name #121 "All bans that's doesn't match to internal bot's banlist was removed."
-	set_text $_lang $_name #122 "You don't have enough power to remove ban \002%s\002, original author is: \002%s\002."
-	set_text $_lang $_name #123 "Set by: \002%s\002 %s ago."
-	set_text $_lang $_name #124 "--- Channel bans ---"
-	set_text $_lang $_name #125 "» \002%s\002 ¤ Set by: \002%s\002 %s ago."
-
+	set_text -type args -- $_lang chbotpass {<nick/handle> [пароль]}
+	set_text -type help -- $_lang chbotpass {Changes/removes bot's password.}
+	
+	set_text -type args -- $_lang listauth {<nick/handle>}
+	set_text -type help -- $_lang listauth {Shows user's auth-comparison l}
+	
+	set_text -type args -- $_lang addauth {<nick/handle> <botnick/bothandle> <handle>}
+	set_text -type help -- $_lang addauth {Comapre user's credentials between this bot and specified one.}
+	
+	set_text -type args -- $_lang delauth {<nick/handle> <botnick/bothandle>}
+	set_text -type help -- $_lang delauth {Remove user's comrasion between this bot and specified one.}
+	
+	set_text $_lang $_name #101 "Numbers of bots in BotNet: \002%s\002. BotNet tree:"
+	set_text $_lang $_name #102 "Numbers of bots in BotNet: \002%s\002."
+	set_text $_lang $_name #103 "Current BotNet: %s"
+	set_text $_lang $_name #104 "Bot %s have been sucessfully removed from userlist."
+	set_text $_lang $_name #105 "Bot %s already exist in userlist."
+	set_text $_lang $_name #106 "Bot \002%s\002 with address \002%s\002 and hostmask \002%s\002 have been sucessfully aded into userlist."
+	set_text $_lang $_name #107 "Unable to add bot \002%s\002."
+	set_text $_lang $_name #108 "Address for bot %s have been changed (address: \002%s\002, bot_port: \002%s\002, user_port: \002%s\002)."
+	set_text $_lang $_name #109 "New flags for %s: \002%s\002"
+	set_text $_lang $_name #110 "Sucessfully changed password for bot %s."
+	set_text $_lang $_name #111 "Password for bot %s have been cleared."
+	set_text $_lang $_name #112 "Список соответсвий авторизации %s: %s"
+	set_text $_lang $_name #113 "Список соответсвий авторизации %s пуст."
+	set_text $_lang $_name #114 "Для %s соответствие авторизации \[bot: %s, handle: \002%s\002\] уже существует."
+	set_text $_lang $_name #115 "Для %s соответствие авторизации \[bot: %s, handle: \002%s\002\] изменено на \[bot: %s, handle: \002%s\002\]."
+	set_text $_lang $_name #116 "Для %s соответствие авторизации \[bot: %s, handle: \002%s\002\] добавлено."
+	set_text $_lang $_name #117 "Cоответствие авторизации \[bot: %s, handle: \002%s\002\] уже прописано для %s."
+	set_text $_lang $_name #118 "Для %s соответствие авторизации \[bot: %s, handle: \002%s\002\] удалено."
+	set_text $_lang $_name #119 "Для %s соответствие авторизации \[bot: %s\] не найдено."
+	
 }
