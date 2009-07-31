@@ -7,7 +7,6 @@ pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
 				"1.4.1" \
 				"30-Jul-2009"
-				"Language-file for module $_name ($_lang)"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	

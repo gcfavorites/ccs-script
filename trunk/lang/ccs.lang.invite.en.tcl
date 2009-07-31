@@ -36,7 +36,7 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text -type help -- $_lang invitelist {Lists all channel invites, use «global» to get global invite list.}
 	
 	set_text -type args -- $_lang resetinvites {}
-	set_text -type help -- $_lang resetinvites {{Removes all channel invite that is not in the bot's internal invite list.}
+	set_text -type help -- $_lang resetinvites {Removes all channel invite that is not in the bot's internal invite list.}
 	
 	set_text $_lang $_name #101 "Requested"
 	set_text $_lang $_name #102 "Added \002permanent\002%s invite: \037%s\037."
