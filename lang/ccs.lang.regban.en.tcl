@@ -4,8 +4,8 @@ set _name		"regban"
 set _lang		"en"
 pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.4.0" \
-				"01-Jul-2009"
+				"1.4.1" \
+				"30-Jul-2009"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	
@@ -19,11 +19,18 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 		{  \002-ban [number]\002 - Action: \002ban\002. The optional parameter \002[number]\002 allows you to specify banmask template (1-9). If [number] is not specified, the default banmask value will be used.}
 		{  \002-kick [{reason}]\002 - Action: \002kick\002. Reason is the optional.}
 		{  \002-notify {handle1,handle2 ...} [{text}]\002 - Action: \002notice\002. When matching to banmask user joins to the channel - bot will send a notice about that to all specified users (they should be on the same channels where bot is in).}
+		{Note: if \002-host\002 parameter matches first then all others parameters will be skiped.}
 	}
 	
 	set_text -type args -- $_lang regunban {<id>}
 	set_text -type help -- $_lang regunban {Remove regex ban}
-	
+
+	set_text -type args -- $_lang regbanaction {}
+	set_text -type help -- $_lang regbanaction {Enforces all regbans on the channel (applies specified regban actions for matches hosts).}
+
+	set_text -type args -- $_lang regbantest {}
+	set_text -type help -- $_lang regbantest {Tests all regbans on the channel and applies \"notify\" action for all bans.}
+
 	set_text $_lang $_name #101 "Regex ban with \002ID: %s\002 succesfully added: %s."
 	set_text $_lang $_name #102 "Regex ban with \002ID: %s\002 succesfully removed: %s."
 	set_text $_lang $_name #103 "Regex ban with \002ID: %s\002 does not exist."

@@ -5,8 +5,8 @@ set _name		"mode"
 set _lang		"en"
 pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.4.0" \
-				"01-Jul-2009"
+				"1.4.1" \
+				"30-Jul-2009"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	
@@ -36,5 +36,7 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	
 	set_text -type args -- $_lang mode {<[+/-]mode> [args]}
 	set_text -type help -- $_lang mode {Sets/removes a channel mode(s) (for example «%pref_mode +l 1»)}
-	
+
+	set_text $_lang $_name #101 "Bot don't has no ops to perform this command."
+
 }

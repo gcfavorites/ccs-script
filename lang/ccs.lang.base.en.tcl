@@ -45,8 +45,7 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 		{\002mod/scr/lang/lib\002 - shows info about modules/scripts/lang-files/libs and variables only (you can choose)}
 		{\002mask\002 - shows hostmask-templates and it's unique number}
 		{\002flag <flag>\002 - shows detailed info about specified flag}
-
-
+}
 
 	#############################################################################################################
 	#############################################################################################################

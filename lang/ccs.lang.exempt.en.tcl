@@ -5,28 +5,28 @@ set _name		"exempt"
 set _lang		"en"
 pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.4.0" \
-				"01-Jul-2009"
+				"1.4.1" \
+				"30-Jul-2009"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	
 	set_text -type args -- $_lang exempt {<nick/host> [expiry] [reason] [stick]}
-	set_text -type help -- $_lang exempt {Sets a local (only current channel) exception for given \002nick\002 or \002host\002 (nick!ident@host). [Expiry] is always minutes, if you not specify [expiry] will be used default value from channel «exempt-time» directive. If you specify a \002stick\002, exception will be sticked on the channel.}
+	set_text -type help -- $_lang exempt {Sets a local (only current channel) exception for given \002nick\002 or \002hostmask\002 (nick!ident@host). [expiry] is always minutes, if you do not specify [expiry] - will be used default value from channel «exempt-time» directive. If you specify a \002stick\002, exception will be sticked on the channel.}
 	
 	set_text -type args -- $_lang unexempt {<host>}
 	set_text -type help -- $_lang unexempt {Removes exception on the channel.}
 	
 	set_text -type args -- $_lang gexempt {<nick/host> [expiry] [reason] [stick]}
-	set_text -type help -- $_lang gexempt {Sets a global (all bot's channels will be affected) exception for given \002nick\002 or \002host\002 (nick!ident@host). [Expiry] is always minutes, if you not specify [expiry], will be used one day period. If you specify a \002stick\002, exception will be sticked on the channels.}
+	set_text -type help -- $_lang gexempt {Sets a global (all bot's channels will be affected) exception for given \002nick\002 or \002host\002 (nick!ident@host). [expiry] is always minutes, if you do not specify [expiry] - will be used one day period. If you specify a \002stick\002, exception will be sticked on the channels.}
 	
 	set_text -type args -- $_lang gunexempt {<host>}
 	set_text -type help -- $_lang gunexempt {Removes a global exception}
 	
 	set_text -type args -- $_lang exemptlist {[global]}
-	set_text -type help -- $_lang exemptlist {Output channel exceptionlist. If you specify \002global\002 will be shown global exceptionlist.}
+	set_text -type help -- $_lang exemptlist {Output channel exception list. If you specify \002global\002 then global exception list will be shown. Wildcards as optional argument are allowed.}
 	
 	set_text -type args -- $_lang resetexempts {}
-	set_text -type help -- $_lang resetexempts {Removes from channel all exceptions that's doesn't match to internal bot's exceptionlist}
+	set_text -type help -- $_lang resetexempts {Removes from channel all exceptions that's doesn't match to the bots's internal exception list.}
 	
 	set_text $_lang $_name #101 "Requested"
 	set_text $_lang $_name #102 "Added \002permanent\002%s exception: \037%s\037."
@@ -49,5 +49,8 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #119 "All exceptions that's doesn't match to internal bot's exceptionlist has been removed."
 	set_text $_lang $_name #120 "\037stick\037"
 	set_text $_lang $_name #121 "(Mask \002%s\002)"
-	
+	set_text $_lang $_name #122 "Выставил на канале: \002%s\002 %s назад."
+	set_text $_lang $_name #123 "--- Channel exceptions ---"
+	set_text $_lang $_name #124 "» \002%s\002 ¤ Выставил на канале: \002%s\002 %s назад."
+
 }
