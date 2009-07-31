@@ -114,7 +114,7 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #164 "\002d|d\002 - (deop, autodeop) - user cannot gain ops on any of the bot's channels."
 	set_text $_lang $_name #165 "\002k|k\002 - (auto-kick, akick) - user is kicked and banned automatically."
 	set_text $_lang $_name #166 "\002x\002 - (xfer, file transfer) - user has access to the file transfer area of the bot (if it exists) and can send and receive files to/from the bot."
-	set_text $_lang $_name #167 "\002j\002 - (janitor, janitor) - user can perform maintenance in the file area of the bot (if it exists) -- like a "master" of the file area. Janitors have complete access to the filesystem."
+	set_text $_lang $_name #167 "\002j\002 - (janitor, janitor) - user can perform maintenance in the file area of the bot (if it exists) -- like a \"master\" of the file area. Janitors have complete access to the filesystem."
 	set_text $_lang $_name #168 "\002c\002 - (common, \"common host\") - this marks a user who is connecting from a public site from which any number of people can use IRC. The user will now be recognized by NICKNAME."
 	set_text $_lang $_name #169 "\002w|w\002 - (wasop-test) - user needs wasop test for +stopnethack procedure."
 	set_text $_lang $_name #170 "\002z|z\002 - (washalfop-test) - user needs washalfop test for +stopnethack procedure."

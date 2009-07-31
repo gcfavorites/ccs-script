@@ -17,7 +17,7 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 		{Checks for new available version of CCS and CCS-related parts: custom scripts/modules/libs/lang-files.}
 		{ » \002list\002 - view the list of new releases. You can specify \002-cur\002 to get the list of updates only for currently used modules and languages.}
 		{ » \002update\002 - update all previously installed modules and languages}
-		{ » \002download\002 - download new modules and language-files.
+		{ » \002download\002 - download new modules and language-files.}
 		{ » \002template\002 - download new settings templates. If template file already exist then "template" word will be added to filename.}
 		{For \002list\002 and \002download\002 you need to specify what modules/scipts/languages/libs will be shown/downloaded:}
 			{ » \002type\002 - type of the file(s) to download: \002mod\002 (modules), \002lang\002 (language files), \002scr\002 (custom scripts), \002lib\002 (libs)}
