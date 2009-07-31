@@ -25,9 +25,6 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text -type args -- $_lang delbot {<ник/хендл>}
 	set_text -type help -- $_lang delbot {Удаляет бота из юзерлиста}
 	
-	set_text -type args -- $_lang chaddr {<ник/хендл> <адресс[:порт бота[/порт юзеров]]>}
-	set_text -type help -- $_lang chaddr {Изменяет адресс и порты бота}
-	
 	set_text -type args -- $_lang chbotpass {<ник/хендл> [пароль]}
 	set_text -type help -- $_lang chbotpass {Изменяет/очищает пароль бота}
 	

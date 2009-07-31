@@ -62,8 +62,8 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #120 "--- End of banlist ---"
 	set_text $_lang $_name #121 "All bans that's doesn't match to internal bot's banlist was removed."
 	set_text $_lang $_name #122 "You don't have enough permissions to remove ban \002%s\002, creator: \002%s\002."
-	set_text $_lang $_name #123 "Set \002%s\002 %s ago."
+	set_text $_lang $_name #123 "Set by \002%s\002 %s ago."
 	set_text $_lang $_name #124 "--- Channel bans ---"
-	set_text $_lang $_name #125 "» \002%s\002 ¤ Set: \002%s\002 %s ago."
+	set_text $_lang $_name #125 "» \002%s\002 ¤ Set by: \002%s\002 %s ago."
 
 }

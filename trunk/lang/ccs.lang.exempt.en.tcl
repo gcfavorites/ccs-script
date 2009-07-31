@@ -49,8 +49,8 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #119 "All exceptions that's doesn't match to internal bot's exceptionlist has been removed."
 	set_text $_lang $_name #120 "\037stick\037"
 	set_text $_lang $_name #121 "(Mask \002%s\002)"
-	set_text $_lang $_name #122 "Выставил на канале: \002%s\002 %s назад."
+	set_text $_lang $_name #122 "Set by: \002%s\002 %s ago."
 	set_text $_lang $_name #123 "--- Channel exceptions ---"
-	set_text $_lang $_name #124 "» \002%s\002 ¤ Выставил на канале: \002%s\002 %s назад."
+	set_text $_lang $_name #124 "» \002%s\002 ¤ Set by: \002%s\002 %s ago."
 
 }
