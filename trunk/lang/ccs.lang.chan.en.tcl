@@ -55,14 +55,14 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 		{Copies current channel options to another channel. If you specify a template name then only template options (options included into pre-defined template) will be copied.}
 	}
 	
-	set_text -type args -- $_lang chantemplateadd {<template_name> <option1 option2 ...>}
-	set_text -type help -- $_lang chantemplateadd {Adds into specified template a set of options or creates template if it doesn't exist.}
+	set_text -type args -- $_lang templateadd {<template_name> <option1 option2 ...>}
+	set_text -type help -- $_lang templateadd {Adds into specified template a set of options or creates template if it doesn't exist.}
 	
-	set_text -type args -- $_lang chantemplatedel {<template_name> <option1 option2 ...>}
-	set_text -type help -- $_lang chantemplatedel {Removes from specified template a set of options.}
+	set_text -type args -- $_lang templatedel {<template_name> <option1 option2 ...>}
+	set_text -type help -- $_lang templatedel {Removes from specified template a set of options.}
 	
-	set_text -type args -- $_lang chantemplatelist {<template_name>}
-	set_text -type help -- $_lang chantemplatelist {Lists all options included into specified template.}
+	set_text -type args -- $_lang templatelist {<template_name>}
+	set_text -type help -- $_lang templatelist {Lists all options included into specified template.}
 	
 	#############################################################################################################
 	#############################################################################################################
@@ -99,5 +99,6 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #129 "missing: \002%s\002"
 	set_text $_lang $_name #130 "List of options in template \"\002%s\002\": \002%s\002."
 	set_text $_lang $_name #131 "Result options list: \002%s\002."
-	
+	set_text $_lang $_name #132 "Flag value: %s"
+	set_text $_lang $_name #133 "\002%s\002 value: %s" 
 }

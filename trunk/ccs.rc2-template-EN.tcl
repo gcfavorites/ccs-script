@@ -14,3 +14,17 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 # !!! Do not forget to rename this template-file in to ccs.rc2.tcl (so, you need just remove "-template-EN"
 # part from the filename) !!!
 ##################################################################################################################
+
+################################################################################################
+# Settings for DNS lib
+################################################################################################
+# How lib should interact with your DNS-server. These settings actual only if you use ccs.lib.dns.tcl
+# instead of default dns.so. Note that default settings here can be incorrect in your case, thus,
+#  change them. In most cases, under nix-based OSes IP-address for NS-server can be detected automatically.
+# If your server doesn't accept TCP-requests then you need to install tcludp or ceptcl lib.
+# The first one (tcludp) can be found here: http://sourceforge.net/project/showfiles.php?group_id=75201
+
+#dns::configure -nameserver 172.17.7.1
+#dns::configure -port 53
+#dns::configure -timeout 10000
+#dns::configure -protocol tcp 
