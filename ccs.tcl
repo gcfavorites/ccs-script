@@ -1,6 +1,6 @@
 ####################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.8.2.
+## Version: 1.8.3.
 ## Script's author: Buster (buster@buster-net.ru)
 ##                                        (http://buster-net.ru/index.php?section=irc&theme=scripts)
 ##                               (http://reserver.buster-net.ru/index.php?section=irc&theme=scripts)
@@ -29,6 +29,8 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ####################################################################################################
 # Список последних изменений:
+#	v1.8.3
+# - Добавление функционала для интеграции скриптов
 #	v1.8.2
 # - Для библиотеки IP добавлена поддержка Tcl8.4. Оптимизирована работа скрипта в целом для Tcl8.5+
 # - В библиотеке IP обновлен список адрессов RIR
@@ -140,8 +142,8 @@ namespace eval ::ccs {
 	################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@buster-net.ru> (c)"
-	variable version	"1.8.2"
-	variable date		"29-Jun-2009"
+	variable version	"1.8.3"
+	variable date		"24-Jul-2009"
 	
 	set time_up [clock clicks -milliseconds]
 	
@@ -323,6 +325,19 @@ namespace eval ::ccs {
 	################################################################################################
 	# Процедуры совместимости со старыми версиями Tcl.
 	
+	proc compare_version {version1 version2} {
+		
+		set dec1 [split $version1 .]; set dec2 [split $version2 .]
+		foreach a1 $dec1 a2 $dec2 {
+			if {[string is space [set a1 [string trimleft $a1 0]]]} {set a1 0}
+			if {[string is space [set a2 [string trimleft $a2 0]]]} {set a2 0}
+			
+			if {$a2 > $a1} {return 1} elseif {$a2 < $a1} {return 0}
+		}
+		return 0
+		
+	}
+	
 	if {[info procs lassign] == ""} {
 		proc lassign {values args} {
 			set vlen [llength $values]
@@ -332,6 +347,30 @@ namespace eval ::ccs {
 			}
 			uplevel 1 [list foreach $args $values break]
 			return [lrange $values $alen end]
+		}
+	}
+	
+	if {[compare_version [info pa] 8.5]} {
+		proc in {list element} {expr [lsearch -exact $list $element] >= 0}
+		proc ni {list element} {expr [lsearch -exact $list $element] < 0}
+	} else {
+		proc in {list element} {expr {$element in $list}}
+		proc ni {list element} {expr {$element ni $list}}
+	}
+	
+	proc ladd {varName el} {
+		upvar $varName var
+		if {![info exists var]} {set var {}}
+		if {[ni $var $el]} {
+			lappend var $el
+		}
+	}
+	
+	proc IfError {script varName errScript} {
+		if {[catch {eval {uplevel "$script"}} _errMsg1]} {
+			upvar $varName _errMsg2
+			set _errMsg2 $_errMsg1
+			eval {uplevel "$errScript"}
 		}
 	}
 	
@@ -410,12 +449,8 @@ namespace eval ::ccs {
 		
 		while {[string match -* [lindex $args 0]]} {
 			switch -glob -- [lindex $args 0] {
-				-control {
-					if {[lsearch -exact $commands(control) $command] < 0} {lappend commands(control) $command}
-				}
-				-script {
-					if {[lsearch -exact $commands(scripts) $command] < 0} {lappend commands(scripts) $command}
-				}
+				-control {ladd commands(control) $command}
+				-script {ladd commands(scripts) $command}
 				-group {
 					set opt "group"
 					if {$cget} {
@@ -687,7 +722,7 @@ namespace eval ::ccs {
 		} elseif {$opts(-color)} {
 			set colors {color}
 		} else {
-			if {[get_options usecolors $opts(-chan)]} {
+			if {[get_options_int usecolors $opts(-chan)]} {
 				set colors {color black}
 			} else {
 				set colors {black color}
@@ -698,17 +733,20 @@ namespace eval ::ccs {
 			set langs [list]
 			if {![check_isnull $opts(-hand)]} {
 				foreach _ [getuser $opts(-hand) XTRA ccs-default_lang] {
-					if {![string is space $_] && [lsearch -exact $langs $_] < 0} {lappend langs $_}
+					if {[string is space $_]} continue
+					ladd langs $_
 				}
 			}
 			if {![check_isnull $opts(-chan)] && [validchan $opts(-chan)]} {
 				foreach _ [channel get $opts(-chan) ccs-default_lang] {
-					if {![string is space $_] && [lsearch -exact $langs $_] < 0} {lappend langs $_}
+					if {[string is space $_]} continue
+					ladd langs $_
 				}
 			}
 			if {[info exists options(default_lang)]} {
 				foreach _ $options(default_lang) {
-					if {![string is space $_] && [lsearch -exact $langs $_] < 0} {lappend langs $_}
+					if {[string is space $_]} continue
+					ladd langs $_
 				}
 			}
 		} else {
@@ -1093,7 +1131,7 @@ namespace eval ::ccs {
 		variable options
 		
 		set authnick [getuser $hand XTRA AuthNick]
-		if {[lsearch -exact $authnick $nick!$host] >= 0} {return 0}
+		if {[in $authnick "$nick!$host"]} {return 0}
 		lappend authnick $nick!$host
 		setuser $hand XTRA AuthNick $authnick
 		chattr $hand +$options(flag_auth)
@@ -1321,11 +1359,11 @@ namespace eval ::ccs {
 			return 1
 		}
 		if {[matchattr $shand $options(flag_auth)] && \
-			[lsearch -exact [getuser $shand XTRA AuthNick] $snick!$shost] >= 0} {
+			[in [getuser $shand XTRA AuthNick] "$snick!$shost"]} {
 			return 1
 		}
 		if {![string is space $sbot] && [matchattr $shand $options(flag_auth_botnet)] && \
-			[lsearch -exact [getuser $shand XTRA AuthBot] $sbot] >= 0} {
+			[in [getuser $shand XTRA AuthBot] $sbot]} {
 			return 1
 		}
 		upvar out out
@@ -1387,7 +1425,7 @@ namespace eval ::ccs {
 		}
 		
 		if {![check_isnull $opts(-schan)]} {lappend r "!$opts(-schan)!"}
-		if {$opts(-command) != ""} {lappend r [string toupper $opts(-command)]}
+		if {$opts(-command) != ""} {lappend r "[string toupper $opts(-command)]"}
 		lappend r $text
 		
 		debug [join $r] $opts(-level)
@@ -1853,17 +1891,37 @@ namespace eval ::ccs {
 	}
 	
 	# Функция получения установленного параметра
-	proc get_options {param {chan ""}} {
+	proc get_options {param {chan ""}} {get_options_int $param $chan}
+	proc get_options_int {param {chan ""}} {
 		variable options
 		
 		if {[check_isnull $chan] || ![validchan $chan]} {
-			if {[info exists options($param)] && $options($param) >= 0} {return $options($param)}
+			if {[info exists options($param)] && [string is digit $options($param)] && $options($param) >= 0} {
+				return $options($param)
+			}
 		} else {
 			set cset [channel get $chan ccs-$param]
-			if {![string is space $cset] && $cset >= 0} {return $cset}
-			if {[info exists options($param)] && $options($param) >= 0} {return $options($param)}
+			if {![string is space $cset] && [string is digit $cset] && $cset >= 0} {return $cset}
+			if {[info exists options($param)] && [string is digit $options($param)] && $options($param) >= 0} {
+				return $options($param)
+			}
 		}
 		return 0
+		
+	}
+	
+	# Функция получения установленного параметра
+	proc get_options_str {param {chan ""}} {
+		variable options
+		
+		if {[check_isnull $chan] || ![validchan $chan]} {
+			if {[info exists options($param)] && $options($param) != ""} {return $options($param)}
+		} else {
+			set cset [channel get $chan ccs-$param]
+			if {![string is space $cset] && $cset != ""} {return $cset}
+			if {[info exists options($param)] && $options($param) != ""} {return $options($param)}
+		}
+		return ""
 		
 	}
 	
@@ -2208,7 +2266,7 @@ namespace eval ::ccs {
 	#}
 	
 	proc on_chan {schan command} {
-		if {![get_options on_chan $schan]} {return 0}
+		if {![get_options_int on_chan $schan]} {return 0}
 		if {[cmd_configure $command -use_mode] && [get_mode $schan $command] == "none"} {return 0}
 		return 1
 	}
@@ -2303,9 +2361,19 @@ namespace eval ::ccs {
 		if {[info exists out(bot)]} {set bot $out(bot)} else {set bot ""}
 		if {[cmd_configure $command -use_auth] && ![check_auth $snick $shand $shost $idx $bot]} {return 0}
 		
-		if {[catch {cmd_$command} errMsg]} {
-			put_log $errMsg
-			put_log $::errorInfo
+		set str_proc "cmd_$command"
+		if {[proc_exists $str_proc]} {
+			foreach _ [info args cmd_$command] {
+				append str_proc " \$$_"
+			}
+			IfError {
+				eval $str_proc
+			} errMsg {
+				put_log $errMsg
+				put_log $::errorInfo
+			}
+		} else {
+			put_log "proc \"$str_proc\" is not exist"
 		}
 		
 	}
@@ -2353,12 +2421,12 @@ namespace eval ::ccs {
 				set find 0
 				foreach _ [get_lversion] {
 					lassign $_ ftype fname fversion fauthor fdate ffiles furl fdiscription
-					if {[lsearch -exact $type_file $ftype] < 0} continue
+					if {[ni $type_file $ftype]} continue
 					
-					if {$dtype != "*" && [lsearch -exact [split $dtype ,] $ftype] < 0} continue
-					if {$dname != "*" && [lsearch -exact [split $dname ,] [lindex $fname 0]] < 0} continue
+					if {$dtype != "*" && [ni [split $dtype ,] $ftype]} continue
+					if {$dname != "*" && [ni [split $dname ,] [lindex $fname 0]]} continue
 					if {$ftype == "lang"} {
-						if {$dlang != "*" && [lsearch -exact [split $dlang ,] [lindex $fname 1]] < 0} continue
+						if {$dlang != "*" && [ni [split $dlang ,] [lindex $fname 1]]} continue
 					}
 					
 					if {![compare_version [set cversion [pkg_info $ftype $fname version]] $fversion]} continue
@@ -2387,18 +2455,18 @@ namespace eval ::ccs {
 				set update 0
 				foreach _ [get_lversion] {
 					lassign $_ ftype fname fversion fauthor fdate ffiles furl fdiscription
-					if {[lsearch -exact $type_file $ftype] < 0} continue
+					if {[ni $type_file $ftype]} continue
 					
 					if {$type == 2} {
 						
 						if {$dtype == "*"} {
 							if {$ftype != "mod" && $ftype != "lang"} continue
 						} else {
-							if {[lsearch -exact [split $dtype ,] $ftype] < 0} continue
+							if {[ni [split $dtype ,] $ftype]} continue
 						}
-						if {$dname != "*" && [lsearch -exact [split $dname ,] [lindex $fname 0]] < 0} continue
+						if {$dname != "*" && [ni [split $dname ,] [lindex $fname 0]]} continue
 						if {$ftype == "lang"} {
-							if {$dlang != "*" && [lsearch -exact [split $dlang ,] [lindex $fname 1]] < 0} continue
+							if {$dlang != "*" && [ni [split $dlang ,] [lindex $fname 1]]} continue
 						}
 						
 					}
@@ -2493,7 +2561,7 @@ namespace eval ::ccs {
 			set par_group    [regexp -nocase -all -- {-g(?:roup)?\ +([\w]+)} $stext -> g]
 			set par_limit    [regexp -nocase -all -- {-l(?:imit)?} $stext]
 			set par_scr      [regexp -nocase -all -- {-s(?:cript(?:s)?)?} $stext]
-			if {$par_group && [lsearch -exact $group [string tolower $g]] < 0} {
+			if {$par_group && [ni $group [string tolower $g]]} {
 				put_msg -speed 3 -return 0 -- [sprintf ccs #177 $g [join $group ", "]]
 			}
 			if {!$par_group && $options(help_group)} {
@@ -2573,7 +2641,7 @@ namespace eval ::ccs {
 				if {[string is space $_]} continue
 				lassign $_ ftype fname fversion fauthor fdate ffiles fdiscription
 				
-				if {[lsearch -exact $type_file $ftype] < 0} continue
+				if {[ni $type_file $ftype]} continue
 				
 				set n [join $fname ,]
 				if {![info exists fileinfo($ftype,version,$n)] || [compare_version $fileinfo($ftype,version,$n) $fversion]} {
@@ -2616,19 +2684,6 @@ namespace eval ::ccs {
 			set data ""
 		}
 		return $data
-		
-	}
-	
-	proc compare_version {version1 version2} {
-		
-		set dec1 [split $version1 .]; set dec2 [split $version2 .]
-		foreach a1 $dec1 a2 $dec2 {
-			if {[string is space [set a1 [string trimleft $a1 0]]]} {set a1 0}
-			if {[string is space [set a2 [string trimleft $a2 0]]]} {set a2 0}
-			
-			if {$a2 > $a1} {return 1} elseif {$a2 < $a1} {return 0}
-		}
-		return 0
 		
 	}
 	
@@ -2698,9 +2753,8 @@ namespace eval ::ccs {
 		
 		foreach command [concat $commands(control) $commands(scripts)] {
 			if {![cmd_configure $command -use]} continue
-			if {![string is space [set g [cmd_configure $command -group]]] && \
-				[lsearch -exact $group $g] < 0} {
-				lappend group $g
+			if {![string is space [set g [cmd_configure $command -group]]]} {
+				ladd group $g
 			}
 			
 			# Прописываем бинды управления для PUB команд

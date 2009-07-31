@@ -5,8 +5,8 @@ set _name		"chan"
 set _lang		"ru"
 pkg_add lang [list $_name $_lang] \
 				"Buster <buster@buster-net.ru> (c)" \
-				"1.4.0" \
-				"01-Jul-2009"
+				"1.4.1" \
+				"25-Jul-2009"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	
@@ -55,14 +55,14 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 		{ опирование настроек текущего канала на указанный. ѕри указании имени файла шаблона будут скопированы только те параметры и флаги, которые указанны в шаблоне.}
 	}
 	
-	set_text -type args -- $_lang chantemplateadd {<им€_шаблона> <параметр1 параметр2 ...>}
-	set_text -type help -- $_lang chantemplateadd {ƒобавление в шаблон списка параметров}
+	set_text -type args -- $_lang templateadd {<им€_шаблона> <параметр1 параметр2 ...>}
+	set_text -type help -- $_lang templateadd {ƒобавление в шаблон списка параметров}
 	
-	set_text -type args -- $_lang chantemplatedel {<им€_шаблона> <параметр1 параметр2 ...>}
-	set_text -type help -- $_lang chantemplatedel {”даление из шаблона списка параметров}
+	set_text -type args -- $_lang templatedel {<им€_шаблона> <параметр1 параметр2 ...>}
+	set_text -type help -- $_lang templatedel {”даление из шаблона списка параметров}
 	
-	set_text -type args -- $_lang chantemplatelist {<им€_шаблона>}
-	set_text -type help -- $_lang chantemplatelist {ѕросмотр списка параметров в шаблоне}
+	set_text -type args -- $_lang templatelist {<им€_шаблона>}
+	set_text -type help -- $_lang templatelist {ѕросмотр списка параметров в шаблоне}
 	
 	#############################################################################################################
 	#############################################################################################################
@@ -99,5 +99,7 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #129 "отсутствующие: \002%s\002"
 	set_text $_lang $_name #130 "—писок параметров в шаблоне \"\002%s\002\": \002%s\002."
 	set_text $_lang $_name #131 "–езультирующий список параметров: \002%s\002."
+	set_text $_lang $_name #132 "«начение флага: %s"
+	set_text $_lang $_name #133 "«начение параметра \002%s\002: %s"
 	
 }
