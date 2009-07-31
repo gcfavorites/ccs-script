@@ -43,7 +43,11 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	#############################################################################################################
 	# Should we load an "exempt" module? (0 - enable, 1 - disable)
 	#set ccs(mod,name,exempt) 0
-	
+
+	################################################################################################
+	# Should we load an "fixstick" module? (0 - enable, 1 - disable)
+	#set ccs(mod,name,fixstick) 0
+
 	#############################################################################################################
 	# Should we load an "ignore" module? (0 - enable, 1 - disable)
 	#set ccs(mod,name,ignore) 0
@@ -67,6 +71,10 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	#############################################################################################################
 	# Should we load a "mode" module? (0 - enable, 1 - disable)
 	#set ccs(mod,name,mode) 0
+
+	################################################################################################
+	# Should we load a "rebind" module? (0 - enable, 1 - disable)
+	#set ccs(mod,name,rebind) 0
 	
 	#############################################################################################################
 	# Should we load a "regban" module? (0 - enable, 1 - disable)
