@@ -40,40 +40,38 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 #      3 - channel name is not required;
 #
 # -flags
-#   Флаги доступа к команде. Если флаги указываются через вертикальную черту, это будет означать
-#   доступность команды, как для глобальных пользователей, так и для локальных. Если же флаг
-#   указывается одной буквой, то использовать команду смогут только пользователи с глобальным
-#   правами. (дополнительные флаги: %v - при этом пользователь должен присутствовать в юзерлист);
+#   Flags required for specified command. Flag without "-|-" delimiter will be treated as global,
+#   flags specified via "-|-" will include local access for specified command.
+#   (custom flags: %v - user must be in bot's userlist);
 #
 # -alias
-#   Список команд на которые бот будет реагировать для использования данной команды "%pref_" будет
-#   заменена на префикс по умолчанию.
+#   aliases for the command, %pref_ uses as default prefix.
 #
 # -block
-#   Необязательный параметр блокировка использования команды по времени. Задается время в секундах,
-#   через которое будет доступно повторное выполнение команды.
+#   Optional. Specifies time delay between command usage.
 #
 # -regexp
-#   Регулярное выражение, выбирающее данные и передающее обрабатываемой процедуре
+#   regular expression, выбирающее данные и передающее обрабатываемой процедуре
 #
 # -override_level
-#   Переопределение уровня доступа юзера для выполнения команды. Если у юзера не хватает прав
-#   (пример: в случае если для команды назначен юзерский флаг), то этим значением можно поднять
-#   уровень доступа пользователя. Список стандартных уровней прав назначаемых стандартными флагами:
-#      0 - нету никаких прав
-#      1 - локальный флаг l
-#      2 - локальный флаг o
-#      3 - локальный флаг m
-#      4 - локальный флаг n
-#      5 - глобальный флаг l
-#      6 - глобальный флаг o
-#      7 - глобальный флаг m
-#      8 - глобальный флаг n
-#      9 - перманентный овнер ("set owner" в конфиге)
-#   Не рекомендуется выставлять значение этого параметра больше уровня доступа по флагам указанного
+#   Overrides user level required for specified command. So, if user don't has required privs
+#   (for example: command has custom required flag defined but user don't has one) this parameter
+#   allows you to override such restriction and increase user access level.
+#   Default levels for default flags:
+#      0 - no permissions
+#      1 - local l
+#      2 - local o
+#      3 - local m
+#      4 - local n
+#      5 - global l
+#      6 - global o
+#      7 - global m
+#      8 - global n
+#      9 - permanent owner ("set owner" directive)
+#   It is not recomended to use value greater then value defined with -flags parameetr.
 #   в параметре -flags
 ####################################################################################################
-# Доступные значения хостмасок:
+# General hostmask templates:
 #      1: *!user@host
 #      2: *!*user@host
 #      3: *!*@host
@@ -88,155 +86,154 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 
 
 	################################################################################################
-	# Основные параметры                                                                           #
+	# General settings                                                                             #
 	################################################################################################
+	# 
+	# All settings commented by default. Uncomment them if you want to use a custom value.
+	#
+	################################################################################################
+	# Prefixes for all control commands. pub - channel prefix, msg - privmsg prefix, dcc - partyline.
+	# Note: you cant define "." as partyline prefix.
+	#configure -prefix_pub				"!"
+	#configure -prefix_msg				"!"
+	#configure -prefix_dcc				"!"
 	
 	################################################################################################
-	# Префиксы для команд управления. pub - канал, msg - приват, dcc - патилайн.
-	# Использование префикса "." для патилайна не доступно.
-	configure -prefix_pub				"$"
-	configure -prefix_msg				"."
-	configure -prefix_dcc				"."
-	
-	################################################################################################
-	# Префиксы для команд управления передаваемых ботам ботнета. pub - канал, msg - приват,
-	# dcc - патилайн. !Внимание! команды без префиксов не будут прописаны. Если поля оставить
-	# пустыми, то команды не будут прописаны. Использование префикса "." для патилайна не доступно.
+	# Prefixes for all control commands via botnet. pub - channel prefix, msg - privmsg prefix,
+	# dcc - partyline. !Attention! commands without prefixes will not be defined.
+	# Note: you cant define "." as partyline prefix.
 	#configure -prefix_botnet_pub		"!!"
 	#configure -prefix_botnet_msg		"!!"
 	#configure -prefix_botnet_dcc		"!!"
 	
 	################################################################################################
-	# Список языков по умолчанию для выводимого текста. Значение может быть переопределено
-	# выставлением канального флага ccs-default_lang и настройкой пользователя. Первое значение в
-	# списке имеет наибольший приоритет, последнее - наименьший.
-	configure -default_lang				{en ru}
+	# Default language list for output messages/help system. You can override this value by channel
+	# option ccs-default_lang and per-user setting. First value in the specified list has highest
+	# priority.
+	#configure -default_lang				{ru en}
 	
 	################################################################################################
-	# Флаг, обеспечивающий быстрый вывод и работу с командами. Актуален при наличии флага +F на
-	# боте, иначе бот будет вылетать за флуд (0 - медленно, 1 - быстро).
-	configure -fast						0
+	# "Flood-free' flags, forces bot to skip delayes between messages. Note: do not use this feature
+	# if your bot don't has special privs on the server or Excess Flood will happen :P
+	# (0 - slow and safe, 1 - fast and unsafe).
+	#configure -fast						1
 	
 	################################################################################################
-	# Максимальное количество строк отсылаемых нотисом, при превышении данного значения сообщение
-	# будет отправлено в приват
-	configure -max_notice				10
+	# Maximum amount of notices (strings). When value exceeded bot will send privmsgs instead.
+	#configure -max_notice				10
 	
 	################################################################################################
-	# Длина одного сообщения в количестве символов. Если сообщение будет превышать максимально
-	# допустимое для IRCd, то оно будет разделено на несколько сообщений.
-	configure -msg_len					400
+	# Admissible lenght of the message. When value exceeded bot will split message to multiple
+	# messages
+	#configure -msg_len					400
 	
 	################################################################################################
-	# Максимальная длина идента в IRC сети. Нужна для получения правильной хостмаски бана.
-	configure -identlen					10
+	# Maximum ident lenght. Required for correct hostmask detection.
+	#configure -identlen					10
 	
 	################################################################################################
-	# Разрешать вывод хелпа только по группам (1 - только по группам, 0 - общий и по группам)
-	configure -help_group				0
+	# Limit help output by groups only. (1 - only by groups, 0 - general and by groups)
+	#configure -help_group				0
 	
 	################################################################################################
-	# Уровень отладки (1 - вывод основной информации; 2, 3, ... - вывод дополнительной информации)
-	configure -debug					2
+	# Debug level (1 - common info; 2, 3, ... - custom/detailed info)
+	#configure -debug					2
 	
 	################################################################################################
-	# Значение по умолчанию, которое определяет, должен ли скрипт работать на всех каналах (0 - нет,
-	# 1 - да). Значение может быть переопределено выставлением канального флага ccs-on_chan
-	configure -on_chan					1
+	# Enables/disables script for all channels by default. Specify 1 to make script available on
+	# all channels or 0 to make it work only if channel has ccs-on_chan flag set.
+	#configure -on_chan					1
 	
 	################################################################################################
-	# Значение по умолчанию, которое определяет какая цветовая гамма, при их наличии, должна
-	# использоваться для вывода. (0 - черно белая, 1 - цветная). Это же значение определяет какая
-	# цветовая гамма должна использоваться для вывода текста в приват и патилайн. Значение может
-	# быть переопределено выставлением канального флага ccs-usecolors
-	configure -usecolors				1
+	# Enables/disables colors in scripts/modules (if these present). Applies for privmsgs and partyline
+	# as well. Use "0" for black-white or "1" for colorful. Can be ovveriden by "ccs-usecolors" flag.
+	#configure -usecolors				1
 	
 	################################################################################################
-	# Время в миллисекундах, в течение которого удерживать авторизацию юзера, если он не зашел на
-	# канал после авторизации.
-	configure -time_auth_notonchan		300000
+	# How long we should keep user authorization if he still not joined any common channels where
+	# bot is (milliseconds).
+	#configure -time_auth_notonchan		300000
 	
 	################################################################################################
-	# Время в миллисекундах, в течение которого удерживать авторизацию юзера после покидании канала.
-	configure -time_auth_part			3000
+	# How long we should keep user authorization if he leave all common channels where bot is.
+	#configure -time_auth_part			3000
 	
 	################################################################################################
-	# Каталог, куда будут помещаться старые файлы после обновления, при этом указание $dir_ccs будет
-	# соответствовать каталогу, где находиться основной скрипт.
-	configure -dir_bak					"$dir_ccs/bak"
+	# Backup directory for old ccs-files (only actual if you updating script via autoupdate feature).
+	# $dir_ccs here always point to root dir where ccs.tcl is.
+	#configure -dir_bak					"$dir_ccs/bak"
 	
 	################################################################################################
-	# Каталог, откуда будут читаться файлы ccs.lang.*.tcl, при этом указание $dir_ccs будет
-	# соответствовать каталогу, где находиться основной скрипт.
-	configure -dir_lang					"$dir_ccs/lang"
+	# Defines directory where all lang-files is (ccs.lang.*.tcl)
+	# $dir_ccs here always point to root dir where ccs.tcl is.
+	#configure -dir_lang					"$dir_ccs/lang"
 	
 	################################################################################################
-	# Каталог, откуда будут читаться файлы ccs.mod.*.tcl, при этом указание $dir_ccs будет
-	# соответствовать каталогу, где находиться основной скрипт.
-	configure -dir_mod					"$dir_ccs/mod"
+	# Defines directory where all modules is (ccs.mod.*.tcl)
+	# $dir_ccs here always point to root dir where ccs.tcl is.
+	#configure -dir_mod					"$dir_ccs/mod"
 	
 	################################################################################################
-	# Каталог, откуда будут читаться файлы ccs.scr.*.tcl, при этом указание $dir_ccs будет
-	# соответствовать каталогу, где находиться основной скрипт.
-	configure -dir_scr					"$dir_ccs/scr"
+	# Defines directory where all custom scripts is (ccs.scr.*.tcl)
+	# $dir_ccs here always point to root dir where ccs.tcl is.
+	#configure -dir_scr					"$dir_ccs/scr"
 	
 	################################################################################################
-	# Каталог, откуда будут читаться файлы ccs.lib.*.tcl, при этом указание $dir_ccs будет
-	# соответствовать каталогу, где находиться основной скрипт.
-	configure -dir_lib					"$dir_ccs/lib"
+	# Defines directory where all libs is (ccs.libs.*.tcl)
+	# $dir_ccs here always point to root dir where ccs.tcl is.
+	#configure -dir_lib					"$dir_ccs/lib"
 	
 	################################################################################################
-	# Каталог, где будут хранится файлы данных, при этом указание $dir_ccs будет соответствовать
-	# каталогу, где находиться основной скрипт.
-	configure -dir_data					"$dir_ccs/data"
+	# Defines directory where all script data will be stored.
+	# $dir_ccs here always point to root dir where ccs.tcl is.
+	#configure -dir_data					"$dir_ccs/data"
 	
 	################################################################################################
-	# Флаги пользователей. Крайне не желательно изменять их.
-	# Флаг указывающий на авторизованного пользователя
-	configure -flag_auth				"Q"
-	# Флаг указывающий на авторизованного пользователя через ботнет
-	configure -flag_auth_botnet			"B"
-	# Временный флаг, указывающий на проверку авторизации пользователя через ботнет
-	configure -flag_botnet_check		"O"
-	# Перманентная (постоянная) авторизация, не требующая ручной авторизации
-	configure -flag_auth_perm			"P"
-	# Флаг защиты пользователя от изменений, только глобальный овнер сможет изменять параметры
-	# пользователя (хосты, флаги)
-	configure -flag_locked				"L"
-	# Флаг защиты пользователя от неправомерных действий (kick, ban итд). (Не дает полной защиты,
-	# в случае если действие производиться не по хендлу)
-	configure -flag_protect				"H|H"
-	# Флаг для ботов участвующие в общение (передача команд управления) через ботнете
-	configure -flag_cmd_bot				"U"
+	# Custom user flags. There is no reason to change these values, but oh well...
+	# Flag that defines user authorization on the bot via script
+	#configure -flag_auth				"Q"
+	# Flag that defines user authorization on the bot via botnet (ccs-feature too)
+	#configure -flag_auth_botnet			"B"
+	# Temporal flag defines that user's authorization is checking via botnet atm 
+	#configure -flag_botnet_check		"O"
+	# Permanent authorization flag (auto-identification by hostlist only, without manual password authorization)
+	#configure -flag_auth_perm			"P"
+	# Flag that protects user's handle from all changes by anyone below global owner level
+	#configure -flag_locked				"L"
+	# Flag that protects user form some abusive commands like kick, ban, etc. works correcly only if
+	# command issued @ user handle (if current user handle differs from current user nick - it fails)
+	#configure -flag_protect				"H|H"
+	# Flags defines that bot acccepts remote commands via botnet (ccs-script feature)
+	#configure -flag_cmd_bot				"U"
 	
 	################################################################################################
-	# Минимальный флаг доступа к секретным каналам.
-	configure -permission_secret_chan	"m|-"
+	# Minimal access flag for secret channels
+	#configure -permission_secret_chan	"m|-"
 	
 	#cmd_configure update -group "system" -flags {n} -block 5 -alias {%pref_updateccs %pref_ccsupdate}
 	#cmd_configure help -group "info" -use_botnet 0 -block 3 -flags {%v} -alias {%pref_helps}
 	
 	
 	################################################################################################
-	# Параметры модуля ban                                                                         #
+	# Settings for BAN module                                                                      #
 	################################################################################################
 	
 	################################################################################################
-	# Отображать в причине бана дату/время снятия бана. (0 - нет, 1 - да)
-	configure -bandate					1
+	# Show in ban reason expiration date? (0 - no, 1 - yes)
+	#configure -bandate					1
 	
 	################################################################################################
-	# Проверять при снятии бана уровень доступа того, кто поставил бан.
-	#   0 - снять бан может любой при наличии прав
-	#   1 - снять бан может любой человек с равными правами поставившему бан или большими
-	#   2 - снять бан может человек поставивший бан или с большими правами
-	# Значение может быть переопределено выставлением канального флага ccs-unban_level
-	configure -unban_level				0
+	# How should we check permissions for unabn command?
+	#   0 - anyone can remove ban if he has access ti unban cmd
+	#   1 - only user who has the same access level able to remove ban
+	#   2 - only creator or user who has higher access level able to remove ban
+	# Specified here value can be overrided via "ccs-unban_level" channel option
+	#configure -unban_level				0
 	
 	################################################################################################
-	# Значение по умолчанию, которое определяет маску по умолчанию для выставления банов.
-	# Значение может быть переопределено выставлением канального флага ccs-banmask.
-	configure -banmask					4
+	# Default mask template for channel bans. All available templates listed above.
+	# Specified here value can be overrided via "ccs-banmask" channel option
+	#configure -banmask					4
 	
 	#cmd_configure ban -group "ban" -flags {o|o} -block 1 -alias {%pref_ban}
 	#cmd_configure unban -group "ban" -flags {o|o} -block 1 -alias {%pref_unban}
@@ -247,18 +244,18 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля base                                                                        #
+	# Setting for BASE module                                                                      #
 	################################################################################################
 	
 	################################################################################################
-	# Отображать в сообщение кика пользователя подавшего команду. (0 - нет, 1 - да).
-	# Значение может быть переопределено выставлением канального флага ccs-vkickuser
-	configure -vkickuser				0
+	# Should we put in the kick reason who issued this command? (0 - no, 1 - yes).
+	# Specified here value can be overrided via "ccs-vkickuser" channel option
+	#configure -vkickuser				0
 	
 	################################################################################################
-	# Отображать при смене топика пользователя подавшего команду. (0 - нет, 1 - да).
-	# Значение может быть переопределено выставлением канального флага ccs-vtopicuser
-	configure -vtopicuser				1
+	# Should we prepend topic body with the name of the user who issued this command? (0 - no, 1 - yes).
+	# Specified here value can be overrided via "ccs-vtopicuser" channel option
+	#configure -vtopicuser				1
 	
 	#cmd_configure kick -group "mode" -flags {o|o} -block 1 -alias {%pref_kick}
 	#cmd_configure inv -group "other" -flags {m|m} -block 5 -alias {%pref_inv}
@@ -272,49 +269,48 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля bots                                                                        #
+	# Setting for BOTS module                                                                      #
 	################################################################################################
 	
 	################################################################################################
-	# Значение, которое определяет маску, по которой будут добавляться новые боты.
-	configure -addbotmask				4
+	# Defines default template mask for new added bots
+	#configure -addbotmask				4
 	
 	################################################################################################
-	# Разрешать вывод ботнета в виде дерева (1 - разрешить, 0 - запретить). Не рекомендуется
-	# включать для ботов без отключенного на сервере контроля за флудом и для больших ботнетов.
-	configure -botnettree				0
+	# Allow to output botnet structure as hierarchy tree? (1 - yes, 0 - no).
+	# Note: do not use this feature if your bot has no special privs on the server (no flood control)
+	#configure -botnettree				1
 	
 	################################################################################################
-	# Время в миллисекундах, повторения проверки ботнет авторизации.
-	configure -time_botauth_check		900000
+	# Time delay between botnet authorization checks
+	#configure -time_botauth_check		900000
 	
 	################################################################################################
-	# Время в миллисекундах, в течение которого ждать ответа от бота при проверки авторизации.
-	configure -time_botauth_receive		10000
+	# Time delay within we should wait for bot's reply about athorization status
+	#configure -time_botauth_receive		10000
 	
 	################################################################################################
-	# Кодировка, в которой будет отправляться/приниматься сообщение через ботнет, требуется для
-	# совместимости, если в ботнете боты работают в разной кодировке. UTF не поддерживается.
-	configure -botnet_encoding			""
+	# Codepage/charset which will be used for in/out messages in botnet. Actual only if bots ib the
+	# botnet has different charsets. UTF is NOT supported.
+	#configure -botnet_encoding			""
 	
 	################################################################################################
-	# Длина кода отсылаемого сообщения. Необходимо для того чтобы параллельно отсылаемые сообщения
-	# не перемешивались. В случае если ботнет управление используется очень часто (в течение
-	# пересылки одного сообщения вызывается следующее), следует увеличить это значение.
-	configure -botnet_lencode			3
+	# Unique code length for unique botnet message which prevent accidental messages mixing. If botnet
+	# control uses very often (like while one message in progress, another one being send, etc) - better
+	# to increase this value.
+	#configure -botnet_lencode			3
 	
 	################################################################################################
-	# Длина одного пакета сообщения отсылаемого через ботнет.
-	configure -botnet_lensend			300
+	# Packet length for botnet message
+	#configure -botnet_lensend			300
 	
 	################################################################################################
-	# Максимальное количество отсылаемых/принятых пакетов для одного сообщения. Предотвращает
-	# переполнение буфера.
-	configure -botnet_maxsend			100
+	# Maximum amount of in/out packets for one communication session. Made to prevents buffer overflow.
+	#configure -botnet_maxsend			100
 	
 	################################################################################################
-	# Время в миллисекундах в течении которого ожидать приемку сообщения из ботнета.
-	configure -botnet_timesend		5000
+	# Timeout in ms within which we should wait for the message from the botnet
+	#configure -botnet_timesend		5000
 	
 	#cmd_configure bots -group "botnet" -flags {%v} -block 5 -use_botnet 0 -alias {%pref_bots}
 	#cmd_configure botattr -group "botnet" -flags {mt} -block 2 -alias {%pref_botattr}
@@ -328,21 +324,22 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля chan                                                                        #
+	# Settings for CHAN module                                                                     #
 	################################################################################################
 	
 	################################################################################################
-	# Путь и маска файлов сохранения настроек каналов. %s в имени будет заменен на имя настроек.
-	configure -chansetfile				"$options(dir_data)/ccs.chanset.%s.dat"
+	# Path and filemask for files where we should store backup'd channel settings. %s works here as
+	# command's <filename> parameter
+	#configure -chansetfile				"$options(dir_data)/ccs.chanset.%s.dat"
 	
 	################################################################################################
-	# Путь и маска файлов сохранения шаблонов настроек каналов. %s в имени будет заменен на имя
-	# шаблона.
-	configure -chantemplatefile			"$options(dir_data)/ccs.chantemplate.%s.dat"
+	# Path and filemask for files where we should store channel settings template. %s works here as
+	# template name
+	#configure -chantemplatefile			"$options(dir_data)/ccs.chantemplate.%s.dat"
 	
 	################################################################################################
-	# Сохранять старые файлы настроек в bak директории (1 - да, 0 - нет)
-	configure -bakchanset				1
+	# Should we save old settings/templates in the bak/ direcory? (1 - yes, 0 - no)
+	#configure -bakchanset				1
 	
 	#cmd_configure channels -group "chan" -flags {o|o} -block 5 -alias {%pref_channels}
 	#cmd_configure chanadd -group "chan" -flags {n} -block 3 -alias {%pref_chanadd %pref_addchan}
@@ -359,11 +356,11 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля chanserv                                                                    #
+	# Settings for CHANSERV module                                                                 #
 	################################################################################################
 	
 	################################################################################################
-	# Список шаблонов отсылаемых команд
+	# Commands templates
 	#set chanserv(op)		"PRIVMSG ChanServ :OP %chan %nick"
 	#set chanserv(deop)		"PRIVMSG ChanServ :DEOP %chan %nick"
 	#set chanserv(hop)		"PRIVMSG ChanServ :HALFOP %chan %nick"
@@ -387,34 +384,32 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля chat                                                                        #
+	# Settings for CHAT module                                                                     #
 	################################################################################################
 	
 	################################################################################################
-	# Порт по которому будет производиться DCC коннект. Если порт 0, то будет производиться поиск
-	# открытых портов
-	configure -dccport					4321
+	# Port which will be used for DCC. Put 0 here to enable autolookup for available ports
+	#configure -dccport					0
 	
 	################################################################################################
-	# IP адрес, через который будет производиться коннект, если поле оставить пустым IP адрес будет
-	# браться из системы
+	# IP-address which will be used for DCC-request. Do not specify it to enable system defined IP
 	#configure -dccip					""
 	
 	#cmd_configure chat -group "other" -flags {p} -block 5 -alias {%pref_chat}
 	
 	
 	################################################################################################
-	# Параметры модуля exempt                                                                      #
+	# Settings for EXEMPT module                                                                   #
 	################################################################################################
 	
 	################################################################################################
-	# Отображать в причине дату/время снятия исключения. (0 - нет, 1 - да)
-	configure -exemptdate				1
+	# Should we show expiration date in exception reason? (0 - no, 1 - yes)
+	#configure -exemptdate				1
 	
 	################################################################################################
-	# Значение по умолчанию, которое определяет маску по умолчанию для выставления исключения.
-	# Значение может быть переопределено выставлением канального флага ccs-exemptmask.
-	# Доступные значения:
+	# Default mask template for channel exceptions. All available templates listed below.
+	# Specified here value can be overrided via "ccs-exemptmask" channel option
+	# Hostmask templates:
 	# 1: *!user@host
 	# 2: *!*user@host
 	# 3: *!*@host
@@ -425,7 +420,7 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	# 8: nick!*@host
 	# 9: nick!*user@*.host
 	# 10: nick!*@*.host
-	configure -exemptmask				4
+	#configure -exemptmask				4
 	
 	#cmd_configure exempt -group "exempt" -flags {o|o} -block 1 -alias {%pref_exempt}
 	#cmd_configure unexempt -group "exempt" -flags {o|o} -block 1 -use_botnet 0 -alias {%pref_unexempt}
@@ -436,17 +431,17 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля ignore                                                                      #
+	# Settings for IGNORE module                                                                      #
 	################################################################################################
 	
 	################################################################################################
-	# Отображать в причине дату/время снятия игнора. (0 - нет, 1 - да)
-	configure -ignoredate				1
+	# Should we show expiration date in ignore reason? (0 - no, 1 - yes)
+	#configure -ignoredate				1
 	
 	################################################################################################
-	# Значение по умолчанию, которое определяет маску по умолчанию для выставления игнора.
-	# Значение может быть переопределено выставлением канального флага ccs-ignoremask.
-	# Доступные значения:
+	# Default mask template for channel ignores. All available templates listed below.
+	# Specified here value can be overrided via "ccs-ignoremask" channel option
+	# Hostmask templates:
 	# 1: *!user@host
 	# 2: *!*user@host
 	# 3: *!*@host
@@ -457,7 +452,7 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	# 8: nick!*@host
 	# 9: nick!*user@*.host
 	# 10: nick!*@*.host
-	configure -ignoremask				4
+	#configure -ignoremask				4
 	
 	#cmd_configure addignore -group "other" -flags {o} -block 3 -alias {%pref_addignore %pref_+ignore}
 	#cmd_configure delignore -group "other" -flags {o} -block 1 -alias {%pref_delignore %pref_-ignore}
@@ -465,17 +460,17 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля invite                                                                      #
+	# Settings for INVITE module                                                                   #
 	################################################################################################
 	
 	################################################################################################
-	# Отображать в причине дату/время снятия инвайта. (0 - нет, 1 - да)
-	configure -invitedate				1
+	# Should we show expiration date in the invite reason? (0 - no, 1 - yes)
+	#configure -invitedate				1
 	
 	################################################################################################
-	# Значение по умолчанию, которое определяет маску по умолчанию для выставления инвайта.
-	# Значение может быть переопределено выставлением канального флага ccs-invitemask.
-	# Доступные значения:
+	# Default mask template for channel invites. All available templates listed below.
+	# Specified here value can be overrided via "ccs-invitemask" channel option
+	# Hostmask templates:
 	# 1: *!user@host
 	# 2: *!*user@host
 	# 3: *!*@host
@@ -486,7 +481,7 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	# 8: nick!*@host
 	# 9: nick!*user@*.host
 	# 10: nick!*@*.host
-	configure -invitemask				4
+	#configure -invitemask				4
 	
 	#cmd_configure invite -group "invite" -flags {o|o} -block 1 -alias {%pref_invite}
 	#cmd_configure uninvite -group "invite" -flags {o|o} -block 1 -alias {%pref_uninvite}
@@ -497,7 +492,7 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля lang                                                                        #
+	# Settings for LANG module                                                                     #
 	################################################################################################
 	
 	#cmd_configure langlist -group "lang" -flags {%v} -block 3 -alias {%pref_langlist}
@@ -506,7 +501,7 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля link                                                                        #
+	# Settings for LINK module                                                                     #
 	################################################################################################
 	
 	#cmd_configure link -group "botnet" -flags {nt} -block 5 -alias {%pref_link}
@@ -514,20 +509,20 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля logs                                                                        #
+	# Settings for LOGS module                                                                     #
 	################################################################################################
 	
 	################################################################################################
-	# Имя файла и путь ведения логов. По умолчанию в папку со скриптом с именем ccs.log
-	configure -logsfile					"$options(dir_data)/ccs.log"
+	# Path and filename for logfile. Bu default, logs everything in ccs.tcl root dir as ccs.log
+	#configure -logsfile					"$options(dir_data)/ccs.log"
 	
 	################################################################################################
-	# Максимальный уровень сообщений, которые необходимо записывать в лог файл
-	configure -logslevel				3
+	# Debug level for logs messages
+	#configure -logslevel				3
 	
 	
 	################################################################################################
-	# Параметры модуля mode                                                                        #
+	# Settings for MODE module                                                                     #
 	################################################################################################
 	
 	#cmd_configure op -group "mode" -flags {o|o} -block 1 -alias {%pref_op}
@@ -542,29 +537,29 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля rebind                                                                      #
+	# Settings for REBIND module                                                                   #
 	################################################################################################
 	
 	################################################################################################
-	# Удаление, восстановление, переопределение стандартных приватных команд бота.
-	#          -1 - удаление стандартного бинда;
-	#           1 - восстановление стандартного бинда;
-	#         имя - удаление стандартного бинда и создание нового с переопределенным именем;
-	#  n/a(пусто) - не трогать бинд.
-	set rebind(addhost)	"1"
+	# Removes, restores and re-defines standart bot's binds
+	#          -1 - removes standart bind;
+	#           1 - restores standart bind;
+	#        name - renames bind;
+	#  n/a(empty) - don't touch bind.
+	#set rebind(addhost)	"1"
 	#set rebind(die)	"-1"
 	#set rebind(go)		"-1"
-	set rebind(hello)	"-1"
+	#set rebind(hello)	""
 	#set rebind(help)	"-1"
 	#set rebind(ident)	"1"
 	#set rebind(info)	"-1"
 	#set rebind(invite)	"-1"
 	#set rebind(jump)	"-1"
 	#set rebind(key)	"-1"
-	#set rebind(memory)	"-1"
+	#set rebind(memory)	""
 	#set rebind(op)		"-1"
 	#set rebind(halfop)	"-1"
-	set rebind(pass)	""
+	#set rebind(pass)	"1"
 	#set rebind(rehash)	"-1"
 	#set rebind(reset)	"-1"
 	#set rebind(save)	"-1"
@@ -575,13 +570,13 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля regban                                                                      #
+	# Settings for REGBAN module                                                                   #
 	################################################################################################
 	
 	################################################################################################
-	# Значение по умолчанию, которое определяет маску по умолчанию для выставления банов.
-	# Значение может быть переопределено выставлением канального флага ccs-banmask.
-	# Доступные значения:
+	# Default mask template for channel bans. All available templates listed above.
+	# Specified here value can be overrided via "ccs-banmask" channel option
+	# Hostmask templates:
 	# 1: *!user@host
 	# 2: *!*user@host
 	# 3: *!*@host
@@ -592,18 +587,17 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	# 8: nick!*@host
 	# 9: nick!*user@*.host
 	# 10: nick!*@*.host
-	configure -banmask					4
+	#configure -banmask					4
 	
 	################################################################################################
-	# Каталог, куда будут помещаться старые файлы после обновления, при этом указание
-	# $options(dir_data) будет соответствовать каталогу, где находиться основной скрипт.
-	configure -regbanfile				"$options(dir_data)/ccs.regban.dat"
+	# File where we should store regban data.
+	# $options(dir_data) has no explanation currently, blame Buster :P
+	#configure -regbanfile				"$options(dir_data)/ccs.regban.dat"
 	
 	################################################################################################
-	# Время в милисекундах в течении которого хранить обработанные WHO запросы. Слишком большое
-	# время снизит нагрузку но может выдавать неправильные результаты. Слишком маленькое значение
-	# может пропускать ответы от сервера.
-	configure -regbanwhohash			10000
+	# Expiration timeout for processed WHO-requests/data. Too big value produces low load but also
+	# produces high error rate sometimes. Too small value can miss replies from server.
+	#configure -regbanwhohash			10000
 	
 	#cmd_configure regbanlist -group "regban" -flags {o} -block 3 -alias {%pref_regbanlist}
 	#cmd_configure regban -group "regban" -flags {o} -block 3 -alias {%pref_regban %pref_addregban %pref_regbanadd}
@@ -613,7 +607,7 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля say                                                                         #
+	# Settings for SAY module                                                                      #
 	################################################################################################
 	
 	#cmd_configure broadcast -group "other" -flags {o} -block 10 -alias {%pref_broadcast}
@@ -623,7 +617,7 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля system                                                                      #
+	# Settings for SYSTEM module                                                                   #
 	################################################################################################
 	
 	#cmd_configure servers -group "system" -flags {m} -block 5 -alias {%pref_servers}
@@ -639,139 +633,143 @@ if {[namespace current] == "::"} {putlog "\002\00304You shouldn't do just source
 	
 	
 	################################################################################################
-	# Параметры модуля system                                                                      #
+	# Settings for SYSTEM module                                                                   #
 	################################################################################################
 	
 	#cmd_configure traf -group "info" -flags {%v} -block 3 -alias {%pref_traf}
 	
 	
 	################################################################################################
-	# Параметры модуля users                                                                       #
+	# Settings for USERS module                                                                    #
 	################################################################################################
 	
 	################################################################################################
-	# Значение, которое определяет маску, по которой будут добавляться новые пользователи.
-	# Соответствие значений числа и маски, такое же, как и при указании маски бана.
-	configure -addusermask				9
+	# Default hostmask template for new users.
+	# templates are the same as for ban/exempt
+	#configure -addusermask				4
 	
 	################################################################################################
-	# Разрешить удаление юзеров пользователями с локальными провами в том случае, если на канале,
-	# на котором отсутствуют права, когда то находился удаляемый юзер. То есть если посмотреть
-	# .whois удаляемого юзера то можно увидеть что он был на определенном канале X при этом
-	# храниться время последнего визита LAST но на этом канале у него отсуствуют права
-	# (в поле FLAGS стоит "-")
-	configure -deluserchanrec			0
+	# Should we allow local users delete local users under some conditions?
+	# Here is how it works:
+	# 1. User with local channel (mean: he has NO global flags at all) flags only issues userdel cmd.
+	# 2. Script checks - does he has only local flags and does userdel cmd allowed for him ? If yes:
+	# 3. Script checks - does target user has NO global flags? If yes:
+	# 4. Does target user has lower access level? If so - bye-bye.
+	# (1 - feature enabled, 0 - disabed)
+	#configure -deluserchanrec			1
 	
 	################################################################################################
-	# Список прав доступа на редактирование флагов.
+	# Who and what flags can set/remove (permission ladder)
 	
-	# n - владелец или овнер - Пользователь с наивысшим доступом к боту. Ему доступны все возможные функции.
-	set permission_flag(global,n)		{}
-	set permission_flag(local,n)		{n m}
-	# m - мастер (master) - Пользователь, которому доступны почти все команды и функции.
-	set permission_flag(global,m)		{n}
-	set permission_flag(local,m)		{n|n m}
-	# t - ботнет-мастер (botnet-master) - Пользователь, которому доступны команды ботнета.
-	set permission_flag(global,t)		{n m}
-	# a - автооп (АОП) (auto-op) - Пользователь, который будет получать статус оператора при входе на канал.
-	set permission_flag(global,a)		{n m}
-	set permission_flag(local,a)		{n|n m|m}
-	# o - оператор (ОП) (op) - Пользователь, имеющий статус оператора на всех каналах
-	set permission_flag(global,o)		{n m}
-	set permission_flag(local,o)		{n|n m|m}
-	# y - автополуоп (auto-halfop) - Пользователь, который будет получать статус полуопа при входе на канал
-	set permission_flag(global,y)		{n m o}
-	set permission_flag(local,y)		{n|n m|m o|o}
-	# l - полуоп (halfop) - Пользователь, имеющий статус полуопа на всех каналах.
-	set permission_flag(global,l)		{n m o}
-	set permission_flag(local,l)		{n|n m|m o|o}
-	# g - автовоис (АВОИС) (auto-voice) - Пользователь, который будет получать голос (воис) при входе на канал
-	set permission_flag(global,g)		{n m o l}
-	set permission_flag(local,g)		{n|n m|m o|o l|l}
-	# v - голос (воис) (voice) - Пользователь, который будет получать голос (воис) на каналах +autovoice
-	set permission_flag(global,v)		{n m o l}
-	set permission_flag(local,v)		{n|n m|m o|o l|l}
-	# f - друг (friend) - Пользователь, который не будет кикнут за флуд и т.п.
-	set permission_flag(global,f)		{n m o l}
-	set permission_flag(local,f)		{n|n m|m o|o l|l}
-	# p - патилайн (party) - Пользователь, у которого есть доступ в патилайн (DCC)
-	set permission_flag(global,p)		{n}
-	# q - тихий (quiet) - Пользователь, которые не будет получать голос (воис) на каналах +autovoice
-	set permission_flag(global,q)		{n m o l}
-	set permission_flag(local,q)		{n|n m|m o|o l|l}
-	# r - ДЕполуоп (dehalfop) - Пользователь, которому нельзя брать статус полуопа. Статус будет сниматься автоматически.
-	set permission_flag(global,r)		{n m o}
-	set permission_flag(local,r)		{n|n m|m o|o}
-	# d - ДЕоп (deop) - Пользователь, которому нельзя брать статус оператора (ОПа). Статус будет сниматься автоматически.
-	set permission_flag(global,d)		{n m}
-	set permission_flag(local,d)		{n|n m|m}
-	# k - автокик (акик) (auto-kick) - Пользователь будет автоматически кикнут и забанен при заходе на канал
-	set permission_flag(global,k)		{n m}
-	set permission_flag(local,k)		{n|n m|m}
-	# x - передача файлов (xfer) - Пользователь, которому разрещено отправлять/принимать файлы.
-	set permission_flag(global,x)		{n m}
-	# j - (janitor) Пользователь, который имеет полный доступ к файловой системе. Модуль filesystem
-	set permission_flag(global,j)		{n m}
-	# c - (common) Пользователь, который ходит в IRC с публичного сайта, с которого несколько пользователей. Например у всех пользователей хост *!some@some.host.dom Пользователи будут идентифицироваться по нику.
-	set permission_flag(global,c)		{n m}
-	# w (wasop-test) Пользователь, для которого обязательно надо проверять был ил он ОПом до сплита для +stopnethack каналов
-	set permission_flag(global,w)		{n m}
-	set permission_flag(local,w)		{n|n m|m}
-	# z (washalfop-test) Пользователь, для которого нужно проверять, был ли он полуопом до сплита для +stopnethack каналов
-	set permission_flag(global,z)		{n m}
-	set permission_flag(local,z)		{n|n m|m}
-	# e (nethack-exempt) Пользователь, которого не нужно проверять при stopnethack процедуре
-	set permission_flag(global,e)		{n m}
-	set permission_flag(local,e)		{n|n m|m}
-	# u - не шарить (unshared) - Пользовательская запись не будет передаваться по ботнету если включен шаринг.
-	set permission_flag(global,u)		{n m t}
-	# h - подсветка (highlight) - Пользователь, для которого будет использоваться болд в хелпах
-	set permission_flag(global,h)		{n m}
+	# n - creator/owner - user has absolute control. Only give this flag to people you trust completely.
+	#set permission_flag(global,n)		{}
+	#set permission_flag(local,n)		{n m}
+	# m - master (master) - user has access to almost every feature of the bot.
+	#set permission_flag(global,m)		{n}
+	#set permission_flag(local,m)		{n|n m}
+	# t - botnet-master (botnet-master) - user has access to all features dealing with the botnet.
+	#set permission_flag(global,t)		{n m}
+	# a - aop (auto-op) - user is opped automatically upon joining a channel.
+	#set permission_flag(global,a)		{n m}
+	#set permission_flag(local,a)		{n|n m|m}
+	# o - op (op) - user has op access to all of the bot's channels.
+	#set permission_flag(global,o)		{n m}
+	#set permission_flag(local,o)		{n|n m|m}
+	# y - autohop (auto-halfop) -  user is halfopped automatically upon joining a channel.
+	#set permission_flag(global,y)		{n m o}
+	#set permission_flag(local,y)		{n|n m|m o|o}
+	# l - hop (halfop) - user has halfop access to all of the bot's channels.
+	#set permission_flag(global,l)		{n m o}
+	#set permission_flag(local,l)		{n|n m|m o|o}
+	# g - autovoice (АВОИС) (auto-voice) - user is voiced automatically upon joining a channel.
+	#set permission_flag(global,g)		{n m o l}
+	#set permission_flag(local,g)		{n|n m|m o|o l|l}
+	# v - voice (voice) (voice) - user gets +v automatically on +autovoice channels.
+	#set permission_flag(global,v)		{n m o l}
+	#set permission_flag(local,v)		{n|n m|m o|o l|l}
+	# f - friend (friend) -  user is not punished for flooding, etc.
+	#set permission_flag(global,f)		{n m o l}
+	#set permission_flag(local,f)		{n|n m|m o|o l|l}
+	# p - partyline (party) - user has access to the partyline (DCC).
+	#set permission_flag(global,p)		{n}
+	# q - quiet (quiet) - user does not get voice on +autovoice channels.
+	#set permission_flag(global,q)		{n m o l}
+	#set permission_flag(local,q)		{n|n m|m o|o l|l}
+	# r - dehalfop (dehalfop) - user cannot gain halfops on any of the bot's channels
+	#set permission_flag(global,r)		{n m o}
+	#set permission_flag(local,r)		{n|n m|m o|o}
+	# d - deop (deop) - user cannot gain ops on any of the bot's channels.
+	#set permission_flag(global,d)		{n m}
+	#set permission_flag(local,d)		{n|n m|m}
+	# k - autockick (akick) (auto-kick) - user is kicked and banned automatically.
+	#set permission_flag(global,k)		{n m}
+	#set permission_flag(local,k)		{n|n m|m}
+	# x - file transfer (xfer) - user has access to the file transfer area of the bot (if it exists) and can send and receive files to/from the bot." 
+	#set permission_flag(global,x)		{n m}
+	# j - (janitor) - user can perform maintenance in the file area of the bot (if it exists) -- like a "master" of the file area. Janitors have complete access to the filesystem.
+	#set permission_flag(global,j)		{n m}
+	# c - (common) - this marks a user who is connecting from a public site from which any number of people can use IRC. The user will now be recognized by NICKNAME.
+	#set permission_flag(global,c)		{n m}
+	# w (wasop-test) - user needs wasop test for +stopnethack procedure.
+	#set permission_flag(global,w)		{n m}
+	#set permission_flag(local,w)		{n|n m|m}
+	# z (washalfop-test) - user needs washalfop test for +stopnethack procedure.
+	#set permission_flag(global,z)		{n m}
+	#set permission_flag(local,z)		{n|n m|m}
+	# e (nethack-exempt) - user is exempted from stopnethack protection.
+	#set permission_flag(global,e)		{n m}
+	#set permission_flag(local,e)		{n|n m|m}
+	# u - unshared (unshared) - user record will not by sent to other bots.
+	#set permission_flag(global,u)		{n m t}
+	# h - highlight (highlight) - use bold text in help/text files.
+	#set permission_flag(global,h)		{n m}
 	
-	set permission_flag(global,Q)		{n}
-	set permission_flag(global,B)		{n}
-	set permission_flag(global,P)		{n}
-	set permission_flag(global,L)		{n}
-	set permission_flag(global,H)		{n}
-	set permission_flag(local,H)		{n}
+	# Q  - user identified on bot. (custom CCS flag)"
+	#set permission_flag(global,Q)		{n}
+	# B - user identified on bot via botnet. (custom CCS flag)"
+	#set permission_flag(global,B)		{n}
+	# P - user has a permanent authorization. (custom CCS flag)"
+	#set permission_flag(global,P)		{n}
+	# L - user's handle has a protection from changes and only global bot owner can change his flags. (custom CCS flag)" 
+	#set permission_flag(global,L)		{n}
+	# H - user has a protection from some commands, like kick, ban, etc... (custom CCS flag)"
+	#set permission_flag(global,H)		{n}
+	#set permission_flag(local,H)		{n}
 	
-	cmd_configure adduser -group "user" -flags {m} -block 3 -alias {%pref_adduser}
-	cmd_configure deluser -group "user" -flags {m} -block 3 -alias {%pref_deluser}
-	cmd_configure addhost -group "user" -flags {m} -block 1 -alias {%pref_addmask %pref_addhost %pref_+host}
-	cmd_configure delhost -group "user" -flags {m} -block 1 -alias {%pref_clearhosts %pref_delhost %pref_-host}
-	cmd_configure chattr -group "user" -flags {n|n m|m o|o l|l} -block 1 -alias {%pref_chattr}
-	cmd_configure userlist -group "user" -flags {o} -block 5 -alias {%pref_userlist}
-	cmd_configure resetpass -group "user" -flags {m} -block 3 -alias {%pref_resetpass}
-	cmd_configure chhandle -group "user" -flags {m} -block 3 -alias {%pref_chhandle}
-	cmd_configure setinfo -group "user" -flags {m|m} -block 3 -alias {%pref_setinfo}
-	cmd_configure delinfo -group "user" -flags {m|m} -block 1 -alias {%pref_delinfo}
-	cmd_configure match -group "user" -flags {lf|lf} -block 5 -alias {%pref_match}
+	#cmd_configure adduser -group "user" -flags {m} -block 3 -alias {%pref_adduser}
+	#cmd_configure deluser -group "user" -flags {m} -block 3 -alias {%pref_deluser}
+	#cmd_configure addhost -group "user" -flags {m} -block 1 -alias {%pref_addmask %pref_addhost %pref_+host}
+	#cmd_configure delhost -group "user" -flags {m} -block 1 -alias {%pref_clearhosts %pref_delhost %pref_-host}
+	#cmd_configure chattr -group "user" -flags {n|n m|m o|o l|l} -block 1 -alias {%pref_chattr}
+	#cmd_configure userlist -group "user" -flags {o} -block 5 -alias {%pref_userlist}
+	#cmd_configure resetpass -group "user" -flags {m} -block 3 -alias {%pref_resetpass}
+	#cmd_configure chhandle -group "user" -flags {m} -block 3 -alias {%pref_chhandle}
+	#cmd_configure setinfo -group "user" -flags {m|m} -block 3 -alias {%pref_setinfo}
+	#cmd_configure delinfo -group "user" -flags {m|m} -block 1 -alias {%pref_delinfo}
+	#cmd_configure match -group "user" -flags {lf|lf} -block 5 -alias {%pref_match}
 	
 	
 	################################################################################################
-	# Параметры скрипта whoisip                                                                    #
+	# Settings for WHOISIP script                                                                  #
 	################################################################################################
 	
 	################################################################################################
-	# Время в милисекундах в течении которого ожидать ответа.
 	# Request timeout (period within we should wait for answer)
-	configure -whoisip_timeout			20000
+	#configure -whoisip_timeout			20000
 	
 	################################################################################################
-	# Список выводимой информации.
 	# Output info entries.
-	configure -whoisip_info {
-		country person address city stateprov postalcode e-mail
-	}
+	#configure -whoisip_info {
+	#	netname descr country person address city stateprov postalcode e-mail
+	#	orgtechemail phone orgtechphone orgtechname orgname rtechname rtechemail
+	#	rtechphone
+	#}
 	
 	################################################################################################
-	# Метод получения DNS запросов. 
-	# 1 - используя модуль бота DNS (dns.so), при этом будут не доступны некоторые функции, такие
-	#     как: полная поддержка IPv6, получение записей NS серверов, MX записи, каноническое имя;
-	# 2 - используя библиотеку ccs.lib.dns.tcl, для её работы необходимо чтобы DNS сервер принимал
-	#     запросы по протоколу TCP, либо потребуется установка пакета обрабатывающего UDP запросы.
-	configure -mode_dns_reply			2
+	# DNS-lookups method.
+	# 1 - use bot's default DNS-module (dns.so). No IPv6 support, NS/NS extries, canon names;
+	# 2 - use ccs.lib.dns.tcl. Works properly only if your DNS-server understand requests via TCP
+	#     (coz TCL can't use UDP) or your bot has custom package to process UDP-requests.
+	#configure -mode_dns_reply			2
 	
 	#cmd_configure whoisip -group "info" -flags {-|-} -block 5 -use_botnet 0 -alias {%pref_whoisip}
-
-
