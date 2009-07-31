@@ -71,7 +71,7 @@ if {[pkg_info mod $_name on]} {
 		}
 		
 		if {![check_isnull $opts(-schan)]} {lappend r "!$opts(-schan)!"}
-		if {$opts(-command) != ""} {lappend r [string toupper $opts(-command)]}
+		if {$opts(-command) != ""} {lappend r "[string toupper $opts(-command)]"}
 		lappend r $text
 		
 		debug [join $r] $opts(-level)

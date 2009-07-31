@@ -2,6 +2,8 @@
 ## ћодуль с канальными командами управлени€
 ####################################################################################################
 # —писок последних изменений:
+#	v1.4.1
+# - ƒобавлена возможность просмотра флагов/параметров канала через команду !chaninfo по всем каналам
 #	v1.2.7
 # - ƒл€ команды !channels добавлен вывод секретных каналов если у запрашиваемого достаточно прав.
 # - «аменена функци€ lsearch_equal
@@ -9,7 +11,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{chan}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "25-Jul-2009" \
 	"ћодуль управлени€ списком каналов и настроек канальных флагов."
 
 if {[pkg_info mod $_name on]} {
@@ -47,226 +49,262 @@ if {[pkg_info mod $_name on]} {
 		-alias {%pref_set %pref_chanset} \
 		-regexp {{^([^\ ]+)(?:\ +(.*?))?$} {-> smode sargs}}
 	
-	cmd_configure chaninfo -control -group "chan" -flags {n|n} -block 5 \
+	cmd_configure chaninfo -control -group "chan" -flags {n|n} -block 5 -use_chan 2 \
 		-alias {%pref_chaninfo} \
 		-regexp {{^([^\ ]+)?$} {-> smode}}
 	
 	cmd_configure chansave -control -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chansave} \
-		-regexp {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile stfile}}
+		-regexp {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile tname}}
 	
 	cmd_configure chanload -control -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chanload} \
-		-regexp {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile stfile}}
+		-regexp {{^([\w\.\-]{1,100})(?:\s+([\w\.\-]{1,100}))?$} {-> sfile tname}}
 	
 	cmd_configure chancopy -control -group "chan" -flags {n|n} -block 5 \
 		-alias {%pref_chancopy} \
-		-regexp {{^([^\ ]+)(?:\s+([\w\.\-]{1,100}))?$} {-> dchan stfile}}
+		-regexp {{^([^\ ]+)(?:\s+([\w\.\-]{1,100}))?$} {-> dchan tname}}
 	
-	cmd_configure chantemplateadd -control -group "chan" -flags {n|n} -block 5 \
+	cmd_configure templateadd -control -group "chan" -flags {n|n} -block 5 -use_chan 0 \
 		-alias {%pref_templateadd} \
-		-regexp {{^([^\ ]+)\s+(.+?)$} {-> sfile param}}
+		-regexp {{^([^\ ]+)\s+(.+?)$} {-> tname param}}
 	
-	cmd_configure chantemplatedel -control -group "chan" -flags {n|n} -block 5 \
+	cmd_configure templatedel -control -group "chan" -flags {n|n} -block 5 -use_chan 0 \
 		-alias {%pref_templatedel} \
-		-regexp {{^([^\ ]+)\s+(.+?)$} {-> sfile param}}
+		-regexp {{^([^\ ]+)\s+(.+?)$} {-> tname param}}
 	
-	cmd_configure chantemplatelist -control -group "chan" -flags {n|n} -block 5 \
+	cmd_configure templatelist -control -group "chan" -flags {n|n} -block 5 -use_chan 0 \
 		-alias {%pref_templatelist} \
-		-regexp {{^([\w\.\-]{1,100})$} {-> sfile}}
+		-regexp {{^([\w\.\-]{1,100})$} {-> tname}}
 	
 	################################################################################################
 	# ѕроцедуры команд управлени€ каналами (CHANNEL).
 	
-	proc get_chaninfo {ind par} {
+	#   Input  : chan
+	#   Output : {index type name value ref_value}
+	proc channel_info {chan} {
 		
-		set res1 $par
-		set res2 $par
-		set flag 0
-		switch -exact $ind {
-			1 {set name "chanmode"}
-			2 {set name "idle-kick"}
-			3 {set name "stopnethack-mode"}
-			4 {set name "revenge-mode"}
-			5 {set name "need-op"}
-			6 {set name "need-invite"}
-			7 {set name "need-key"}
-			8 {set name "need-unban"}
-			9 {set name "need-limit"}
-			10 {set name "flood-chan"}
-			11 {set name "flood-ctcp"}
-			12 {set name "flood-join"}
-			13 {set name "flood-kick"}
-			14 {set name "flood-deop"}
-			15 {set name "flood-nick"}
-			16 {set name "aop-delay"}
-			17 {set name "ban-time"}
-			18 {set name "exempt-time"}
-			19 {set name "invite-time"}
-			default {
-				if {[string index [lindex $par 0] 0] == "-" } {
-					set name [lindex [string range $par 1 end] 0]
-					set res1 0
-					set flag 1
-				} elseif {[string index [lindex $par 0] 0] == "+"} {
-					set name [lindex [string range $par 1 end] 0]
-					set res1 1
-					set flag 1
-				} else {
-					set name [lindex $par 0]
-					set res1 [lindex $par 1]
-					set res2 [lindex $par 1]
+		set r {}
+		set ind 0
+		foreach _ [channel info $chan] {
+			incr ind
+			
+			set type 0
+			set value $_
+			switch -exact $ind {
+				1 {set name "chanmode"}
+				2 {set name "idle-kick"}
+				3 {set name "stopnethack-mode"}
+				4 {set name "revenge-mode"}
+				5 {set name "need-op"}
+				6 {set name "need-invite"}
+				7 {set name "need-key"}
+				8 {set name "need-unban"}
+				9 {set name "need-limit"}
+				10 {set name "flood-chan"}
+				11 {set name "flood-ctcp"}
+				12 {set name "flood-join"}
+				13 {set name "flood-kick"}
+				14 {set name "flood-deop"}
+				15 {set name "flood-nick"}
+				16 {set name "aop-delay"}
+				17 {set name "ban-time"}
+				18 {set name "exempt-time"}
+				19 {set name "invite-time"}
+				default {
+					
+					if {[llength $_] == 1} {
+						set type 1
+						set name [string range $_ 1 end]
+						if {[string index $_ 0] == "+"} {
+							set value 1
+						} else {
+							set value 0
+						}
+					} elseif {[llength $_] == 2} {
+						set type 2
+						set name [lindex $_ 0]
+						set value [lindex $_ 1]
+					}
+					
 				}
 			}
+			
+			lappend r [list $ind $type $name $value $_]
+			
 		}
 		
-		return [list $name $flag $res1 $res2]
+		return $r
 		
 	}
 	
-	proc cmd_chantemplatelist {} {
+	proc cmd_templatelist {snick shand schan command tname} {
 		upvar out out
 		variable options
-		importvars [list snick shand schan command sfile param]
 		
-		set filename [string map [list %s $sfile] $options(chantemplatefile)]
+		set filename [string map [list %s $tname] $options(chantemplatefile)]
 		
-		if {![file exists $filename]} {put_msg [sprintf chan #120 $sfile]; return 0}
+		if {![file exists $filename]} {put_msg -return 0 -- [sprintf chan #120 $tname]}
 		
-		if {[catch {
-			set data [LoadFile $filename]
-		} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
+		IfError {
+			set udef [LoadFile $filename]
+		} errMsg {
+			put_msg [sprintf ccs #213 $errMsg]
+			return -code return 0
+		}
 		
-		put_msg [sprintf chan #130 $sfile [join $data ", "]]
-		put_log "$sfile"
+		set udef [lsort $udef]
+		
+		put_msg [sprintf chan #130 $tname [join $udef ", "]]
+		put_log "name: \"$tname\"; file: \"$filename\""
 		return 1
 		
 	}
 	
-	proc cmd_chantemplateadd {} {
+	proc cmd_templateadd {snick shand schan command tname param} {
 		upvar out out
 		variable options
-		importvars [list snick shand schan command sfile param]
 		
-		set filename [string map [list %s $sfile] $options(chantemplatefile)]
+		set filename [string map [list %s $tname] $options(chantemplatefile)]
 		
-		if {[catch {
-			set data [LoadFile $filename]
-		} errMsg]} {set data [list]}
+		set udef         [list];         # список параметров наход€щихс€ в файле
+		set user_udef    [split $param]; # пользовательский список параметров
+		set new_udef     [list];         # список параметров отсутствующих в шаблоне
+		set old_udef     [list];         # список параметров присутствующих в шаблоне
+		set error_udef   [list];         # список ошибочных параметров
+		set correct_udef [list];         # список корректных параметров
 		
-		set lparam [split $param]
-		set lnew [list]
-		set lold [list]
-		set lerr [list]
-		set lver [list]
-		
-		set ind 0
-		foreach _ [channel info $schan] {
-			incr ind
-			lassign [get_chaninfo $ind $_] name flag res1 res2
-			lappend lver $name
+		if {[file exists $filename]} {
+			IfError {
+				set udef [LoadFile $filename]
+			} errMsg {
+				put_msg [sprintf ccs #213 $errMsg]
+				return -code return 0
+			}
 		}
 		
-		foreach _ $lparam {
+		# формируем список корректных флагов
+		set c [channels]
+		if {[llength $c] == 0} {put_log -return 0 -- "no channels"}
+		foreach _ [channel_info [lindex $c 0]] {
+			lassign $_ index type name value ref_value
+			lappend correct_udef $name
+		}
+		
+		set user_udef [lsort -unique $user_udef]
+		foreach _ $user_udef {
 			
-			if {[lsearch -exact $data $_] >= 0} {
-				lappend lold $_
-			} elseif {[lsearch -exact $lver $_] < 0} {
-				lappend lerr $_
+			if {[in $udef $_]} {
+				lappend old_udef $_
+			} elseif {[ni $correct_udef $_]} {
+				lappend error_udef $_
 			} else {
-				lappend lnew $_
-				lappend data $_
+				lappend new_udef $_
+				lappend udef $_
 			}
 			
 		}
 		
-		if {[llength $lnew] == 0} {
+		set udef       [lsort $udef]
+		set new_udef   [lsort $new_udef]
+		set old_udef   [lsort $old_udef]
+		set error_udef [lsort $error_udef]
+		
+		if {[llength $new_udef] == 0} {
 			set lout [list]
-			if {[llength $lerr] > 0} {lappend lout [sprintf chan #126 [join $lerr ", "]]}
-			if {[llength $lold] > 0} {lappend lout [sprintf chan #127 [join $lold ", "]]}
-			put_msg [sprintf chan #121 $sfile [join $lout "; "]]
-			return 0
+			if {[llength $error_udef] > 0} {lappend lout [sprintf chan #126 [join $error_udef ", "]]}
+			if {[llength $old_udef] > 0}   {lappend lout [sprintf chan #127 [join $old_udef ", "]]}
+			put_msg -return 0 -- [sprintf chan #121 $tname [join $lout "; "]]
 		}
 		
-		if {[catch {
-			SaveFile $filename $data
-		} errMsg]} {put_msg [sprintf ccs #192 $errMsg]; return 0}
+		IfError {
+			SaveFile $filename $udef
+		} errMsg {
+			put_msg [sprintf ccs #192 $errMsg]
+			return -code return 0
+		}
 		
 		set lout [list]
-		if {[llength $lnew] > 0} {lappend lout [sprintf chan #125 [join $lnew ", "]]}
-		if {[llength $lerr] > 0} {lappend lout [sprintf chan #126 [join $lerr ", "]]}
-		if {[llength $lold] > 0} {lappend lout [sprintf chan #127 [join $lold ", "]]}
+		if {[llength $new_udef] > 0}   {lappend lout [sprintf chan #125 [join $new_udef ", "]]}
+		if {[llength $error_udef] > 0} {lappend lout [sprintf chan #126 [join $error_udef ", "]]}
+		if {[llength $old_udef] > 0}   {lappend lout [sprintf chan #127 [join $old_udef ", "]]}
 		
-		put_msg [sprintf chan #123 $sfile [join $lout "; "]]
-		put_msg [sprintf chan #131 [join $data ", "]]
-		put_log "$sfile (new: [join $lnew ", "]; old: [join $lold ", "]; err: [join $lerr ", "])"
+		put_msg [sprintf chan #123 $tname [join $lout "; "]]
+		put_msg [sprintf chan #131 [join $udef ", "]]
+		put_log "name: \"$tname\"; file: \"$filename\"; new udef: \"[join $new_udef ", "]\"; old udef: \"[join $old_udef ", "]\"; error udef: \"[join $error_udef ", "]\""
 		return 1
 		
 	}
 	
-	proc cmd_chantemplatedel {} {
+	proc cmd_templatedel {snick shand schan command tname param} {
 		upvar out out
 		variable options
-		importvars [list snick shand schan command sfile param]
 		
-		set filename [string map [list %s $sfile] $options(chantemplatefile)]
+		set filename [string map [list %s $tname] $options(chantemplatefile)]
 		
-		if {![file exists $filename]} {put_msg [sprintf chan #120 $sfile]; return 0}
+		if {![file exists $filename]} {put_msg -return 0 -- [sprintf chan #120 $tname]}
 		
-		if {[catch {
-			set data [LoadFile $filename]
-		} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
+		IfError {
+			set udef [LoadFile $filename]
+		} errMsg {
+			put_msg [sprintf ccs #213 $errMsg]
+			return -code return 0
+		}
 		
-		set lparam [split $param]
-		set ldel [list]
-		set lno [list]
+		set user_udef [split $param]; # пользовательский список параметров
+		set del_udef  [list];         # список параметров на удаление
+		set no_udef   [list];         # список параметров отсутствующих в шаблоне
 		
-		foreach _ $lparam {
+		set user_udef [lsort -unique $user_udef]
+		foreach _ $user_udef {
 			
-			if {[lsearch -exact $data $_] >= 0} {
-				lappend ldel $_
+			if {[in $udef $_]} {
+				lappend del_udef $_
+				set udef [lsearch -all -inline -not $udef $_]
 			} else {
-				lappend lno $_
+				lappend no_udef $_
 			}
 			
 		}
 		
-		if {[llength $ldel] == 0} {
+		set udef     [lsort $udef]
+		set del_udef [lsort $del_udef]
+		set no_udef  [lsort $no_udef]
+		
+		if {[llength $del_udef] == 0} {
 			set lout [list]
-			if {[llength $lno] > 0} {lappend lout [sprintf chan #129 [join $lno ", "]]}
-			put_msg [sprintf chan #122 $sfile [join $lout "; "]]
+			if {[llength $no_udef] > 0} {lappend lout [sprintf chan #129 [join $no_udef ", "]]}
+			put_msg [sprintf chan #122 $tname [join $lout "; "]]
 			return 0
 		}
 		
-		set newdata [list]
-		foreach _ $data {if {[lsearch -exact $ldel $_] < 0} {lappend newdata $_}}
-		
-		if {[catch {
-			SaveFile $filename $newdata
-		} errMsg]} {put_msg [sprintf ccs #192 $errMsg]; return 0}
+		IfError {
+			SaveFile $filename $udef
+		} errMsg {
+			put_msg [sprintf ccs #192 $errMsg]
+			return -code return 0
+		}
 		
 		set lout [list]
-		if {[llength $ldel] > 0} {lappend lout [sprintf chan #128 [join $ldel ", "]]}
-		if {[llength $lno] > 0} {lappend lout [sprintf chan #129 [join $lno ", "]]}
-		
-		put_msg [sprintf chan #124 $sfile [join $lout "; "]]
-		put_msg [sprintf chan #131 [join $newdata ", "]]
-		put_log "$sfile (del: [join $ldel ", "]; no: [join $lno ", "])"
+		if {[llength $del_udef] > 0} {lappend lout [sprintf chan #128 [join $del_udef ", "]]}
+		if {[llength $no_udef] > 0}  {lappend lout [sprintf chan #129 [join $no_udef ", "]]}
+		put_msg [sprintf chan #124 $tname [join $lout "; "]]
+		put_msg [sprintf chan #131 [join $udef ", "]]
+		put_log "name: \"$tname\"; file: \"$filename\"; del udef: \"[join $del_udef ", "]\"; no udef: \"[join $no_udef ", "]\""
 		return 1
 		
 	}
 	
-	proc cmd_chansave {} {
+	proc cmd_chansave {snick shand schan command sfile tname} {
 		upvar out out
 		variable options
-		importvars [list snick shand schan command sfile stfile]
 		
 		set filename [string map [list %s $sfile] $options(chansetfile)]
 		
-		if {![string is space $stfile]} {
+		if {![string is space $tname]} {
 			
-			set tfilename [string map [list %s $stfile] $options(chantemplatefile)]
-			if {![file exists $tfilename]} {put_msg [sprintf chan #120 $stfile]; return 0}
+			set tfilename [string map [list %s $tname] $options(chantemplatefile)]
+			if {![file exists $tfilename]} {put_msg [sprintf chan #120 $tname]; return 0}
 			if {[catch {
 				set tdata [LoadFile $tfilename]
 			} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
@@ -277,12 +315,14 @@ if {[pkg_info mod $_name on]} {
 		set data [list]
 		set lok [list]
 		
-		set ind 0
-		foreach _ [channel info $schan] {
-			incr ind
-			lassign [get_chaninfo $ind $_] name flag res1 res2
-			if {$usetemplate && [lsearch -exact $tdata $name] < 0} continue
-			lappend data [list $name $flag $res2]
+		foreach _ [channel_info $schan] {
+			lassign $_ index type name value ref_value
+			if {$usetemplate && [ni $tdata $name]} continue
+			if {$type == 1} {
+				lappend data [list $name 1 $ref_value]
+			} else {
+				lappend data [list $name 0 $value]
+			}
 			lappend lok $name
 		}
 		
@@ -290,7 +330,7 @@ if {[pkg_info mod $_name on]} {
 			SaveFile -backup $options(bakchanset) -- $filename $data
 		} errMsg]} {put_msg [sprintf ccs #192 $errMsg]; return 0}
 		if {$usetemplate} {
-			put_msg [sprintf chan #112 $schan $sfile $stfile]
+			put_msg [sprintf chan #112 $schan $sfile $tname]
 		} else {
 			put_msg [sprintf chan #111 $schan $sfile]
 		}
@@ -303,7 +343,7 @@ if {[pkg_info mod $_name on]} {
 	proc cmd_chanload {} {
 		upvar out out
 		variable options
-		importvars [list snick shand schan command sfile stfile]
+		importvars [list snick shand schan command sfile tname]
 		
 		set filename [string map [list %s $sfile] $options(chansetfile)]
 		if {![file exists $filename]} {put_msg [sprintf chan #119 $sfile]; return 0}
@@ -311,10 +351,10 @@ if {[pkg_info mod $_name on]} {
 			set data [LoadFile $filename]
 		} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
 		
-		if {![string is space $stfile]} {
+		if {![string is space $tname]} {
 			
-			set tfilename [string map [list %s $stfile] $options(chantemplatefile)]
-			if {![file exists $tfilename]} {put_msg [sprintf chan #120 $stfile]; return 0}
+			set tfilename [string map [list %s $tname] $options(chantemplatefile)]
+			if {![file exists $tfilename]} {put_msg [sprintf chan #120 $tname]; return 0}
 			if {[catch {
 				set tdata [LoadFile $tfilename]
 			} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
@@ -325,7 +365,7 @@ if {[pkg_info mod $_name on]} {
 		set lerr [list]
 		set lok [list]
 		foreach _ $data {
-			if {$usetemplate && [lsearch -exact $tdata [lindex $_ 0]] < 0} continue
+			if {$usetemplate && [ni $tdata [lindex $_ 0]]} continue
 			if {[catch {
 				if {[lindex $_ 1]} {
 					channel set $schan [lindex $_ 2]
@@ -337,9 +377,9 @@ if {[pkg_info mod $_name on]} {
 		}
 		if {$usetemplate} {
 			if {[llength $lerr] > 0} {
-				put_msg [sprintf chan #116 $schan $sfile $stfile [join $lerr ", "]]
+				put_msg [sprintf chan #116 $schan $sfile $tname [join $lerr ", "]]
 			} else {
-				put_msg [sprintf chan #114 $schan $sfile $stfile]
+				put_msg [sprintf chan #114 $schan $sfile $tname]
 			}
 		} else {
 			if {[llength $lerr] > 0} {
@@ -357,33 +397,35 @@ if {[pkg_info mod $_name on]} {
 	proc cmd_chancopy {} {
 		upvar out out
 		variable options
-		importvars [list snick shand schan command dchan stfile]
+		importvars [list snick shand schan command dchan tname]
 		
 		if {[check_notavailable {-notvalidchan} -dchan $dchan]} {return 0}
-		if {![check_matchattr $shand $dchan [cmd_configure $command -flags]]} {put_msg [sprintf ccs #118]; return 0}
+		if {![check_matchattr $shand $dchan [cmd_configure $command -flags]]} {put_msg -return 0 -- [sprintf ccs #118]}
 		
-		if {![string is space $stfile]} {
-			
-			set tfilename [string map [list %s $stfile] $options(chantemplatefile)]
-			if {![file exists $tfilename]} {put_msg [sprintf chan #120 $stfile]; return 0}
+		set usetemplate 0
+		if {![string is space $tname]} {
+			set tfilename [string map [list %s $tname] $options(chantemplatefile)]
+			if {![file exists $tfilename]} {put_msg -return 0 -- [sprintf chan #120 $tname]}
 			if {[catch {
 				set tdata [LoadFile $tfilename]
-			} errMsg]} {put_msg [sprintf ccs #213 $errMsg]; return 0}
+			} errMsg]} {put_msg -return 0 -- [sprintf ccs #213 $errMsg]}
 			set usetemplate 1
-			
-		} else {set usetemplate 0}
+		}
 		
 		set lok [list]
-		set ind 0
-		foreach _ [channel info $schan] {
-			incr ind
-			lassign [get_chaninfo $ind $_] name flag res1 res2
-			if {$usetemplate && [lsearch -exact $tdata $name] < 0} continue
+		foreach _ [channel_info $schan] {
+			lassign $_ index type name value ref_value
+			if {$usetemplate && [ni $tdata $name]} continue
 			lappend lok $name
-			if {$flag} {channel set $dchan $res2} else {channel set $dchan $name $res2}
+			if {$type == 1} {
+				channel set $dchan $ref_value
+			} else {
+				channel set $dchan $name $value
+			}
 		}
+		
 		if {$usetemplate} {
-			put_msg [sprintf chan #118 $schan $dchan $stfile]
+			put_msg [sprintf chan #118 $schan $dchan $tname]
 		} else {
 			put_msg [sprintf chan #117 $schan $dchan]
 		}
@@ -470,8 +512,7 @@ if {[pkg_info mod $_name on]} {
 					channel set $schan $smode
 				}
 			}]} {
-				put_msg [sprintf chan #106 $smode]
-				return 0
+				put_msg -return 0 -- [sprintf chan #106 $smode]
 			}
 			put_msg [sprintf chan #107 $smode]
 			put_log "$smode"
@@ -484,8 +525,7 @@ if {[pkg_info mod $_name on]} {
 					channel set $schan $smode $sargs
 				}
 			}]} {
-				put_msg [sprintf chan #106 $smode]
-				return 0
+				put_msg -return 0 -- [sprintf chan #106 $smode]
 			}
 			put_msg [sprintf chan #109 $smode $sargs]
 			put_log "$smode $sargs"
@@ -500,6 +540,8 @@ if {[pkg_info mod $_name on]} {
 		
 		if {[string is space $smode]} {
 			
+			if {[check_isnull $schan]} {put_help -return 0}
+			
 			set out_group1 [list]
 			set out_group2 [list]
 			set out_group3 [list]
@@ -512,38 +554,24 @@ if {[pkg_info mod $_name on]} {
 			set out_group9 ""
 			set out_group10 ""
 			
-			set ind 0
-			foreach _ [channel info $schan] {
+			foreach _ [channel_info $schan] {
+				lassign $_ index type name value ref_value
 				
-				incr ind
-				switch -exact $ind {
-					1 {lappend out_group1 "\002chanmode:\002 $_"}
-					2 {lappend out_group1 "\002Idle-Kick:\002 $_"}
-					3 {lappend out_group1 "\002Stopnethack-mode:\002 $_"}
-					4 {lappend out_group1 "\002revenge-mode:\002 $_"}
-					5 {set out_group6 "\002need-op:\002 $_"}
-					6 {set out_group7 "\002need-invite:\002 $_"}
-					7 {set out_group8 "\002need-key:\002 $_"}
-					8 {set out_group9 "\002need-unban:\002 $_"}
-					9 {set out_group10 "\002need-limit:\002 $_"}
-					10 {lappend out_group5 "flood-chan: $_"}
-					11 {lappend out_group5 "flood-ctcp: $_"}
-					12 {lappend out_group5 "flood-join: $_"}
-					13 {lappend out_group5 "flood-kick: $_"}
-					14 {lappend out_group5 "flood-deop: $_"}
-					15 {lappend out_group5 "flood-nick: $_"}
-					16 {lappend out_group1 "\002aop-delay:\002 $_"}
-					17 {lappend out_group1 "\002ban-time:\002 $_"}
-					18 {lappend out_group1 "\002exempt-time:\002 $_"}
-					19 {lappend out_group1 "\002invite-time:\002 $_"}
+				switch -exact $index {
+					1 - 2 - 3 - 4 - 16 - 17 - 18 - 19 {lappend out_group1 "\002$name:\002 \"$value\""}
+					10 - 11 - 12 - 13 - 14 - 15 {lappend out_group5 "$name \"$value\""}
+					5 {set out_group6 "\002$name:\002 \"$value\""}
+					6 {set out_group7 "\002$name:\002 \"$value\""}
+					7 {set out_group8 "\002$name:\002 \"$value\""}
+					8 {set out_group9 "\002$name:\002 \"$value\""}
+					9 {set out_group10 "\002$name:\002 \"$value\""}
 					default {
-						if {$ind < 45} {
-							lappend out_group2 "$_"
+						if {$index < 45} {
+							lappend out_group2 $ref_value
 						} else {
-							if {[string index $_ 0] == "-" || [string index $_ 0] == "+"} {
-								lappend out_group3 "$_"
-							} else {
-								lappend out_group4 "$_"
+							switch -exact $type {
+								1 {lappend out_group3 "$ref_value"}
+								2 {lappend out_group4 "$name \"$value\""}
 							}
 						}
 					}
@@ -562,45 +590,123 @@ if {[pkg_info mod $_name on]} {
 			put_msg -speed 3 -- "\002User defined channel strings:\002 [join $out_group4 ", "]."
 			put_msg -speed 3 -- "\002Flood settings:\002 [join $out_group5 ", "]."
 			
+			put_log ""
+			return 1
+			
 		} else {
-			if {[catch {set getmode [channel get $schan $smode]}]} {
+			
+			if {[check_isnull $schan]} {
 				
-				set find 0
-				set ind 0
-				foreach _ [channel info $schan] {
-					incr ind
-					lassign [get_chaninfo $ind $_] name flag res1 res2
-					if {[string match -nocase $smode $name]} {
-						set find 1
-						if {$flag} {
-							put_msg -speed 3 -- [sprintf chan #108 $res2]
-						} else {
-							put_msg -speed 3 -- [sprintf chan #110 $name $res1]
+				set c {}
+				foreach _ [channels] {
+					if {[check_matchattr $shand $schan [cmd_configure $command -flags]]} {
+						lappend c $_
+					}
+				}
+				if {[llength $c] == 0} {put_log -return 0 -- "no channels"}
+				
+				set c1 [lindex $c 0]
+				set c2 [lrange $c 1 end]
+				
+				set cinfo [channel_info $c1]
+				foreach _ $cinfo {
+					lassign $_ index type name value ref_value
+					
+					if {$name == $smode} {
+						switch -exact $type {
+							0 - 2 {
+								set lout [list "$c1: \"\002$value\002\""]
+								foreach chan $c2 {
+									lappend lout "$chan: \"\002[channel get $chan $name]\002\""
+								}
+								put_msg -- [sprintf chan #133 $name [join $lout ", "]]
+							}
+							1 {
+								set lout [list "$c1: \002$ref_value\002"]
+								foreach chan $c2 {
+									if {[channel get $chan $name]} {
+										lappend lout "$chan: \002+$name\002"
+									} else {
+										lappend lout "$chan: \002-$name\002"
+									}
+								}
+								put_msg -- [sprintf chan #132 [join $lout ", "]]
+							}
 						}
+						put_log "flag $smode"
+						return 1
 					}
 					
 				}
-				if {!$find} {put_msg [sprintf chan #106 $smode]; return 0}
+				set find 0
+				foreach _ $cinfo {
+					lassign $_ index type name value ref_value
+					
+					if {[string match -nocase $smode $name]} {
+						switch -exact $type {
+							0 - 2 {
+								set lout [list "$c1: \"\002$value\002\""]
+								foreach chan $c2 {
+									lappend lout "$chan: \"\002[channel get $chan $name]\002\""
+								}
+								put_msg -- [sprintf chan #133 $name [join $lout ", "]]
+							}
+							1 {
+								set lout [list "$c1: \002$ref_value\002"]
+								foreach chan $c2 {
+									if {[channel get $chan $name]} {
+										lappend lout "$chan: \002+$name\002"
+									} else {
+										lappend lout "$chan: \002-$name\002"
+									}
+								}
+								put_msg -- [sprintf chan #132 [join $lout ", "]]
+							}
+						}
+						set find 1
+					}
+					
+				}
+				if {!$find} {put_msg -return 0 -- [sprintf chan #106 $smode]}
+				put_log "match $smode"
+				return 1
 				
 			} else {
 				
-				set ind 0
-				set flag1 0
-				foreach _ [channel info $schan] {
-					incr ind
-					if {$ind < 20} continue
-					lassign [get_chaninfo $ind $_] name flag res1 res2
-					if {$name == $smode} {set flag1 $flag; break}
+				set cinfo [channel_info $schan]
+				foreach _ $cinfo {
+					lassign $_ index type name value ref_value
+					
+					if {$name == $smode} {
+						switch -exact $type {
+							0 - 2 {put_msg -- [sprintf chan #110 $name $value]}
+							1 {put_msg -- [sprintf chan #108 $ref_value]}
+						}
+						put_log "flag $smode"
+						return 1
+					}
+					
 				}
-				if {$flag1} {
-					put_msg [sprintf chan #108 [expr {$getmode ? "+" : "-"}]$smode]
-				} else {
-					put_msg [sprintf chan #110 $smode $getmode]
+				set find 0
+				foreach _ $cinfo {
+					lassign $_ index type name value ref_value
+					
+					if {[string match -nocase $smode $name]} {
+						switch -exact $type {
+							0 - 2 {put_msg -speed 3 -- [sprintf chan #110 $name $value]}
+							1 {put_msg -speed 3 -- [sprintf chan #108 $ref_value]}
+						}
+						set find 1
+					}
+					
 				}
+				if {!$find} {put_msg -return 0 -- [sprintf chan #106 $smode]}
+				put_log "match $smode"
+				return 1
+				
 			}
+			
 		}
-		put_log "$smode"
-		return 1
 		
 	}
 	

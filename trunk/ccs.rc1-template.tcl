@@ -110,7 +110,7 @@ if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]"
 	################################################################################################
 	# ‘лаг, обеспечивающий быстрый вывод и работу с командами. јктуален при наличии флага +F на
 	# боте, иначе бот будет вылетать за флуд (0 - медленно, 1 - быстро).
-	#configure -fast						1
+	configure -fast						1
 	
 	################################################################################################
 	# ћаксимальное количество строк отсылаемых нотисом, при превышении данного значени€ сообщение
@@ -348,9 +348,9 @@ if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]"
 	#cmd_configure chansave -group "chan" -flags {n|n} -block 5 -alias {%pref_chansave}
 	#cmd_configure chanload -group "chan" -flags {n|n} -block 5 -alias {%pref_chanload}
 	#cmd_configure chancopy -group "chan" -flags {n|n} -block 5 -alias {%pref_chancopy}
-	#cmd_configure chantemplateadd -group "chan" -flags {n|n} -block 5 -alias {%pref_templateadd}
-	#cmd_configure chantemplatedel -group "chan" -flags {n|n} -block 5 -alias {%pref_templatedel}
-	#cmd_configure chantemplatelist -group "chan" -flags {n|n} -block 5 -alias {%pref_templatelist}
+	#cmd_configure templateadd -group "chan" -flags {n|n} -block 5 -alias {%pref_templateadd}
+	#cmd_configure templatedel -group "chan" -flags {n|n} -block 5 -alias {%pref_templatedel}
+	#cmd_configure templatelist -group "chan" -flags {n|n} -block 5 -alias {%pref_templatelist}
 	
 	
 	################################################################################################
@@ -572,22 +572,6 @@ if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]"
 	################################################################################################
 	# ѕараметры модул€ regban                                                                      #
 	################################################################################################
-	
-	################################################################################################
-	# «начение по умолчанию, которое определ€ет маску по умолчанию дл€ выставлени€ банов.
-	# «начение может быть переопределено выставлением канального флага ccs-banmask.
-	# ƒоступные значени€:
-	# 1: *!user@host
-	# 2: *!*user@host
-	# 3: *!*@host
-	# 4: *!*user@*.host
-	# 5: *!*@*.host
-	# 6: nick!user@host
-	# 7: nick!*user@host
-	# 8: nick!*@host
-	# 9: nick!*user@*.host
-	# 10: nick!*@*.host
-	#configure -banmask					4
 	
 	################################################################################################
 	#  аталог, куда будут помещатьс€ старые файлы после обновлени€, при этом указание
