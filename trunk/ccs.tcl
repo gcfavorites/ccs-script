@@ -31,6 +31,7 @@
 # Список последних изменений:
 #	v1.8.3
 # - Добавление функционала для интеграции скриптов
+# - Исправлена работоспособность параметра -override_level
 #	v1.8.2
 # - Для библиотеки IP добавлена поддержка Tcl8.4. Оптимизирована работа скрипта в целом для Tcl8.5+
 # - В библиотеке IP обновлен список адрессов RIR
@@ -2095,7 +2096,7 @@ namespace eval ::ccs {
 		importvars [list snick shand schan command]
 		upvar dchan dchan dhand dhand dnick dnick
 		set saccess [get_accesshand $shand $dchan 1]
-		if {[set override_level [cmd_configure $command override_level]] > 0 && $override_level > $saccess} {set saccess $override_level}
+		if {[set override_level [cmd_configure $command -override_level]] > 0 && $override_level > $saccess} {set saccess $override_level}
 		set daccess [get_accesshand $dhand $dchan]
 		if {($saccess <= $daccess)} {
 			put_msg [sprintf ccs #102 $command [StrNick -nick $dnick -hand $dhand]]
@@ -2111,7 +2112,7 @@ namespace eval ::ccs {
 		upvar dhand dhand dchan dchan dnick dnick
 		if {$shand == $dhand} {return 0}
 		set saccess [get_accesshand $shand $dchan 1]
-		if {[set override_level [cmd_configure $command override_level]] > 0 && $override_level > $saccess} {set saccess $override_level}
+		if {[set override_level [cmd_configure $command -override_level]] > 0 && $override_level > $saccess} {set saccess $override_level}
 		set daccess [get_accesshand $dhand $dchan]
 		if {($saccess <= $daccess)} {
 			put_msg [sprintf ccs #102 $command [StrNick -nick $dnick -hand $dhand]]
