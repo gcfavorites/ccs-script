@@ -60,7 +60,7 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #110 "Channel ops: %s."
 	set_text $_lang $_name #111 "Channel masters: %s."
 	set_text $_lang $_name #112 "Channel owners: %s."
-	set_text $_lang $_name #113 "Bot's admins \002%s\002 (bold mean online,  if current online nick doesn't match registered handle, nick will be enclosed with '()'):"
+	set_text $_lang $_name #113 "\002%s\002's admins (bold mean online,  if current online nick doesn't match registered handle, nick will be enclosed with '()'):"
 	set_text $_lang $_name #114 "Global friends (+f|-): %s."
 	set_text $_lang $_name #115 "Global halfops: %s."
 	set_text $_lang $_name #116 "Global ops: %s."
