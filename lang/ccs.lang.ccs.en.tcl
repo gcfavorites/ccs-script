@@ -32,7 +32,7 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 		{Help info for CCS-commands. Valid flags are:}
 		{\002-a\002 show minimal/required access level for the command;}
 		{\002-l\002 show commands only available for you (limited by your current access level);}
-		{\002-ñ\002 show aliases for commands;}
+		{\002-c\002 show aliases for commands;}
 		{\002-g group\002 show commands by group;}
 		{\002-s\002 show the list of available scripts;}
 		{Valid \002groups\002 are: \002%groups\002. Example usage: \002-l -g mode\002}
