@@ -32,6 +32,8 @@
 #	v1.8.3
 # - ƒобавление функционала дл€ интеграции скриптов
 # - »справлена работоспособность параметра -override_level
+# - »справлено пересечение переменных определенных в namespace и глобально
+# - ƒобавлен параметр max_msg_chan определ€ющий ограничение строк отправленных на канал из списка
 #	v1.8.2
 # - ƒл€ библиотеки IP добавлена поддержка Tcl8.4. ќптимизирована работа скрипта в целом дл€ Tcl8.5+
 # - ¬ библиотеке IP обновлен список адрессов RIR
@@ -157,15 +159,6 @@ namespace eval ::ccs {
 	################################################################################################
 	# ќбъ€вление общих переменных
 	
-	if {[info exists options]}     { unset options     }
-	if {[info exists cmd_options]} { unset cmd_options }
-	if {[info exists text]}        { unset text        }
-	if {[info exists commands]}    { unset commands    }
-	if {[info exists pkg]}         { unset pkg         }
-	
-	foreach _ [lsearch -all -inline [package names] "[namespace current]::*"] {package forget $_}
-	foreach _ [namespace children [namespace current]] {namespace delete $_}
-	
 	variable options
 	variable cmd_options
 	variable text
@@ -179,6 +172,15 @@ namespace eval ::ccs {
 	variable dir_ccs
 	variable group
 	variable type_file
+	
+	foreach _ [array names options]     { unset options($_)     }
+	foreach _ [array names cmd_options] { unset cmd_options($_) }
+	foreach _ [array names text]        { unset text($_)        }
+	foreach _ [array names commands]    { unset commands($_)    }
+	foreach _ [array names pkg]         { unset pkg($_)         }
+	
+	foreach _ [lsearch -all -inline [package names] "[namespace current]::*"] {package forget $_}
+	foreach _ [namespace children [namespace current]] {namespace delete $_}
 	
 	set commands(control) {}
 	set commands(scripts) {}
@@ -230,7 +232,12 @@ namespace eval ::ccs {
 	################################################################################################
 	# ћаксимальное количество строк отсылаемых нотисом, при превышении данного значени€ сообщение
 	# будет отправлено в приват
-	set options(max_notice)				10
+	set options(max_msg_notice)			10
+	
+	################################################################################################
+	# ћаксимальное количество строк отсылаемых в канал, при превышении данного значени€ сообщение
+	# будет отправлено в приват
+	set options(max_msg_chan)			5
 	
 	################################################################################################
 	# ƒлина одного сообщени€ в количестве символов. ≈сли сообщение будет превышать максимально
@@ -1518,7 +1525,8 @@ namespace eval ::ccs {
 		variable options
 		
 		set opts(-list)       0;  # текст передаетс€ списком
-		set opts(-notice2msg) 0;  # если количество строк превышает допустимое то сообщение будет отправленно в приват
+		set opts(-notice2msg) 0;  # если количество строк нотисом превышает допустимое то сообщение будет отправленно в приват
+		set opts(-chan2msg)   0;  # если количество строк в канал превышает допустимое то сообщение будет отправленно в приват
 		set opts(-type)       ""; # направление вывода сообщени€
 		set opts(-speed)      2;  # скорость очереди, в которой будет выведен текст
 		set opts(-return)     ""; # выход из процедуры после вывода сообщени€
@@ -1536,6 +1544,7 @@ namespace eval ::ccs {
 				switch -glob -- [lindex $args 0] {
 					-list       { set opts(-list)       1 }
 					-notice2msg { set opts(-notice2msg) 1 }
+					-chan2msg   { set opts(-chan2msg)   1 }
 					-type       { set opts(-type)       [Pop args 1] }
 					-speed      { set opts(-speed)      [Pop args 1] }
 					-nick       { set opts(-nick)       [Pop args 1] }
@@ -1592,7 +1601,7 @@ namespace eval ::ccs {
 			notice {
 				if {![string is space $opts(-nick)]} {
 					if {$opts(-list)} {
-						if {$opts(-notice2msg) && [llength $text] > $options(max_notice)} {
+						if {$opts(-notice2msg) && [llength $text] > $options(max_msg_notice)} {
 							foreach _ $text {put_msgdest -speed $opts(-speed) -type privmsg -- $opts(-nick) $_}
 						} else {
 							foreach _ $text {put_msgdest -speed $opts(-speed) -type notice -- $opts(-nick) $_}
@@ -1605,7 +1614,11 @@ namespace eval ::ccs {
 			chan {
 				if {![string is space $opts(-chan)]} {
 					if {$opts(-list)} {
-						foreach _ $text {put_msgdest -speed $opts(-speed) -type privmsg -- $opts(-chan) $_}
+						if {$opts(-chan2msg) && [llength $text] > $options(max_msg_chan) && ![string is space $opts(-nick)]} {
+							foreach _ $text {put_msgdest -speed $opts(-speed) -type privmsg -- $opts(-nick) $_}
+						} else {
+							foreach _ $text {put_msgdest -speed $opts(-speed) -type privmsg -- $opts(-chan) $_}
+						}
 					} else {
 						put_msgdest -speed $opts(-speed) -type privmsg -- $opts(-chan) $text
 					}
