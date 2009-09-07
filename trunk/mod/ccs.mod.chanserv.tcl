@@ -10,8 +10,8 @@ pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
 
 if {[pkg_info mod $_name on]} {
 	
-	if {[info exists chanserv]} {unset chanserv}
 	variable chanserv
+	foreach _ [array names chanserv] {unset chanserv($_)}
 	
 	################################################################################################
 	# Список шаблонов отсылаемых команд

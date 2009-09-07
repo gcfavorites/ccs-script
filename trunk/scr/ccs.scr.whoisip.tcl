@@ -366,7 +366,9 @@ if {[pkg_info scr $_name on]} {
 			}
 			if {[info exists h]} {unset h}
 			
-			put_msg -type $mode -- [sprintf whoisip #102 $stext [join $lout "; "]]
+			set msg {}
+			lappend msg [sprintf whoisip #102 $stext [join $lout "; "]]
+			#put_msg -type $mode -- [sprintf whoisip #102 $stext [join $lout "; "]]
 			
 			foreach _0 $whoisipturn($token,address) {
 				lassign $_0 a_type a_ip a_request a_reply a_socket a_designation a_range a_info
@@ -402,7 +404,8 @@ if {[pkg_info scr $_name on]} {
 				
 				switch -exact -- $a_type {
 					A {
-						put_msg -type $mode -- [sprintf whoisip #112 $a_ip $a_range $a_designation [ip::ipv4_to_gate $a_ip] [ip::ipv4_to_ipv6 $a_ip] [expr {[llength $lout] > 0 ? "; [join $lout "; "]" : ""}]]
+						lappend msg [sprintf whoisip #112 $a_ip $a_range $a_designation [ip::ipv4_to_gate $a_ip] [ip::ipv4_to_ipv6 $a_ip] [expr {[llength $lout] > 0 ? "; [join $lout "; "]" : ""}]]
+						#put_msg -type $mode -- [sprintf whoisip #112 $a_ip $a_range $a_designation [ip::ipv4_to_gate $a_ip] [ip::ipv4_to_ipv6 $a_ip] [expr {[llength $lout] > 0 ? "; [join $lout "; "]" : ""}]]
 					}
 					AAAA {
 						
@@ -413,12 +416,16 @@ if {[pkg_info scr $_name on]} {
 						if {$ipa != ""} {append a_range "[ip::contract $ipa]"}
 						if {$ipb != ""} {append a_range " - [ip::contract $ipb]"}
 						
-						put_msg -type $mode -- [sprintf whoisip #113 $a_ip $a_range $a_designation [expr {[llength $lout] > 0 ? "; [join $lout "; "]" : ""}]]
+						lappend msg [sprintf whoisip #113 $a_ip $a_range $a_designation [expr {[llength $lout] > 0 ? "; [join $lout "; "]" : ""}]]
+						#put_msg -type $mode -- [sprintf whoisip #113 $a_ip $a_range $a_designation [expr {[llength $lout] > 0 ? "; [join $lout "; "]" : ""}]]
 						
 					}
 				}
 				
 			}
+			
+			put_msg -type $mode -list -notice2msg -chan2msg -- $msg
+			
 		}
 		
 		after cancel $whoisipturn($token,afterid)
