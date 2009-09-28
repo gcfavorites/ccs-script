@@ -2,13 +2,15 @@
 ## ћодуль управлени€ ботами и ботнетом
 ####################################################################################################
 # —писок последних изменений:
+#	v1.4.2
+# - ќбновлена функци€ пересылки текста через ботнет с учетом изменений глобальных функций
 #	v1.2.3
 # - ѕеренесены все процедуры авторизации и управлени€ через ботнет
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{bots}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "11-Jul-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.2" "21-Sep-2009" \
 	"ћодуль управлени€ ботнетом."
 
 if {[pkg_info mod $_name on]} {
@@ -52,7 +54,7 @@ if {[pkg_info mod $_name on]} {
 	
 	################################################################################################
 	# ¬рем€ в миллисекундах в течении которого ожидать приемку сообщени€ из ботнета.
-	set options(botnet_timesend)		5000
+	set options(botnet_timesend)		10000
 	
 	
 	cmd_configure bots -control -group "botnet" -flags {%v} -block 5 -use_chan 0 -use_botnet 0 \
@@ -158,8 +160,7 @@ if {[pkg_info mod $_name on]} {
 		if {[check_notavailable {-notvalidpasscmdbot -notislinked -notisauth} \
 			-snick $snick -shand $shand -dbothand $bot -dbotpass $dbotpass -thand $thand]} {return 0}
 		
-		set code ""
-		for {set x 0} {$x < $options(botnet_lencode)} {incr x} {append code [expr int(rand()*10)]}
+		set code [get_randcode -length $options(botnet_lencode)]
 		
 		if {[info exists out(nick)] && ![string is space $out(nick)]} {set tout(nick) $out(nick)}
 		if {[info exists out(chan)] && ![string is space $out(chan)]} {set tout(chan) $out(chan)}
@@ -275,25 +276,85 @@ if {[pkg_info mod $_name on]} {
 		
 	}
 	
-	proc send_ccstext {bot shand text} {
+	proc put_msg_bot {args} {
 		upvar out out
 		variable options
 		
-		set dbotpass [get_botpass $bot]
-		set thand [get_thand $shand $bot]
+		set opts(-list)       0;  # текст передаетс€ списком
+		set opts(-notice2msg) 0;  # если количество строк нотисом превышает допустимое то сообщение будет отправленно в приват
+		set opts(-chan2msg)   0;  # если количество строк в канал превышает допустимое то сообщение будет отправленно в приват
+		set opts(-type)       ""; # направление вывода сообщени€
+		if {[info exists out(nick)]}  { set opts(-nick)  $out(nick)  } else { set opts(-nick)  "" }
+		if {[info exists out(chan)]}  { set opts(-chan)  $out(chan)  } else { set opts(-chan)  "" }
+		if {[info exists out(idx)]}   { set opts(-idx)   $out(idx)   } else { set opts(-idx)   "" }
+		if {[info exists out(bot)]}   { set opts(-bot)   $out(bot)   } else { set opts(-bot)   "" }
+		if {[info exists out(hand)]}  { set opts(-hand)  $out(hand)  } else { set opts(-hand)  "" }
+		if {[info exists out(thand)]} { set opts(-thand) $out(thand) } else { set opts(-thand) "" }
+		
+		set upreturn 0
+		
+		if {[llength $args] > 1} {
+			while {[string match -* [lindex $args 0]]} {
+				switch -glob -- [lindex $args 0] {
+					-list       {
+						if {[string match -* [lindex $args 1]]} {
+							set opts(-list) 1
+						} else {
+							set opts(-list) [Pop args 1]
+						}
+					}
+					-notice2msg {
+						if {[string match -* [lindex $args 1]]} {
+							set opts(-notice2msg) 1
+						} else {
+							set opts(-notice2msg) [Pop args 1]
+						}
+					}
+					-chan2msg   {
+						if {[string match -* [lindex $args 1]]} {
+							set opts(-chan2msg) 1
+						} else {
+							set opts(-chan2msg) [Pop args 1]
+						}
+					}
+					-type       { set opts(-type)  [Pop args 1] }
+					-nick       { set opts(-nick)  [Pop args 1] }
+					-chan       { set opts(-chan)  [Pop args 1] }
+					-idx        { set opts(-idx)   [Pop args 1] }
+					-bot        { set opts(-bot)   [Pop args 1] }
+					-hand       { set opts(-hand)  [Pop args 1] }
+					-thand      { set opts(-thand) [Pop args 1] }
+					-- { Pop args; break }
+					default {
+						set opt [join [lsort [array names opts -*]] ", "]
+						return -code error "bad option [lindex $args 0]: must be $opt"
+					}
+				}
+				Pop args
+			}
+		}
+		
+		if {[llength $args] != 1} {
+			return -code error "wrong # args: should be \"put_msg_bot ?switches? text\""
+		}
+		if {$opts(-bot) == ""} {
+			return -code error "wrong # args: required switches \"-bot <bot>\""
+		}
+		if {$opts(-hand) == ""} {
+			return -code error "wrong # args: required switches \"-hand <hand>\""
+		}
+		
+		set text [lindex $args 0]
+		
+		set dbotpass [get_botpass $opts(-bot)]
+		set thand [get_thand $opts(-hand) $opts(-bot)]
 		if {[check_notavailable {-notvalidpasscmdbot -notislinked -notisauth} \
-			-shand $shand -thand $thand -dbothand $bot -dbotpass $dbotpass]} {return 0}
+			-shand $opts(-hand) -thand $thand -dbothand $opts(-bot) -dbotpass $dbotpass]} {return 0}
 		
-		set code ""
-		for {set x 0} {$x < $options(botnet_lencode)} {incr x} {append code [expr int(rand()*10)]}
+		set code [get_randcode -length $options(botnet_lencode)]
+		set array_opts [array get opts]
 		
-		if {[info exists out(nick)] && ![string is space $out(nick)]} {set tout(nick) $out(nick)}
-		if {[info exists out(chan)] && ![string is space $out(chan)]} {set tout(chan) $out(chan)}
-		if {[info exists out(idx)] && ![string is space $out(idx)]} {set tout(idx) $out(idx)}
-		
-		set array_tout [array get tout]
-		
-		set msg [list ok210385 $code $array_tout $shand $thand $text]
+		set msg [list ok210385 $code $array_opts $opts(-hand) $thand $text]
 		if {$options(botnet_encoding) != ""} {
 			if {$options(botnet_encoding) == "unicode"} {
 				set l {}
@@ -307,7 +368,6 @@ if {[pkg_info mod $_name on]} {
 		
 		set ind 0
 		while {$msg != ""} {
-			
 			incr ind
 			
 			set head [list [encrypt $dbotpass [list ok210385 $code $ind]] ""]
@@ -316,11 +376,57 @@ if {[pkg_info mod $_name on]} {
 			set msg  [string range $msg [expr $options(botnet_lensend)-$len1+1] end]
 			
 			lset head 1 $msg1
-			if {$msg == ""} {putbot $bot "ccstextend $head"} else {putbot $bot "ccstext $head"}
-			
+			if {$msg == ""} {putbot $opts(-bot) "ccstextend $head"} else {putbot $opts(-bot) "ccstext $head"}
 		}
 		
 	}
+	
+	#proc send_ccstext {bot shand text} {
+	#	upvar out out
+	#	variable options
+	#	
+	#	set dbotpass [get_botpass $bot]
+	#	set thand [get_thand $shand $bot]
+	#	if {[check_notavailable {-notvalidpasscmdbot -notislinked -notisauth} \
+	#		-shand $shand -thand $thand -dbothand $bot -dbotpass $dbotpass]} {return 0}
+	#	
+	#	set code ""
+	#	for {set x 0} {$x < $options(botnet_lencode)} {incr x} {append code [expr int(rand()*10)]}
+	#	
+	#	if {[info exists out(nick)] && ![string is space $out(nick)]} {set tout(nick) $out(nick)}
+	#	if {[info exists out(chan)] && ![string is space $out(chan)]} {set tout(chan) $out(chan)}
+	#	if {[info exists out(idx)] && ![string is space $out(idx)]} {set tout(idx) $out(idx)}
+	#	
+	#	set array_tout [array get tout]
+	#	
+	#	set msg [list ok210385 $code $array_tout $shand $thand $text]
+	#	if {$options(botnet_encoding) != ""} {
+	#		if {$options(botnet_encoding) == "unicode"} {
+	#			set l {}
+	#			foreach _ [split $msg ""] {lappend l [scan $_ %c]}
+	#			set msg $l
+	#		} else {
+	#			set msg [encoding convertto $options(botnet_encoding) $msg]
+	#		}
+	#	}
+	#	set msg [encrypt $dbotpass $msg]
+	#	
+	#	set ind 0
+	#	while {$msg != ""} {
+	#		
+	#		incr ind
+	#		
+	#		set head [list [encrypt $dbotpass [list ok210385 $code $ind]] ""]
+	#		set len1 [string length $head]
+	#		set msg1 [string range $msg 0 [expr $options(botnet_lensend)-$len1]]
+	#		set msg  [string range $msg [expr $options(botnet_lensend)-$len1+1] end]
+	#		
+	#		lset head 1 $msg1
+	#		if {$msg == ""} {putbot $bot "ccstextend $head"} else {putbot $bot "ccstext $head"}
+	#		
+	#	}
+	#	
+	#}
 	
 	proc bot_ccstext {bot command text} {
 		variable turn
@@ -373,18 +479,29 @@ if {[pkg_info mod $_name on]} {
 				}
 			}
 			
-			lassign $msg ok1 code1 array_out thand shand text
+			lassign $msg ok1 code1 array_opts thand shand text
 			
-			if {$ok1 != "ok210385"} {put_log -return 0 -- "\0034text do not decrypted\003 ($bot)"}
-			if {$code1 != $code} {put_log -return 0 -- "\0034text do not decrypted\003 ($bot)"}
+			if {$ok1 != "ok210385" || $code1 != $code} {
+				put_log -return 0 -- "\0034text do not decrypted\003 ($bot)"
+			}
 			if {[check_notavailable {-notbotnetuser} -shand $shand -thand $thand -dbothand $bot]} {return 0}
 			
-			array set out $array_out
-			set out(bot)	""
-			set out(hand)	$shand
-			set out(thand)	""
+			array set opts $array_opts
 			
-			put_msg -speed 3 -- "$bot :: $text"
+			if {$opts(-list)} {
+				set tmp ""
+				foreach _ $text {lappend tmp "$bot :: $_"}
+				set text $tmp
+			} else {
+				set text "$bot :: $text"
+			}
+			
+			put_msg -list     $opts(-list)     -notice2msg $opts(-notice2msg) \
+			        -chan2msg $opts(-chan2msg) -type       $opts(-type) \
+			        -nick     $opts(-nick)     -chan       $opts(-chan) \
+			        -idx      $opts(-idx)      -bot        "" \
+			        -hand     $opts(-hand)     -thand      "" \
+			        -speed    3                -- $text
 			
 			if {$turn($code,$bot,afterid) != ""} {after cancel $turn($code,$bot,afterid)}
 			foreach _ [array names turn -glob "$code,$bot,*"] {unset turn($_)}

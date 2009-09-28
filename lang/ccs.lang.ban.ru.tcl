@@ -5,8 +5,8 @@ set _name		"ban"
 set _lang		"ru"
 pkg_add lang [list $_name $_lang] \
 				"Buster <buster@buster-net.ru> (c)" \
-				"1.4.0" \
-				"01-Jul-2009"
+				"1.4.1" \
+				"24-Sep-2009"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	
@@ -56,12 +56,12 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #116 "(маска \002%s\002)"
 	set_text $_lang $_name #117 "Бан \002постоянный\002."
 	set_text $_lang $_name #118 "Истекает через %s."
-	set_text $_lang $_name #119 "%s. » \002%s\002%s ¤ Причина: «%s» ¤ %s ¤ Бан добавлен %s назад ¤ Создатель: \002%s\002.%s"
+	set_text $_lang $_name #119 "%s. » \002%s\002%s ¤ Причина: «%s» ¤ %s ¤ Бан добавлен %s назад (%s) ¤ Создатель: \002%s\002.%s"
 	set_text $_lang $_name #120 "--- Конец банлиста ---"
 	set_text $_lang $_name #121 "Баны, которых нет в банлисте бота, были удалены."
 	set_text $_lang $_name #122 "Недостаточно прав снять бан \002%s\002, создатель: \002%s\002."
-	set_text $_lang $_name #123 "Выставил на канале: \002%s\002 %s назад."
+	set_text $_lang $_name #123 "Выставил на канале: \002%s\002 %s назад (%s)."
 	set_text $_lang $_name #124 "--- Канальные баны ---"
-	set_text $_lang $_name #125 "» \002%s\002 ¤ Выставил на канале: \002%s\002 %s назад."
+	set_text $_lang $_name #125 "» \002%s\002 ¤ Выставил на канале: \002%s\002 %s назад (%s)."
 	
 }

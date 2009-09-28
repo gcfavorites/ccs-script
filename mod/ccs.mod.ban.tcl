@@ -1,11 +1,14 @@
 ####################################################################################################
 ## Модуль управления банами
 ####################################################################################################
+# Список последних изменений:
+#	v1.4.1
+# - Добавлен вывод даты при выводе списка банов
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{ban}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "15-Apr-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "24-Sep-2009" \
 	"Модуль управления списком банов."
 
 if {[pkg_info mod $_name on]} {
@@ -251,6 +254,7 @@ if {[pkg_info mod $_name on]} {
 	
 	proc cmd_banlist {} {
 		upvar out out
+		variable options
 		importvars [list snick shand schan command smask sglobal]
 		
 		set global [expr ![string is space $sglobal]]
@@ -287,14 +291,14 @@ if {[pkg_info mod $_name on]} {
 				foreach _1 $cbans {
 					lassign $_1 ban1 bywho1 age1
 					if {[string match -nocase $ban1 $ban]} {
-						set text_cb " [sprintf ban #123 $bywho1 [xdate [duration $age1]]]"
+						set text_cb " [sprintf ban #123 $bywho1 [xdate [duration $age1]] [clock format [expr [unixtime] - $age1] -format $options(time_format)]]"
 						set cbans [lreplace $cbans $ind1 $ind1]
 						break
 					}
 					incr ind1
 				}
 			}
-			put_msg -speed 3 -- [sprintf ban #119 $ind $ban [expr {$stick ? " ([sprintf ban #105])" : ""}] $comment $expire $passed $bywho $text_cb]
+			put_msg -speed 3 -- [sprintf ban #119 $ind $ban [expr {$stick ? " ([sprintf ban #105])" : ""}] $comment $expire $passed [clock format $added -format $options(time_format)] $bywho $text_cb]
 			set find 1
 			
 			incr ind
@@ -306,7 +310,7 @@ if {[pkg_info mod $_name on]} {
 			lassign $_ ban bywho age
 			if {$smask != "" && ![string match -nocase $smask $ban]} {continue}
 			if {!$tout} {put_msg -speed 3 -- [sprintf ban #124]; set tout 1}
-			put_msg -speed 3 -- [sprintf ban #125 $ban $bywho [xdate [duration $age]]]
+			put_msg -speed 3 -- [sprintf ban #125 $ban $bywho [xdate [duration $age]] [clock format [expr [unixtime] - $age] -format $options(time_format)]]
 		}
 		
 		put_msg -speed 3 -- [sprintf ban #120]
