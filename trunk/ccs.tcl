@@ -1,6 +1,6 @@
 ####################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.8.3.
+## Version: 1.8.4.
 ## Script's author: Buster (buster@buster-net.ru)
 ##                                        (http://buster-net.ru/index.php?section=irc&theme=scripts)
 ##                               (http://reserver.buster-net.ru/index.php?section=irc&theme=scripts)
@@ -29,11 +29,15 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ####################################################################################################
 # Список последних изменений:
-#	v1.8.3
-# - Добавление функционала для интеграции скриптов
-# - Исправлена работоспособность параметра -override_level
-# - Исправлено пересечение переменных определенных в namespace и глобально
-# - Добавлен параметр max_msg_chan определяющий ограничение строк отправленных на канал из списка
+#	v1.8.4
+# - Добавление функционала для интеграции скриптов.
+# - Исправлена работоспособность параметра -override_level.
+# - Исправлено пересечение переменных определенных в namespace и глобально.
+# - Добавлен параметр max_msg_chan определяющий ограничение строк отправленных на канал из списка.
+# - Обновлена функция пересылки текста через ботнет с учетом изменений глобальных функций.
+# - Добавлен новый параметр use_blocktime_limit, с помощью которого можно отключить задержку.
+# - Добавлен новый параметр time_format представляющий формат времени.
+# - Добавлен вывод даты при выводе списка банов.
 #	v1.8.2
 # - Для библиотеки IP добавлена поддержка Tcl8.4. Оптимизирована работа скрипта в целом для Tcl8.5+
 # - В библиотеке IP обновлен список адрессов RIR
@@ -145,8 +149,8 @@ namespace eval ::ccs {
 	################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@buster-net.ru> (c)"
-	variable version	"1.8.3"
-	variable date		"24-Jul-2009"
+	variable version	"1.8.4"
+	variable date		"21-Sep-2009"
 	
 	set time_up [clock clicks -milliseconds]
 	
@@ -269,6 +273,10 @@ namespace eval ::ccs {
 	set options(usecolors)				1
 	
 	################################################################################################
+	# Использовать блокировку с задержкой по времени при повторном выполнении команды
+	set options(use_blocktime_limit)	1
+	
+	################################################################################################
 	# Время в миллисекундах, в течение которого удерживать авторизацию юзера, если он не зашел на
 	# канал после авторизации.
 	set options(time_auth_notonchan)	300000
@@ -329,6 +337,12 @@ namespace eval ::ccs {
 	################################################################################################
 	# Минимальный флаг доступа к секретным каналам.
 	set options(permission_secret_chan)	"m|-"
+	
+	################################################################################################
+	# Формат времени. Может использоватся для вывода времени в различных скриптах и модулях.
+	# Используемые символы подстановки и их описание можно посмотреть на сайте
+	# http://www.tcl.tk/man/tcl8.5/TclCmd/clock.htm#M26
+	set options(time_format)			{%d-%m-%Y %H:%M:%S}
 	
 	################################################################################################
 	# Процедуры совместимости со старыми версиями Tcl.
@@ -996,6 +1010,117 @@ namespace eval ::ccs {
 		
 	}
 	
+	proc get_randcode {args} {
+		
+		set opts(-length)  3; # длина генерируемого кода
+		set opts(-ualpha)  0; # использование алфавита верхнего регистра в коде
+		set opts(-lalpha)  0; # использование алфавита нижнего регистра в коде
+		set opts(-alpha)   0; # использование алфавита верхнего и нижнего регистра в коде
+		set opts(-numeric) 0; # использование цифр в коде
+		
+		set j 0
+		
+		if {[llength $args] > 1} {
+			while {[string match -* [lindex $args 0]]} {
+				switch -glob -- [lindex $args 0] {
+					-alpha   {
+						set j 1
+						if {[string match -* [lindex $args 1]] || [llength $args] == 1} {
+							set opts(-alpha) 1
+						} else {
+							set opts(-alpha) [Pop args 1]
+						}
+					}
+					-lalpha  {
+						set j 1
+						if {[string match -* [lindex $args 1]] || [llength $args] == 1} {
+							set opts(-lalpha) 1
+						} else {
+							set opts(-lalpha) [Pop args 1]
+						}
+					}
+					-ualpha  {
+						set j 1
+						if {[string match -* [lindex $args 1]] || [llength $args] == 1} {
+							set opts(-ualpha) 1
+						} else {
+							set opts(-ualpha) [Pop args 1]
+						}
+					}
+					-numeric {
+						set j 1
+						if {[string match -* [lindex $args 1]] || [llength $args] == 1} {
+							set opts(-numeric) 1
+						} else {
+							set opts(-numeric) [Pop args 1]
+						}
+					}
+					-length  { set opts(-length) [Pop args 1] }
+					-- { Pop args; break }
+					default {
+						set opt [join [lsort [array names opts -*]] ", "]
+						return -code error "bad option [lindex $args 0]: must be $opt"
+					}
+				}
+				Pop args
+			}
+		}
+		
+		if {[llength $args] != 0} {
+			return -code error "wrong # args: should be \"get_randcode ?switches?\""
+		}
+		
+		if {!$opts(-alpha) && !$opts(-ualpha) && !$opts(-lalpha) && !$opts(-numeric)} {
+			if {!$j} {
+				set opts(-alpha)   1
+				set opts(-numeric) 1
+			} else {
+				return -code error "wrong # args: at least one option (-alpha, -lalpha, -ualpha, -numeric) must be enabled"
+			}
+		}
+		
+		if {$opts(-alpha)} {
+			set opts(-ualpha) 1
+			set opts(-lalpha) 1
+		}
+		
+		set randcount 0
+		if {$opts(-ualpha)}  {incr randcount 26}
+		if {$opts(-lalpha)}  {incr randcount 26}
+		if {$opts(-numeric)} {incr randcount 10}
+		
+		# | -- numeric (10) -- | -- ualpha (26) -- | -- lalpha (26) -- |
+		set code ""
+		for {set x 0} {$x < $opts(-length)} {incr x} {
+			
+			set ind [expr int(rand()*$randcount)]
+			
+			set disnumeric 0
+			set disualpha  0
+			set dislalpha  0
+			
+			if {$opts(-numeric)} {
+				incr disualpha 10
+				incr dislalpha 10
+			}
+			if {$opts(-ualpha)} {
+				incr dislalpha 26
+			}
+			
+			if {$opts(-numeric) && [expr $ind-$disnumeric] >= 0 && [expr $ind-$disnumeric] < 10} {
+				append code [expr $ind-$disnumeric]
+			} elseif {$opts(-ualpha) && [expr $ind-$disualpha] >= 0 && [expr $ind-$disualpha] < 26} {
+				append code [format %c [expr $ind-$disualpha+65]]
+			} elseif {$opts(-lalpha) && [expr $ind-$dislalpha] >= 0 && [expr $ind-$dislalpha] < 26} {
+				append code [format %c [expr $ind-$dislalpha+97]]
+			}
+			
+		}
+		
+		return $code
+		
+	}
+	
 	proc get_token {name} {
 		variable tokens
 		
@@ -1542,18 +1667,36 @@ namespace eval ::ccs {
 		if {[llength $args] > 1} {
 			while {[string match -* [lindex $args 0]]} {
 				switch -glob -- [lindex $args 0] {
-					-list       { set opts(-list)       1 }
-					-notice2msg { set opts(-notice2msg) 1 }
-					-chan2msg   { set opts(-chan2msg)   1 }
-					-type       { set opts(-type)       [Pop args 1] }
-					-speed      { set opts(-speed)      [Pop args 1] }
-					-nick       { set opts(-nick)       [Pop args 1] }
-					-chan       { set opts(-chan)       [Pop args 1] }
-					-idx        { set opts(-idx)        [Pop args 1] }
-					-bot        { set opts(-bot)        [Pop args 1] }
-					-hand       { set opts(-hand)       [Pop args 1] }
-					-thand      { set opts(-thand)      [Pop args 1] }
-					-return     { set opts(-return)     [Pop args 1]; set upreturn 1 }
+					-list       {
+						if {[string match -* [lindex $args 1]]} {
+							set opts(-list) 1
+						} else {
+							set opts(-list) [Pop args 1]
+						}
+					}
+					-notice2msg {
+						if {[string match -* [lindex $args 1]]} {
+							set opts(-notice2msg) 1
+						} else {
+							set opts(-notice2msg) [Pop args 1]
+						}
+					}
+					-chan2msg   {
+						if {[string match -* [lindex $args 1]]} {
+							set opts(-chan2msg) 1
+						} else {
+							set opts(-chan2msg) [Pop args 1]
+						}
+					}
+					-type       { set opts(-type)   [Pop args 1] }
+					-speed      { set opts(-speed)  [Pop args 1] }
+					-nick       { set opts(-nick)   [Pop args 1] }
+					-chan       { set opts(-chan)   [Pop args 1] }
+					-idx        { set opts(-idx)    [Pop args 1] }
+					-bot        { set opts(-bot)    [Pop args 1] }
+					-hand       { set opts(-hand)   [Pop args 1] }
+					-thand      { set opts(-thand)  [Pop args 1] }
+					-return     { set opts(-return) [Pop args 1]; set upreturn 1 }
 					-- { Pop args; break }
 					default {
 						set opt [join [lsort [array names opts -*]] ", "]
@@ -1571,7 +1714,15 @@ namespace eval ::ccs {
 		set text [lindex $args 0]
 		
 		if {![string is space $opts(-bot)]} {
-			if {[proc_exists "send_ccstext"]} {send_ccstext $opts(-bot) $opts(-hand) $text}
+			#if {[proc_exists "send_ccstext"]} {send_ccstext $opts(-bot) $opts(-hand) $text}
+			if {[proc_exists "put_msg_bot"]} {
+				put_msg_bot -list     $opts(-list)     -notice2msg $opts(-notice2msg) \
+				            -chan2msg $opts(-chan2msg) -type       $opts(-type) \
+				            -nick     $opts(-nick)     -chan       $opts(-chan) \
+				            -idx      $opts(-idx)      -bot        $opts(-bot) \
+				            -hand     $opts(-hand)     -thand      $opts(-thand) \
+				            -- $text
+			}
 			if {$upreturn} {return -code return $opts(-return)} else {return}
 		}
 		
@@ -2286,6 +2437,8 @@ namespace eval ::ccs {
 	}
 	
 	proc limit_command {snick command} {
+		variable options
+		if {!$options(use_blocktime_limit)} {return 0}
 		if {[set block [cmd_configure $command -block]] > 0 && [limit $snick $command $block 1]} {
 			upvar out out
 			put_msg [sprintf ccs #103 $block]
@@ -2364,7 +2517,7 @@ namespace eval ::ccs {
 		}
 		
 		if {![check_matchattr $shand $schan [cmd_configure $command -flags]]} {
-			if {[validuser $snick] && [check_matchattr $snick $schan [cmd_configure $command -flags]]} {
+			if {[check_isnull $shand] && [validuser $snick] && [check_matchattr $snick $schan [cmd_configure $command -flags]]} {
 				put_msg [sprintf ccs #115 $::botnick]
 			} else {
 				put_msg [sprintf ccs #118]
