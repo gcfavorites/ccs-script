@@ -21,8 +21,8 @@ pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
 
 if {[pkg_info mod $_name on]} {
 	
-	if {[info exists regban]} {unset regban}
 	variable regban
+	foreach _ [array names regban] { unset regban($_) }
 	
 	################################################################################################
 	# «начение по умолчанию, которое определ€ет маску по умолчанию дл€ выставлени€ банов.
@@ -41,8 +41,8 @@ if {[pkg_info mod $_name on]} {
 	set options(banmask)			4
 	
 	################################################################################################
-	#  аталог, куда будут помещатьс€ старые файлы после обновлени€, при этом указание
-	# $options(dir_data) будет соответствовать каталогу, где находитьс€ основной скрипт.
+	# ѕуть и им€ файла, куда будут помещатьс€ данные скрипта, при этом указание $options(dir_data)
+	# будет соответствовать каталогу data, наход€щемус€ вместе с основным скриптом.
 	set options(regbanfile)			"$options(dir_data)/ccs.regban.dat"
 	
 	################################################################################################
@@ -76,8 +76,6 @@ if {[pkg_info mod $_name on]} {
 	proc get_msgregban {var} {
 		
 		upvar $var r
-		
-		#sputlog "~[array names r -glob "*"]~"
 		
 		set ro [list]
 		if {![string is space $r(chan)]}	{lappend ro "chan: \002$r(chan)\002"}
@@ -128,7 +126,6 @@ if {[pkg_info mod $_name on]} {
 		variable options
 		variable regban
 		importvars [list snick shand schan command text]
-		
 		
 		if {[regexp -nocase -- [set reg {-host\s\{([^\ ]+)\}}] $text -> rhost]} {
 			regsub -nocase -- $reg $text {} text
@@ -182,19 +179,19 @@ if {[pkg_info mod $_name on]} {
 			return 0
 		}
 		if {![string is space $rhost] && [catch {regexp -- $rhost ""} errMsg]} {
-			put_msg [sprintf regban #108 $rhost]
+			put_msg [sprintf ccs #104 $rhost]
 			return 0
 		}
 		if {![string is space $rserver] && [catch {regexp -- $rserver ""} errMsg]} {
-			put_msg [sprintf regban #108 $rserver]
+			put_msg [sprintf ccs #104 $rserver]
 			return 0
 		}
 		if {![string is space $rstatus] && [catch {regexp -- $rstatus ""} errMsg]} {
-			put_msg [sprintf regban #108 $rstatus]
+			put_msg [sprintf ccs #104 $rstatus]
 			return 0
 		}
 		if {![string is space $rname] && [catch {regexp -- $rname ""} errMsg]} {
-			put_msg [sprintf regban #108 $rname]
+			put_msg [sprintf ccs #104 $rname]
 			return 0
 		}
 		

@@ -1,9 +1,9 @@
 ####################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.8.4.
+## Version: 1.8.5.
 ## Script's author: Buster (buster@buster-net.ru)
-##                                        (http://buster-net.ru/index.php?section=irc&theme=scripts)
-##                               (http://reserver.buster-net.ru/index.php?section=irc&theme=scripts)
+##                                   (http://buster-net.ru/irc/bots-eggdrop-and-windrop/tcl-scripts)
+##                          (http://reserver.buster-net.ru/irc/bots-eggdrop-and-windrop/tcl-scripts)
 ## Forum:           http://forum.systemplanet.ru/viewtopic.php?f=3&t=3
 ## sf.net:          http://sourceforge.net/projects/ccs-eggdrop/
 ## SVN:             svn checkout http://ccs-script.googlecode.com/svn/trunk/ ccs-script-read-only
@@ -25,10 +25,14 @@
 #  limit             -- вывод списка команд доступных пользователю с максимальной информацией.
 #  -a[ccess]         -- вывод уровня доступа.
 #  -c[ommands]       -- дополнительные команды (алиасы).
-#  -g[roup] [группа] -- выводит команды _только_ указанной группы.
+#  -g[roup] <группа> -- выводит команды _только_ указанной группы.
 #  -l[imit]          -- выводит _только_ доступные команды.
 ####################################################################################################
 # Список последних изменений:
+#	v1.8.5
+# - Унифицированы процедуры авторизации и снятия авторизации
+# - Добавлен новый скрипт amode реализующий автоматическую выдачу модов по амод листу и при
+#   авторизации пользователей
 #	v1.8.4
 # - Добавление функционала для интеграции скриптов.
 # - Исправлена работоспособность параметра -override_level.
@@ -149,8 +153,8 @@ namespace eval ::ccs {
 	################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@buster-net.ru> (c)"
-	variable version	"1.8.4"
-	variable date		"21-Sep-2009"
+	variable version	"1.8.5"
+	variable date		"13-Oct-2009"
 	
 	set time_up [clock clicks -milliseconds]
 	
@@ -385,7 +389,9 @@ namespace eval ::ccs {
 		if {![info exists var]} {set var {}}
 		if {[ni $var $el]} {
 			lappend var $el
+			return 1
 		}
+		return 0
 	}
 	
 	proc IfError {script varName errScript} {
@@ -1259,32 +1265,6 @@ namespace eval ::ccs {
 	################################################################################################
 	# Процедуры авторизации пользователей (AUTH).
 	
-	# Процедура авторизации по нику/хендлу
-	proc addauth {hand nick host} {
-		variable options
-		
-		set authnick [getuser $hand XTRA AuthNick]
-		if {[in $authnick "$nick!$host"]} {return 0}
-		lappend authnick $nick!$host
-		setuser $hand XTRA AuthNick $authnick
-		chattr $hand +$options(flag_auth)
-		return 1
-		
-	}
-	
-	# Процедура снятия авторизации по нику/хендлу
-	proc delauth {hand nick host} {
-		variable options
-		
-		set authnick [getuser $hand XTRA AuthNick]
-		if {[set ind [lsearch -exact $authnick $nick!$host]] < 0} {return 0}
-		set authnick [lreplace $authnick $ind $ind]
-		setuser $hand XTRA AuthNick $authnick
-		if {[llength $authnick] == 0} {chattr $hand -$options(flag_auth)}
-		return 1
-		
-	}
-	
 	proc msg_identauth {nick uhost hand text} {
 		variable options
 		
@@ -1327,10 +1307,11 @@ namespace eval ::ccs {
 		set shand $dhand
 		set out(hand) $dhand
 		
-		if {![addauth $shand $snick $shost]} {
-			put_msg -type notice -return 0 -- [sprintf ccs #130]
+		if {[in [getuser $shand XTRA AuthNick] "$snick!$shost"]} {
+			put_msg -type notice -- [sprintf ccs #130]
 		}
-		if {[proc_exists "putbot_authall"]} {putbot_authall $shand ccsaddauth $snick $shost $::network}
+		
+		auth $snick $shost $shand 0 0
 		
 		if {![onchan $snick]} {
 			after $options(time_auth_notonchan) [list [namespace origin autoauthoff] $snick $uhost $shand 0]
@@ -1374,12 +1355,14 @@ namespace eval ::ccs {
 		
 		if {$pass == ""} {
 			
-			if {![delauth $shand $snick $shost]} {
-				put_msg -type notice -return 0 -- [sprintf ccs #128]
+			if {[ni [getuser $shand XTRA AuthNick] "$snick!$shost"]} {
+				put_msg -type notice -- [sprintf ccs #128]
+			} else {
+				put_msg -type notice -- [sprintf ccs #129 [StrNick -nick $snick -hand $shand]]
 			}
-			if {[proc_exists "putbot_authall"]} {putbot_authall $shand ccsdelauth $snick $shost $::network 1}
+			
+			deauth $snick $shost $shand 1 0
 			put_log "OFF"
-			put_msg -type notice -- [sprintf ccs #129 [StrNick -nick $snick -hand $shand]]
 			
 		} else {
 			
@@ -1390,18 +1373,21 @@ namespace eval ::ccs {
 				put_log "(\0034unsuccessfull\003)"
 				put_msg -type notice -return 0 -- [sprintf ccs #132 [StrNick -nick $snick -hand $shand]]
 			}
-			if {![addauth $shand $snick $shost]} {
-				put_msg -type notice -return 0 -- [sprintf ccs #130]
+			
+			if {[in [getuser $shand XTRA AuthNick] "$snick!$shost"]} {
+				put_msg -type notice -- [sprintf ccs #130]
+			} else {
+				put_msg -type notice -- [sprintf ccs #131 [StrNick -nick $snick -hand $shand] \
+					$options(prefix_pub) $options(prefix_msg) $options(prefix_dcc) \
+					$options(prefix_botnet_pub) $options(prefix_botnet_msg) $options(prefix_botnet_dcc)]
 			}
-			if {[proc_exists "putbot_authall"]} {putbot_authall $shand ccsaddauth $snick $shost $::network}
+			
+			auth $snick $shost $shand 1 0
 			
 			if {![onchan $snick]} {
 				after $options(time_auth_notonchan) [list [namespace origin autoauthoff] $snick $uhost $shand 0]
 			}
 			put_log "ON"
-			put_msg -type notice -- [sprintf ccs #131 [StrNick -nick $snick -hand $shand] \
-				$options(prefix_pub) $options(prefix_msg) $options(prefix_dcc) \
-				$options(prefix_botnet_pub) $options(prefix_botnet_msg) $options(prefix_botnet_dcc)]
 			
 		}
 		return 0
@@ -1424,8 +1410,8 @@ namespace eval ::ccs {
 		set out(thand) ""
 		
 		if {[nick2hand $newnick] != $shand} {
-			if {![delauth $shand $snick $shost]} {return 0}
-			if {[proc_exists "putbot_authall"]} {putbot_authall $shand ccsdelauth $snick $shost $::network 0}
+			if {[ni [getuser $shand XTRA AuthNick] "$snick!$shost"]} {return 0}
+			deauth $snick $shost $shand 1 0
 			put_log "OFF"
 			put_msg -type notice -- [sprintf ccs #211]
 		} else {
@@ -1474,8 +1460,8 @@ namespace eval ::ccs {
 		set out(thand) ""
 		
 		if {[onchan $snick]} {return 0}
-		if {![delauth $shand $snick $shost]} {return 0}
-		if {[proc_exists "putbot_authall"]} {putbot_authall $shand ccsdelauth $snick $shost $::network 0}
+		if {[ni [getuser $shand XTRA AuthNick] "$snick!$shost"]} {return 0}
+		deauth $snick $shost $shand 1 0
 		put_log "OFF"
 		if {!$quiet} {put_msg -type notice -- [sprintf ccs #126]}
 		
@@ -1483,25 +1469,21 @@ namespace eval ::ccs {
 	
 	# Функция проверки авторизации
 	proc check_auth {snick shand shost {sidx ""} {sbot ""}} {
-		variable options
 		
-		if {[valididx $sidx]} {
+		if {![string is space $sidx] && [valididx $sidx]} {
 			return 1
 		}
-		if {[string is space $sbot] && [matchattr $shand $options(flag_auth_perm)]} {
+		if {[string is space $sbot] && [matchattr $shand [configure -flag_auth_perm]]} {
 			return 1
 		}
-		if {[matchattr $shand $options(flag_auth)] && \
+		if {[matchattr $shand [configure -flag_auth]] && \
 			[in [getuser $shand XTRA AuthNick] "$snick!$shost"]} {
 			return 1
 		}
-		if {![string is space $sbot] && [matchattr $shand $options(flag_auth_botnet)] && \
+		if {![string is space $sbot] && [matchattr $shand [configure -flag_auth_botnet]] && \
 			[in [getuser $shand XTRA AuthBot] $sbot]} {
 			return 1
 		}
-		upvar out out
-		put_msg -type notice -- [sprintf ccs #120]
-		put_msg -type notice -- [sprintf ccs #121 $::botnick]
 		return 0
 		
 	}
@@ -2526,7 +2508,11 @@ namespace eval ::ccs {
 		}
 		if {[info exists out(idx)]} {set idx $out(idx)} else {set idx ""}
 		if {[info exists out(bot)]} {set bot $out(bot)} else {set bot ""}
-		if {[cmd_configure $command -use_auth] && ![check_auth $snick $shand $shost $idx $bot]} {return 0}
+		if {[cmd_configure $command -use_auth] && ![check_auth $snick $shand $shost $idx $bot]} {
+			put_msg -type notice -- [sprintf ccs #120]
+			put_msg -type notice -- [sprintf ccs #121 $::botnick]
+			return 0
+		}
 		
 		set str_proc "cmd_$command"
 		if {[proc_exists $str_proc]} {
@@ -2908,6 +2894,32 @@ namespace eval ::ccs {
 			
 		}
 		bind msg -|- auth [namespace origin msg_auth]
+		
+	}
+	
+	proc auth {snick shost shand to_botnet from_botnet} {
+		
+		set authnick [getuser $shand XTRA AuthNick]
+		if {[ladd authnick $snick!$shost]} {
+			setuser $shand XTRA AuthNick $authnick
+		}
+		chattr $shand "+[configure -flag_auth]"
+		
+		foreach _ [concat [pkg_list mod 1] [pkg_list scr 1]] {
+			if {[proc_exists "auth_$_"]} {auth_$_ $snick $shost $shand $to_botnet $from_botnet}
+		}
+		
+	}
+	
+	proc deauth {snick shost shand to_botnet from_botnet} {
+		
+		set authnick [lsearch -exact -inline -not -all [getuser $shand XTRA AuthNick] $snick!$shost]
+		setuser $shand XTRA AuthNick $authnick
+		if {[llength $authnick] == 0} {chattr $shand "-[configure -flag_auth]"}
+		
+		foreach _ [concat [pkg_list mod 1] [pkg_list scr 1]] {
+			if {[proc_exists "deauth_$_"]} {deauth_$_ $snick $shost $shand $to_botnet $from_botnet}
+		}
 		
 	}
 	
