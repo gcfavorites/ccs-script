@@ -6,7 +6,7 @@ set _lang		"en"
 pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
 				"1.4.1" \
-				"30-Jul-2009" \
+				"13-Oct-2009" \
 				"Language file for $_name module ($_lang)"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
@@ -46,6 +46,7 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 		(those conditions works only for msg and dcc commands, for pub commands they are \037not required\037)."
 	set_text $_lang $_name #102 "Permission denied (command: \002%s\002, used by: \002%s\002)."
 	set_text $_lang $_name #103 "You're sending requests too fast. Calm down and try again after %s sec(s)."
+	set_text $_lang $_name #104 "Expression \"\002%s\002\" is not a valid regular expression."
 	set_text $_lang $_name #112 "You already recognized as %s. You can't use identification with hostmask update."
 	set_text $_lang $_name #114 "Autorizathion with host update: /msg %s identauth \002\[handle\] <pass>\002"
 	set_text $_lang $_name #115 "Permission denied - looks like no one of your hostmask doesn't match current. You can add temporary hostmask and identify at the same time using: /msg %s identauth \002<pass>\002"

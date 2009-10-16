@@ -2,6 +2,8 @@
 ## Модуль управления ботами и ботнетом
 ####################################################################################################
 # Список последних изменений:
+#	v1.4.3
+# - Изменение текста модуля с учетом унификации процедур авторизации и снятия авторизации
 #	v1.4.2
 # - Обновлена функция пересылки текста через ботнет с учетом изменений глобальных функций
 #	v1.2.3
@@ -10,7 +12,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{bots}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.2" "21-Sep-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.3" "13-Oct-2009" \
 	"Модуль управления ботнетом."
 
 if {[pkg_info mod $_name on]} {
@@ -381,53 +383,6 @@ if {[pkg_info mod $_name on]} {
 		
 	}
 	
-	#proc send_ccstext {bot shand text} {
-	#	upvar out out
-	#	variable options
-	#	
-	#	set dbotpass [get_botpass $bot]
-	#	set thand [get_thand $shand $bot]
-	#	if {[check_notavailable {-notvalidpasscmdbot -notislinked -notisauth} \
-	#		-shand $shand -thand $thand -dbothand $bot -dbotpass $dbotpass]} {return 0}
-	#	
-	#	set code ""
-	#	for {set x 0} {$x < $options(botnet_lencode)} {incr x} {append code [expr int(rand()*10)]}
-	#	
-	#	if {[info exists out(nick)] && ![string is space $out(nick)]} {set tout(nick) $out(nick)}
-	#	if {[info exists out(chan)] && ![string is space $out(chan)]} {set tout(chan) $out(chan)}
-	#	if {[info exists out(idx)] && ![string is space $out(idx)]} {set tout(idx) $out(idx)}
-	#	
-	#	set array_tout [array get tout]
-	#	
-	#	set msg [list ok210385 $code $array_tout $shand $thand $text]
-	#	if {$options(botnet_encoding) != ""} {
-	#		if {$options(botnet_encoding) == "unicode"} {
-	#			set l {}
-	#			foreach _ [split $msg ""] {lappend l [scan $_ %c]}
-	#			set msg $l
-	#		} else {
-	#			set msg [encoding convertto $options(botnet_encoding) $msg]
-	#		}
-	#	}
-	#	set msg [encrypt $dbotpass $msg]
-	#	
-	#	set ind 0
-	#	while {$msg != ""} {
-	#		
-	#		incr ind
-	#		
-	#		set head [list [encrypt $dbotpass [list ok210385 $code $ind]] ""]
-	#		set len1 [string length $head]
-	#		set msg1 [string range $msg 0 [expr $options(botnet_lensend)-$len1]]
-	#		set msg  [string range $msg [expr $options(botnet_lensend)-$len1+1] end]
-	#		
-	#		lset head 1 $msg1
-	#		if {$msg == ""} {putbot $bot "ccstextend $head"} else {putbot $bot "ccstext $head"}
-	#		
-	#	}
-	#	
-	#}
-	
 	proc bot_ccstext {bot command text} {
 		variable turn
 		variable options
@@ -576,7 +531,7 @@ if {[pkg_info mod $_name on]} {
 		
 	}
 	
-	# принятие запроса через ботнет на авторизацию или удаление авторизации, поралельно запуск цикла проверки авторизации
+	# принятие запроса через ботнет на авторизацию, поралельно запуск цикла проверки авторизации
 	proc bot_ccsaddauth {bot command text} {
 		variable options
 		
@@ -584,7 +539,7 @@ if {[pkg_info mod $_name on]} {
 		set command "BOTNETADDAUTH"
 		
 		if {[check_notavailable {-notbotnetuser} -shand $shand -thand $thand -dbothand $bot]} {return 0}
-		if {$::network == $snetwork && [onchan $snick]} {addauth $shand $snick $shost}
+		if {$::network == $snetwork && [onchan $snick]} {auth $snick $shost $shand 0 1}
 		addbotauth $shand $bot
 		after $options(time_botauth_check) [list [namespace origin timer_authcheck] $shand $bot]
 		
@@ -592,13 +547,14 @@ if {[pkg_info mod $_name on]} {
 		
 	}
 	
+	# принятие запроса через ботнет на удаление авторизации
 	proc bot_ccsdelauth {bot command text} {
 		
 		lassign $text thand shand snick shost snetwork hard
 		set command "BOTNETDELAUTH"
 		
 		if {[check_notavailable {-notbotnetuser} -shand $shand -thand $thand -dbothand $bot]} {return 0}
-		if {$::network == $snetwork && $hard} {delauth $shand $snick $shost}
+		if {$::network == $snetwork && $hard} {deauth $snick $shost $shand 0 1}
 		delbotauth $shand $bot
 		
 		put_log "OFF (Bot: $bot)"
@@ -1004,6 +960,18 @@ if {[pkg_info mod $_name on]} {
 			return 1
 		}
 		return 0
+	}
+	
+	proc auth_$_name {snick shost shand to_botnet from_botnet} {
+		if {$to_botnet && !$from_botnet} {
+			putbot_authall $shand ccsaddauth $snick $shost $::network
+		}
+	}
+	
+	proc deauth_$_name {snick shost shand to_botnet from_botnet} {
+		if {$to_botnet && !$from_botnet} {
+			putbot_authall $shand ccsdelauth $snick $shost $::network 1
+		}
 	}
 	
 	proc main_$_name {} {
