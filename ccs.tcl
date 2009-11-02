@@ -1,6 +1,6 @@
 ####################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.8.5.
+## Version: 1.8.6.
 ## Script's author: Buster (buster@buster-net.ru)
 ##                                   (http://buster-net.ru/irc/bots-eggdrop-and-windrop/tcl-scripts)
 ##                          (http://reserver.buster-net.ru/irc/bots-eggdrop-and-windrop/tcl-scripts)
@@ -29,6 +29,8 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ####################################################################################################
 # Список последних изменений:
+#	v1.8.6
+# - Для команды !chanset добавлена возможность назначения флагов и параметров списком в одной строке
 #	v1.8.5
 # - Унифицированы процедуры авторизации и снятия авторизации
 # - Добавлен новый скрипт amode реализующий автоматическую выдачу модов по амод листу и при
@@ -153,8 +155,8 @@ namespace eval ::ccs {
 	################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@buster-net.ru> (c)"
-	variable version	"1.8.5"
-	variable date		"13-Oct-2009"
+	variable version	"1.8.6"
+	variable date		"02-Nov-2009"
 	
 	set time_up [clock clicks -milliseconds]
 	
@@ -208,7 +210,7 @@ namespace eval ::ccs {
 	set file_ccs		[info script]
 	# Путь загружаемого скрипта. 
 	set dir_ccs			[file dirname $file_ccs]
-	# Список загружаемых типов файлов. _НЕ ИЗМЕНЯТЬ_
+	# Список загружаемых типов файлов.
 	set type_file		{mod lang scr lib}
 	
 	################################################################################################
@@ -1237,6 +1239,122 @@ namespace eval ::ccs {
 			return -code error -errorinfo $::errorInfo $errMsg
 		}
 		return -code ok
+		
+	}
+	
+	proc get_channels {args} {
+		
+		set opts(-flags) "-|-"; # список флагов доступа
+		set opts(-hand)  "*";   # хендл юзера
+		
+		while {[string match -* [lindex $args 0]]} {
+			switch -glob -- [lindex $args 0] {
+				-flags { set opts(-flags) [Pop args 1] }
+				-hand  { set opts(-hand)  [Pop args 1] }
+				-- { Pop args; break }
+				default {
+					set opt [join [lsort [array names opts -*]] ", "]
+					return -code error "bad option [lindex $args 0]: must be $opt"
+				}
+			}
+			Pop args
+		}
+		if {[llength $args] != 0} {
+			return -code error "wrong # args: should be \"get_channels ?switches?\""
+		}
+		
+		set chans {}
+		foreach _ [channels] {
+			if {[check_matchattr $opts(-hand) $_ $opts(-flags)]} {lappend chans $_}
+		}
+		return $chans
+		
+	}
+	
+	proc back_slash {text ind} {
+		
+		incr ind -1
+		if {[string range $text $ind $ind] != "\\"} {return 0}
+		
+		set find 0
+		while {$ind >= 0} {
+			if {[string range $text $ind $ind] == "\\"} {incr find} else {break}
+			incr ind -1
+		}
+		
+		return [expr $find % 2]
+		
+	}
+	
+	proc split_args {text} {
+		
+		set quote 0
+		set quote_open 0
+		set quote_close 0
+		set space_skip 0
+		set l {}
+		set t ""
+		foreach _ [split $text] {
+			
+			if {$space_skip} {
+				append t " "
+				if {[back_slash $_ [string length $_]]} {
+					append t [string range $_ 0 end-1]
+					continue
+				}
+				append t $_
+				set space_skip 0
+				lappend l $t
+				set t ""
+				continue
+			}
+			
+			if {[string range $_ 0 0] == "\""} {
+				set quote_open 1
+				if {$quote} {break}
+				set quote 1
+				set _ [string range $_ 1 end]
+			}
+			if {[string range $_ 0 1] == "\\\""} {
+				set _ [string range $_ 1 end]
+			}
+			if {[string range $_ end end] == "\""} {
+				if {[back_slash $_ [expr [string length $_] - 1]]} {
+					set _ "[string range $_ 0 end-2]\""
+				} else {
+					set quote_close 1
+					if {!$quote} {break}
+					set quote 0
+					set _ [string range $_ 0 end-1]
+				}
+			}
+			if {$quote_close} {
+				set quote_close 0
+				if {$quote_open} {set quote_open 0} else {append t " "}
+				append t $_
+				lappend l $t
+				set t ""
+				continue
+			}
+			if {$quote} {
+				if {$quote_open} {set quote_open 0} else {append t " "}
+				append t $_
+			} else {
+				if {[back_slash $_ [string length $_]]} {
+					set space_skip 1
+					append t [string range $_ 0 end-1]
+					continue
+				}
+				lappend l $_
+			}
+			
+		}
+		
+		if {$quote || $quote_close || $space_skip} {
+			return -code error "misuse of quotes and screen characters"
+		}
+		
+		return $l
 		
 	}
 	
