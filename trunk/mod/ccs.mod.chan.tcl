@@ -2,6 +2,8 @@
 ## ћодуль с канальными командами управлени€
 ####################################################################################################
 # —писок последних изменений:
+#	v1.4.2
+# - ƒобавлена возможность назначени€ флагов и параметров списком в одной строке
 #	v1.4.1
 # - ƒобавлена возможность просмотра флагов/параметров канала через команду !chaninfo по всем каналам
 #	v1.2.7
@@ -11,7 +13,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{chan}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "25-Jul-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.2" "02-Nov-2009" \
 	"ћодуль управлени€ списком каналов и настроек канальных флагов."
 
 if {[pkg_info mod $_name on]} {
@@ -47,7 +49,8 @@ if {[pkg_info mod $_name on]} {
 	
 	cmd_configure chanset -control -group "chan" -flags {n|n} -block 1 -use_chan 2 \
 		-alias {%pref_set %pref_chanset} \
-		-regexp {{^([^\ ]+)(?:\ +(.*?))?$} {-> smode sargs}}
+		-regexp {{^(.*?)?$} {-> sargs}}
+		#-regexp {{^([^\ ]+)(?:\ +(.*?))?$} {-> smode sargs}}
 	
 	cmd_configure chaninfo -control -group "chan" -flags {n|n} -block 5 -use_chan 2 \
 		-alias {%pref_chaninfo} \
@@ -184,9 +187,9 @@ if {[pkg_info mod $_name on]} {
 		}
 		
 		# формируем список корректных флагов
-		set c [channels]
-		if {[llength $c] == 0} {put_log -return 0 -- "no channels"}
-		foreach _ [channel_info [lindex $c 0]] {
+		set chans [channels]
+		if {[llength $chans] == 0} {put_log -return 0 -- "no channels"}
+		foreach _ [channel_info [lindex $chans 0]] {
 			lassign $_ index type name value ref_value
 			lappend correct_udef $name
 		}
@@ -502,35 +505,107 @@ if {[pkg_info mod $_name on]} {
 	
 	proc cmd_chanset {} {
 		upvar out out
-		importvars [list snick shand schan command smode sargs]
+		importvars [list snick shand schan command sargs]
 		
-		if {[string index $smode 0] == "+" || [string index $smode 0] == "-"} {
-			if {[catch {
-				if {[check_isnull $schan]} {
-					foreach _ [channels] {channel set $_ $smode}
-				} else {
-					channel set $schan $smode
-				}
-			}]} {
-				put_msg -return 0 -- [sprintf chan #106 $smode]
-			}
-			put_msg [sprintf chan #107 $smode]
-			put_log "$smode"
-			return 1
-		} else {
-			if {[catch {
-				if {[check_isnull $schan]} {
-					foreach _ [channels] {channel set $_ $smode $sargs}
-				} else {
-					channel set $schan $smode $sargs
-				}
-			}]} {
-				put_msg -return 0 -- [sprintf chan #106 $smode]
-			}
-			put_msg [sprintf chan #109 $smode $sargs]
-			put_log "$smode $sargs"
-			return 1
+		if {[catch {
+			set largs [split_args $sargs]
+		} errMsg]} {
+			put_msg [sprintf ccs #105]
+			return
 		}
+		
+		if {[check_isnull $schan]} {
+			set chans [get_channels -hand $shand -flags [cmd_configure $command -flags]]
+			if {[llength $chans] == 0} {put_log -return 0 -- "no channels"}
+		} else {
+			set chans [list $schan]
+		}
+		
+		set list_flags {}
+		set list_setting {}
+		
+		foreach _ [channel_info [lindex $chans 0]] {
+			lassign $_ index type name value ref_value
+			
+			if {$type == 1} {
+				lappend list_flags $name
+			} else {
+				lappend list_setting $name
+			}
+		}
+		
+		set err_flags {}
+		set err_setting {}
+		
+		set val_flags {}
+		set val_setting {}
+		
+		set error 0
+		while {[llength $largs] > 0} {
+			set arg1 [lindex $largs 0]
+			switch -glob -- $arg1 {
+				+* - -* {
+					set flag [string range $arg1 1 end]
+					if {[lsearch -exact $list_flags $flag] < 0} {
+						lappend err_flags $flag
+					} else {
+						lappend val_flags $flag $arg1
+					}
+				}
+				default {
+					if {[llength $largs] == 1} {
+						set error 1
+						put_msg [sprintf chan #134 $arg1]
+						break
+					}
+					set arg2 [Pop largs 1]
+					if {[lsearch -exact $list_setting $arg1] < 0} {
+						lappend err_setting $arg1
+					} else {
+						lappend val_setting $arg1 $arg2
+					}
+				}
+			}
+			Pop largs
+		}
+		
+		if {[llength $err_flags] > 0} {
+			set error 1
+			put_msg [sprintf chan #135 [join $err_flags ", "]]
+		}
+		if {[llength $err_setting] > 0} {
+			set error 1
+			put_msg [sprintf chan #136 [join $err_setting ", "]]
+		}
+		if {$error} {return 0}
+		
+		foreach chan $chans {
+			
+			set lmsg_flags {}
+			set lmsg_setting {}
+			
+			foreach {flag val} $val_flags {
+				set old_val [channel get $chan $flag]
+				channel set $chan $val
+				lappend lmsg_flags [sprintf chan #137 $flag [expr {$old_val ? "+" : "-"}] [string range $val 0 0]]
+			}
+			foreach {setting val} $val_setting {
+				set old_val [channel get $chan $setting]
+				channel set $chan $setting $val
+				lappend lmsg_setting [sprintf chan #137 $setting $old_val $val]
+			}
+			
+			if {[llength $lmsg_flags] > 0} {
+				put_msg [sprintf chan #138 $chan [join $lmsg_flags ", "]]
+			}
+			if {[llength $lmsg_setting] > 0} {
+				put_msg [sprintf chan #139 $chan [join $lmsg_setting ", "]]
+			}
+			
+		}
+		
+		put_log "flag: [join $lmsg_flags ", "]; setting: [join $lmsg_setting ", "]"
+		return 1
 		
 	}
 	
@@ -597,16 +672,11 @@ if {[pkg_info mod $_name on]} {
 			
 			if {[check_isnull $schan]} {
 				
-				set c {}
-				foreach _ [channels] {
-					if {[check_matchattr $shand $schan [cmd_configure $command -flags]]} {
-						lappend c $_
-					}
-				}
-				if {[llength $c] == 0} {put_log -return 0 -- "no channels"}
+				set chans [get_channels -hand $shand -flags [cmd_configure $command -flags]]
+				if {[llength $chans] == 0} {put_log -return 0 -- "no channels"}
 				
-				set c1 [lindex $c 0]
-				set c2 [lrange $c 1 end]
+				set c1 [lindex $chans 0]
+				set c2 [lrange $chans 1 end]
 				
 				set cinfo [channel_info $c1]
 				foreach _ $cinfo {
