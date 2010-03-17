@@ -2,13 +2,16 @@
 ## ћодуль управлени€ банами
 ####################################################################################################
 # —писок последних изменений:
+#	v1.4.2
+# - ƒобавлен вывод списка забаненых на момент выставлени€ бана
+# - ƒобавлено восстановление маски бана
 #	v1.4.1
 # - ƒобавлен вывод даты при выводе списка банов
 
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{ban}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "24-Sep-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.2" "17-Mar-2010" \
 	"ћодуль управлени€ списком банов."
 
 if {[pkg_info mod $_name on]} {
@@ -94,17 +97,24 @@ if {[pkg_info mod $_name on]} {
 			set dhost [get_mask "$dnick![getchanhost $dnick $schan]" [get_options "banmask" $schan]]
 		} else {
 			set dhand [finduser $dnick]
-			set dhost $dnick
+			set dhost [recovery_mask $dnick]
 		}
 		if {[check_notavailable {-isbotnick -protect -nopermition0} -shand $shand -dnick $dnick -dhand $dhand -dchan $schan]} {return 0}
 		
+		set luser {}
+		foreach _1 [chanlist $schan] {
+			if {[string match -nocase $dhost "$_1![getchanhost $_1 $schan]"]} {
+				lappend luser $_1
+			}
+		}
+		
 		if {$stime == 0} {
-			put_msg [sprintf ban #102 $sstick $dhost]
+			put_msg [sprintf ban #102 $sstick $dhost [join $luser ", "]]
 			put_log "$dstick $dhost \002(permanently)\002."
 		} else {
 			set btime [expr $stime * 60]
 			if {$options(bandate)} {set reason [sprintf ban #104 $reason [ctime [expr [unixtime] + $btime]]]}
-			put_msg [sprintf ban #103 $sstick $dhost [xdate [duration $btime]]]
+			put_msg [sprintf ban #103 $sstick $dhost [xdate [duration $btime]] [join $luser ", "]]
 			put_log "$dstick $dhost at [duration $btime]."
 		}
 		newchanban $schan $dhost $shand $reason $stime $stick
@@ -197,17 +207,26 @@ if {[pkg_info mod $_name on]} {
 			set dhost [get_mask "$dnick![getchanhost $dnick]" [get_options "banmask"]]
 		} else {
 			set dhand [finduser $dnick]
-			set dhost $dnick
+			set dhost [recovery_mask $dnick]
 		}
 		if {[check_notavailable {-isbotnick -protect -nopermition0} -shand $shand -dnick $dnick -dhand $dhand -dchan ""]} {return 0}
 		
+		set luser {}
+		foreach _0 [channels] {
+			foreach _1 [chanlist $_0] {
+				if {[string match -nocase $dhost "$_1![getchanhost $_1 $_0]"]} {
+					lappend luser $_1
+				}
+			}
+		}
+		
 		if {$stime == 0} {
-			put_msg [sprintf ban #109 $sstick $dhost]
+			put_msg [sprintf ban #109 $sstick $dhost [join $luser ", "]]
 			put_log "$dstick $dhost \002(permanently)\002."
 		} else {
 			set btime [expr $stime * 60]
 			if {$options(bandate)} {set reason [sprintf ban #104 $reason [ctime [expr [unixtime] + $btime]]]}
-			put_msg [sprintf ban #110 $sstick $dhost [xdate [duration $btime]]]
+			put_msg [sprintf ban #110 $sstick $dhost [xdate [duration $btime]] [join $luser ", "]]
 			put_log "$dstick $dhost at [duration $btime]."
 		}
 		newban $dhost $shand $reason $stime $stick

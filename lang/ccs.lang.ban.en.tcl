@@ -5,8 +5,8 @@ set _name		"ban"
 set _lang		"en"
 pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.4.1" \
-				"30-Jul-2009"
+				"1.4.2" \
+				"17-Mar-2010"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	
@@ -40,15 +40,15 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	
 	
 	set_text $_lang $_name #101 "Requested"
-	set_text $_lang $_name #102 "Added \002permanent\002%s ban: \037%s\037."
-	set_text $_lang $_name #103 "Added%s ban: \037%s\037 on \002%s\002."
+	set_text $_lang $_name #102 "Added \002permanent\002%s ban: \037%s\037. List users: \"%s\""
+	set_text $_lang $_name #103 "Added%s ban: \037%s\037 on \002%s\002. List users: \"%s\""
 	set_text $_lang $_name #104 "%s (expires on: %s)."
 	set_text $_lang $_name #105 "\037stick\037"
 	set_text $_lang $_name #106 "Removed%s ban: \002%s\002."
 	set_text $_lang $_name #107 "Ban \002%s\002 on the \002%s\002 does not exist."
 	set_text $_lang $_name #108 "Requested"
-	set_text $_lang $_name #109 "Added new \002permanent\002 global%s ban: \037%s\037."
-	set_text $_lang $_name #110 "Added new global%s ban: \037%s\037 on the %s."
+	set_text $_lang $_name #109 "Added new \002permanent\002 global%s ban: \037%s\037. List users: \"%s\""
+	set_text $_lang $_name #110 "Added new global%s ban: \037%s\037 on the %s. List users: \"%s\""
 	set_text $_lang $_name #111 "Removed global%s ban: \002%s\002"
 	set_text $_lang $_name #112 "Global ban \002%s\002 does not exist."
 	set_text $_lang $_name #113 "--- Global banlist%s ---"

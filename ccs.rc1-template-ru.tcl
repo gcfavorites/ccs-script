@@ -81,6 +81,17 @@ if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]"
 #     10: nick!*@*.host
 ####################################################################################################
 
+	###############################################################################################
+	# Выбор IRC сети. Для облегчения конфигурации следует указать тип сети, при этом будут
+	# автоматически назначены индивидуальные параметры. Список сетей:
+	#      1: Wenet
+	#      2: Rusnet
+	#      3: Dalnet
+	#      4: Efnet
+	#      5: Quakenet
+	#      6: Freenode
+	#      7: Dalnet.ru
+	set_net_type 0
 
 	################################################################################################
 	# Основные параметры                                                                           #
@@ -626,9 +637,9 @@ if {[namespace current] == "::"} {putlog "\002\00304Do not source [info script]"
 	#cmd_configure save -group "system" -flags {m} -block 3 -alias {%pref_save}
 	#cmd_configure reload -group "system" -flags {m} -block 3 -alias {%pref_reload}
 	#cmd_configure backup -group "system" -flags {m} -block 3 -alias {%pref_backup}
-	#cmd_configure die -group "system" -flags {n} -use_chan 0 -alias {%pref_die}
+	#cmd_configure die -group "system" -flags {n} -alias {%pref_die}
 	#cmd_configure rehash -group "system" -flags {m} -block 5 -alias {%pref_rehash}
-	#cmd_configure restart -group "system" -flags {m} -use_chan 0 -alias {%pref_restart}
+	#cmd_configure restart -group "system" -flags {m} -alias {%pref_restart}
 	#cmd_configure jump -group "system" -flags {m} -block 5 -alias {%pref_jump}
 	
 	

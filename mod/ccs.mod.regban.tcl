@@ -2,6 +2,8 @@
 ## ћодуль управлени€ регул€рными банами
 ####################################################################################################
 # —писок последних изменений:
+#	v1.4.1
+# - ƒобавлена проверка при смене ника и присутствие, в правиле, хостмаски
 #	v1.4.0
 # - ƒл€ совместимости с разными IRC сет€ми изменен запрос WHO
 # - »справлена ошибка, св€занна€ с указанием маски бана
@@ -16,7 +18,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{regban}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "01-Jul-2009" \
 	"ћодуль управлени€ банами по регул€рным выражени€м."
 
 if {[pkg_info mod $_name on]} {
@@ -433,6 +435,47 @@ if {[pkg_info mod $_name on]} {
 		
 	}
 	
+	proc regban_nick {nick uhost hand chan newnick} {
+		variable regban
+		
+		set who 0
+		set notwho 0
+		
+		foreach rid [array names regban -glob "*"] {
+			array set r $regban($rid)
+			
+			if {!$r(enable) || ![string equal -nocase $chan $r(chan)] || [string is space $r(host)]} {
+				unset r
+				continue
+			}
+			
+			set inc 1
+			set uninc 0
+			if {$inc && ![string is space $r(host)] && \
+						![regexp -- $r(host) "$newnick!$uhost"]} {set inc 0}
+			if {$inc && (![string is space $r(server)] || \
+						 ![string is space $r(status)] || \
+						 ![string is space $r(hops)] || \
+						 ![string is space $r(name)])} {set uninc 1}
+			
+			if {$inc && !$uninc} {
+				regban_action $rid $newnick $uhost
+				set notwho 1
+			} elseif {$inc && $uninc} {
+				set who 1
+			}
+			unset r
+			
+		}
+		
+		# inc uninc
+		# 1    0      - проверка прошла
+		# 0    0      - проверка не прошла
+		# 1    1      - требует дополнительной проверки
+		if {$who && !$notwho} {regban_whoadd $newnick $uhost $chan}
+		
+	}
+	
 	proc regban_whoadd {nick uhost chan {query_who 1} {only_notify 0} {array_out {}}} {
 		variable regbanturn
 		variable options
@@ -587,6 +630,7 @@ if {[pkg_info mod $_name on]} {
 		}
 		
 		bind join - *	[namespace origin regban_join]
+		bind nick - *	[namespace origin regban_nick]
 		bind raw - 352	[namespace origin regban_raw_352]
 		
 	}
