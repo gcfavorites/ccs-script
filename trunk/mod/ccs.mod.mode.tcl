@@ -5,7 +5,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{mode}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "05-Nov-2009" \
 	"Модуль управления модами канала."
 
 if {[pkg_info mod $_name on]} {
@@ -45,7 +45,6 @@ if {[pkg_info mod $_name on]} {
 	cmd_configure mode -control -group "mode" -flags {o|o} \
 		-alias {%pref_mode} \
 		-regexp {{^(.+?)$} {-> smode}}
-	
 	
 	################################################################################################
 	# Процедуры команд управления Опами и Хопами (OP, HOP).
@@ -231,6 +230,41 @@ if {[pkg_info mod $_name on]} {
 			return 1
 		}
 		return 0
+	}
+	
+	proc set_net_type_$_name {net_type} {
+		
+		switch -exact -- $net_type {
+			1 {
+				cmd_configure hop -use 0
+				cmd_configure dehop -use 0
+			}
+			2 {
+				cmd_configure hop -use 1
+				cmd_configure dehop -use 1
+			}
+			3 {
+				cmd_configure hop -use 0
+				cmd_configure dehop -use 0
+			}
+			4 {
+				cmd_configure hop -use 0
+				cmd_configure dehop -use 0
+			}
+			5 {
+				cmd_configure hop -use 0
+				cmd_configure dehop -use 0
+			}
+			6 {
+				cmd_configure hop -use 0
+				cmd_configure dehop -use 0
+			}
+			7 {
+				cmd_configure hop -use 1
+				cmd_configure dehop -use 1
+			}
+		}
+		
 	}
 	
 }

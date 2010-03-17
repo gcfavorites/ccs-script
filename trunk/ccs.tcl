@@ -1,6 +1,6 @@
 ####################################################################################################
 ## Продолжение известного скрипта управления CCS (Channel Control Script)
-## Version: 1.8.6.
+## Version: 1.8.7.
 ## Script's author: Buster (buster@buster-net.ru)
 ##                                   (http://buster-net.ru/irc/bots-eggdrop-and-windrop/tcl-scripts)
 ##                          (http://reserver.buster-net.ru/irc/bots-eggdrop-and-windrop/tcl-scripts)
@@ -29,6 +29,14 @@
 #  -l[imit]          -- выводит _только_ доступные команды.
 ####################################################################################################
 # Список последних изменений:
+#	v1.8.7
+# - В модуле regban добавлена проверка при смене ника и присутствие, в правиле, хостмаски
+# - Добавлен параметр выбора IRC сети, который помогает облегчить конфигурацию.
+# - В библиотеке IP обновлен список адрессов RIR
+# - В скрипте whoisip добавлена обработка реферральных ссылок (один whois сервер перенаправляет
+#   запрос на другой)
+# - Добавлен вывод списка забаненых на момент выставления бана
+# - Добавлено восстановление маски бана
 #	v1.8.6
 # - Для команды !chanset добавлена возможность назначения флагов и параметров списком в одной строке
 #	v1.8.5
@@ -155,8 +163,8 @@ namespace eval ::ccs {
 	################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@buster-net.ru> (c)"
-	variable version	"1.8.6"
-	variable date		"02-Nov-2009"
+	variable version	"1.8.7"
+	variable date		"17-Mar-2010"
 	
 	set time_up [clock clicks -milliseconds]
 	
@@ -2029,14 +2037,10 @@ namespace eval ::ccs {
 	}
 	
 	# Функция получения хостмаски из хоста
-	proc get_mask {uhost ind} {
+	proc get_mask {hostmask ind} {
 		variable options
 		
-		set a [string first ! $uhost]
-		set b [string first @ $uhost]
-		set nick  [string range $uhost 0 [expr $a-1]]
-		set ident [string range $uhost [expr $a+1] [expr $b-1]]
-		set host  [string range $uhost [expr $b+1] end]
+		lassign [recovery_mask -list -- $hostmask] nick ident host
 		
 		set theretilde [regsub {^~} $ident {} nident]
 		
@@ -2046,7 +2050,7 @@ namespace eval ::ccs {
 			set nident *$nident
 		}
 		
-		set maddr [maskhost $uhost]
+		set maddr [maskhost $hostmask]
 		set mhost [string range $maddr [expr [string first @ $maddr]+1] end]
 		switch -exact -- $ind {
 			0       { return $nick!$ident@$host   }
@@ -2060,7 +2064,74 @@ namespace eval ::ccs {
 			8       { return $nick!*@$host        }
 			9       { return $nick!$nident@$mhost }
 			10      { return $nick!*@$mhost       }
-			default { return $uhost               }
+			default { return $hostmask            }
+		}
+		
+	}
+	
+	proc recovery_mask {args} {
+		
+		set opts(-list) 0; # маска возвращается списком
+		
+		if {[llength $args] > 1} {
+			while {[string match -* [lindex $args 0]]} {
+				switch -glob -- [lindex $args 0] {
+					-list {
+						if {[string match -* [lindex $args 1]]} {
+							set opts(-list) 1
+						} else {
+							set opts(-list) [Pop args 1]
+						}
+					}
+					-- { Pop args; break }
+					default {
+						set opt [join [lsort [array names opts -*]] ", "]
+						return -code error "bad option [lindex $args 0]: must be $opt"
+					}
+				}
+				Pop args
+			}
+		}
+		
+		if {[llength $args] != 1} {
+			return -code error "wrong # args: should be \"recovery_mask ?switches? hostmask\""
+		}
+		
+		set hostmask [lindex $args 0]
+		
+		set a [string first ! $hostmask]
+		if {$a < 0} {
+			set a [string first @ $hostmask]
+			if {$a < 0} {
+				set nick  $hostmask
+				set ident "*"
+				set host  "*"
+			} else {
+				set nick  "*"
+				set ident [string range $hostmask 0 [expr $a-1]]
+				set host  [string range $hostmask [expr $a+1] end]
+			}
+		} else {
+			set nick [string range $hostmask 0 [expr $a-1]]
+			set hostmask [string range $hostmask [expr $a+1] end]
+			set a [string first @ $hostmask]
+			if {$a < 0} {
+				set ident $hostmask
+				set host  "*"
+			} else {
+				set ident [string range $hostmask 0 [expr $a-1]]
+				set host  [string range $hostmask [expr $a+1] end]
+			}
+		}
+		
+		if { $nick == ""} {set nick  "*"}
+		if {$ident == ""} {set ident "*"}
+		if { $host == ""} {set host  "*"}
+		
+		if {$opts(-list)} {
+			return [list $nick $ident $host]
+		} else {
+			return "$nick!$ident@$host"
 		}
 		
 	}
@@ -3037,6 +3108,14 @@ namespace eval ::ccs {
 		
 		foreach _ [concat [pkg_list mod 1] [pkg_list scr 1]] {
 			if {[proc_exists "deauth_$_"]} {deauth_$_ $snick $shost $shand $to_botnet $from_botnet}
+		}
+		
+	}
+	
+	proc set_net_type {net_type} {
+		
+		foreach _ [concat [pkg_list mod 1] [pkg_list scr 1]] {
+			if {[proc_exists "set_net_type_$_"]} {set_net_type_$_ $net_type}
 		}
 		
 	}

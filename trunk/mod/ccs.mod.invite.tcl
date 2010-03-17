@@ -5,7 +5,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{invite}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "05-Nov-2009" \
 	"Модуль управления списком инвайтов."
 
 if {[pkg_info mod $_name on]} {
@@ -235,6 +235,63 @@ if {[pkg_info mod $_name on]} {
 		put_msg [sprintf invite #119]
 		put_log ""
 		return 1
+		
+	}
+	
+	proc set_net_type_$_name {net_type} {
+		
+		switch -exact -- $net_type {
+			1 {
+				cmd_configure invite -use 0
+				cmd_configure uninvite -use 0
+				cmd_configure ginvite -use 0
+				cmd_configure guninvite -use 0
+				cmd_configure invitelist -use 0
+				cmd_configure resetinvites -use 0
+			}
+			2 {
+				cmd_configure invite -use 1
+				cmd_configure uninvite -use 1
+				cmd_configure ginvite -use 1
+				cmd_configure guninvite -use 1
+				cmd_configure invitelist -use 1
+				cmd_configure resetinvites -use 1
+			}
+			3 {
+				cmd_configure invite -use 1
+				cmd_configure uninvite -use 1
+				cmd_configure ginvite -use 1
+				cmd_configure guninvite -use 1
+				cmd_configure invitelist -use 1
+				cmd_configure resetinvites -use 1
+			}
+			4 {
+				cmd_configure invite -use 1
+				cmd_configure uninvite -use 1
+				cmd_configure ginvite -use 1
+				cmd_configure guninvite -use 1
+				cmd_configure invitelist -use 1
+				cmd_configure resetinvites -use 1
+			}
+			5 {
+			}
+			6 {
+				cmd_configure invite -use 1
+				cmd_configure uninvite -use 1
+				cmd_configure ginvite -use 1
+				cmd_configure guninvite -use 1
+				cmd_configure invitelist -use 1
+				cmd_configure resetinvites -use 1
+			}
+			7 {
+				cmd_configure invite -use 1
+				cmd_configure uninvite -use 1
+				cmd_configure ginvite -use 1
+				cmd_configure guninvite -use 1
+				cmd_configure invitelist -use 1
+				cmd_configure resetinvites -use 1
+			}
+		}
 		
 	}
 	

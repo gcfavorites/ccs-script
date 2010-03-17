@@ -3,6 +3,8 @@
 ## Скрипт получения информации об IP адресе
 ####################################################################################################
 # Список последних изменений (changelog):
+#	v1.4.3
+# - Добавлена обработка реферральных ссылок (один whois сервер перенаправляет запрос на другой)
 #	v1.4.2
 # - В случае вывода текста на канал и при превышении допустимого значения текст будет направляться в
 #   приват запросившему
@@ -30,7 +32,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{whoisip}
-pkg_add scr $_name "Buster <buster@buster-net.ru> (c)" "1.4.2" "07-Sep-2009" \
+pkg_add scr $_name "Buster <buster@buster-net.ru> (c)" "1.4.3" "08-Jan-2010" \
 	"Скрипт выдающий информацию по IP адресу"
 
 if {[pkg_info scr $_name on]} {
@@ -558,10 +560,10 @@ if {[pkg_info scr $_name on]} {
 		variable whoisipturn
 		#putlog "whoisip_whois_read $token $ind"
 		
-		set s [lindex [lindex $whoisipturn($token,address) $ind] 4]
+		set s [lindex $whoisipturn($token,address) $ind 4]
 		
 		if {![eof $s]} {
-			set linfo [lindex [lindex $whoisipturn($token,address) $ind] 7]
+			set linfo [lindex $whoisipturn($token,address) $ind 7]
 			while {![eof $s]} {
 				gets $s newdata
 				if {[fblocked $s]} {break}
@@ -571,10 +573,37 @@ if {[pkg_info scr $_name on]} {
 		} else {
 			fileevent $s readable {}
 			close $s
-			lset whoisipturn($token,address) $ind 3 1
-			lset whoisipturn($token,address) $ind 4 ""
 			
-			whoisip_test_out $token
+			set referral 0
+			set ref_info {}
+			foreach _ [lindex $whoisipturn($token,address) $ind 7] {
+				if {[regexp -nocase -- {^ReferralServer\:\s+r?whois\:\/\/(.+?):(\d+)$} $_ -> host port] ||
+					[regexp -nocase -- {^%\s+referto\:\s+whois\s+\-h\s+(.+?)\s+\-p\s+(\d+)$} $_ -> host port]} {
+					set referral 1
+				} else {
+					lappend ref_info $_
+				}
+			}
+			
+			if {$referral} {
+				if {[set s [socket -async $host $port]] != ""} {
+					lset whoisipturn($token,address) $ind 4 $s
+					lset whoisipturn($token,address) $ind 5 "[lindex $whoisipturn($token,address) $ind 5] REF"
+					lset whoisipturn($token,address) $ind 7 $ref_info
+					fconfigure $s -blocking 0 -buffering line
+					fileevent $s readable [list [namespace origin whoisip_whois_read] $token $ind]
+					fileevent $s writable [list [namespace origin whoisip_whois_write] $s [lindex $whoisipturn($token,address) $ind 1]]
+				} else {
+					lset whoisipturn($token,address) $ind 3 1
+					lset whoisipturn($token,address) $ind 4 ""
+					whoisip_test_out $token
+				}
+			} else {
+				lset whoisipturn($token,address) $ind 3 1
+				lset whoisipturn($token,address) $ind 4 ""
+				whoisip_test_out $token
+			}
+			
 		}
 		
 	}

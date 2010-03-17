@@ -5,8 +5,8 @@ set _name		"ban"
 set _lang		"ru"
 pkg_add lang [list $_name $_lang] \
 				"Buster <buster@buster-net.ru> (c)" \
-				"1.4.1" \
-				"24-Sep-2009"
+				"1.4.2" \
+				"17-Mar-2010"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
 	
@@ -39,15 +39,15 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text -type help -- $_lang resetbans {Убирает с канала все баны, которых нет в банлисте бота}
 	
 	set_text $_lang $_name #101 "Requested"
-	set_text $_lang $_name #102 "Добавлен \002постоянный\002%s бан: \037%s\037."
-	set_text $_lang $_name #103 "Добавлен%s бан: \037%s\037 на \002%s\002."
+	set_text $_lang $_name #102 "Добавлен \002постоянный\002%s бан: \037%s\037. Список попавших пользователей: \"%s\""
+	set_text $_lang $_name #103 "Добавлен%s бан: \037%s\037 на \002%s\002. Список попавших пользователей: \"%s\""
 	set_text $_lang $_name #104 "%s (до %s)."
 	set_text $_lang $_name #105 "\037стик\037"
 	set_text $_lang $_name #106 "Снят%s бан: \002%s\002."
 	set_text $_lang $_name #107 "Бана \002%s\002 на \002%s\002 не существует."
 	set_text $_lang $_name #108 "Requested"
-	set_text $_lang $_name #109 "Добавлен \002постоянный\002 глобальный%s бан: \037%s\037."
-	set_text $_lang $_name #110 "Добавлен глобальный%s бан: \037%s\037 на %s."
+	set_text $_lang $_name #109 "Добавлен \002постоянный\002 глобальный%s бан: \037%s\037. Список попавших пользователей: \"%s\""
+	set_text $_lang $_name #110 "Добавлен глобальный%s бан: \037%s\037 на %s. Список попавших пользователей: \"%s\""
 	set_text $_lang $_name #111 "Снят глобальный%s бан: \002%s\002"
 	set_text $_lang $_name #112 "Глобального бана \002%s\002 не существует."
 	set_text $_lang $_name #113 "--- Глобальный банлист%s ---"
