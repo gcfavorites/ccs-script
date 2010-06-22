@@ -2,6 +2,8 @@
 ## Модуль управления банами
 ####################################################################################################
 # Список последних изменений:
+#	v1.4.3
+# - Исправлен вывод списка забаненых (экранирование [ ]).
 #	v1.4.2
 # - Добавлен вывод списка забаненых на момент выставления бана
 # - Добавлено восстановление маски бана
@@ -11,7 +13,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{ban}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.2" "17-Mar-2010" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.3" "13-Jun-2010" \
 	"Модуль управления списком банов."
 
 if {[pkg_info mod $_name on]} {
@@ -102,8 +104,9 @@ if {[pkg_info mod $_name on]} {
 		if {[check_notavailable {-isbotnick -protect -nopermition0} -shand $shand -dnick $dnick -dhand $dhand -dchan $schan]} {return 0}
 		
 		set luser {}
+		set mask [string map {{[} {\[} {]} {\]} {\\} {\\\\}} $dhost]
 		foreach _1 [chanlist $schan] {
-			if {[string match -nocase $dhost "$_1![getchanhost $_1 $schan]"]} {
+			if {[string match -nocase $mask "$_1![getchanhost $_1 $schan]"]} {
 				lappend luser $_1
 			}
 		}

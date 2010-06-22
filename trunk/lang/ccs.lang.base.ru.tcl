@@ -4,8 +4,8 @@ set _name		"base"
 set _lang		"ru"
 pkg_add lang [list $_name $_lang] \
 				"Buster <buster@buster-net.ru> (c)" \
-				"1.4.0" \
-				"01-Jul-2009" \
+				"1.4.1" \
+				"03-Jun-2010" \
 				"Языковой файл для модуля $_name ($_lang)"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
@@ -126,5 +126,6 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #180 "\002%s\002 - Пользователь имеющий защиты от неправомерных действий (kick, ban итд). (скрипт CCS)"
 	set_text $_lang $_name #181 "\002%s\002 - Бот участвующие в общение (передача команд управления) через ботнете. (скрипт CCS)"
 	set_text $_lang $_name #182 "Описание для флага \002%s\002 не найдено"
+	set_text $_lang $_name #183 "locale: \002%s\002"
 	
 }
