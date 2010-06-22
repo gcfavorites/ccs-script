@@ -5,8 +5,8 @@ set _name		"base"
 set _lang		"en"
 pkg_add lang [list $_name $_lang] \
 				"Kein <kein-of@yandex.ru> (c)" \
-				"1.4.1" \
-				"30-Jul-2009" \
+				"1.4.2" \
+				"03-Jun-2010" \
 				"Language-file for module $_name ($_lang)"
 
 if {[pkg_info lang [list $_name $_lang] on]} {
@@ -130,5 +130,6 @@ if {[pkg_info lang [list $_name $_lang] on]} {
 	set_text $_lang $_name #180 "\002%s\002 - user has a protection from some commands, like kick, ban, etc... (custom CCS flag)"
 	set_text $_lang $_name #181 "\002%s\002 - defines bots who can share actions via botnet (can send/accept ccs-commands via botnet). (custom CCS flag)"
 	set_text $_lang $_name #182 "No description for flag \002%s\002 found."
+	set_text $_lang $_name #183 "locale: \002%s\002"
 
 }

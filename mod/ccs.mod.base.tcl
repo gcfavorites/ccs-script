@@ -2,6 +2,8 @@
 ## Модуль с базовыми командами управления
 ####################################################################################################
 # Список последних изменений:
+#	v1.4.1
+# - Для команды !info добавлен вывод локали под которой был запущен бот
 #	v1.3.1
 # - Для команды !info добавлен вывод информации по пользовательским флагам
 #	v1.2.7
@@ -14,7 +16,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{base}
-pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.0" "01-Jul-2009" \
+pkg_add mod $_name "Buster <buster@buster-net.ru> (c)" "1.4.1" "03-Jun-2010" \
 	"Модуль предоставляющий базовые команды не попадающие под другие группы."
 
 if {[pkg_info mod $_name on]} {
@@ -378,6 +380,7 @@ if {[pkg_info mod $_name on]} {
 				lappend lout [sprintf base #141 $::handlen]
 				if {[info exists ::seen-nick-len]} {lappend lout [sprintf base #142 ${::seen-nick-len}]}
 				lappend lout [sprintf base #143 [encoding system]]
+				lappend lout [sprintf base #183 [expr {[info exists ::env(LANG)] ? "$::env(LANG)" : "n/a"}]]
 				lappend lout [sprintf base #144 [xdate [duration [expr [unixtime]-$::uptime]]]]
 				lappend lout [sprintf base #145 [xdate [duration [expr [unixtime]-${::server-online}]]]]
 				put_msg -speed 3 -- [join $lout "; "]

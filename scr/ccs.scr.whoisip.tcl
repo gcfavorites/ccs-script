@@ -3,6 +3,8 @@
 ## Скрипт получения информации об IP адресе
 ####################################################################################################
 # Список последних изменений (changelog):
+#	v1.4.4
+# - Добавлена поддержка национальных доменов
 #	v1.4.3
 # - Добавлена обработка реферральных ссылок (один whois сервер перенаправляет запрос на другой)
 #	v1.4.2
@@ -32,7 +34,7 @@
 if {[namespace current] == "::"} {putlog "\002\00304You shouldn't use source for [info script]"; return}
 
 set _name	{whoisip}
-pkg_add scr $_name "Buster <buster@buster-net.ru> (c)" "1.4.3" "08-Jan-2010" \
+pkg_add scr $_name "Buster <buster@buster-net.ru> (c)" "1.4.4" "14-May-2010" \
 	"Скрипт выдающий информацию по IP адресу"
 
 if {[pkg_info scr $_name on]} {
@@ -344,6 +346,13 @@ if {[pkg_info scr $_name on]} {
 			set lout [list]
 			foreach _ $whoisipturn($token,name) {
 				lassign $_ a_type a_ip
+				if {[proc_exists idna::decode]} {
+					catch {
+						if {$a_ip != [set host [encoding convertfrom utf-8 [idna::decode $a_ip]]]} {
+							append a_ip " ($host)"
+						}
+					}
+				}
 				switch -exact -- $a_type {
 					A - AAAA {lappend h($a_type) [sprintf whoisip #111 $a_ip]}
 					default {lappend h($a_type) $a_ip}
@@ -352,6 +361,13 @@ if {[pkg_info scr $_name on]} {
 			
 			foreach _0 $whoisipturn($token,address) {
 				lassign $_0 a_type a_ip a_request a_reply a_socket a_designation a_range a_info
+				if {[proc_exists idna::decode]} {
+					catch {
+						if {$a_ip != [set host [encoding convertfrom utf-8 [idna::decode $a_ip]]]} {
+							append a_ip " ($host)"
+						}
+					}
+				}
 				switch -exact -- $a_type {
 					A - AAAA {lappend h($a_type) [sprintf whoisip #110 $a_ip]}
 					default {lappend h($a_type) $a_ip}
@@ -537,6 +553,13 @@ if {[pkg_info scr $_name on]} {
 			}
 			whoisip_addwhois $token
 		} else {
+			
+			if {[proc_exists idna::encode]} {
+				catch {
+					set ip [idna::encode [encoding convertto utf-8 $ip]]
+				}
+			}
+			
 			switch -exact -- $options(mode_dns_reply) {
 				1 {
 					lappend whoisipturn($token,dns_token) [list 5 0]
@@ -703,6 +726,13 @@ if {[pkg_info scr $_name on]} {
 			#dns::configure -port 53
 			#dns::configure -timeout 10000
 			#dns::configure -protocol tcp
+		}
+		
+		if {[catch {
+			package require [namespace current]::idna 1.0.0
+		} errMsg]} {
+			debug "Warning package require [namespace current]::idna"
+			debug "($errMsg)"
 		}
 		
 	}
