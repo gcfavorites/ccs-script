@@ -591,6 +591,7 @@ if {[pkg_info scr $_name on]} {
 				gets $s newdata
 				if {[fblocked $s]} {break}
 				lappend linfo $newdata
+				putlog $newdata
 			}
 			lset whoisipturn($token,address) $ind 7 $linfo
 		} else {
