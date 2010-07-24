@@ -31,6 +31,7 @@
 # Список последних изменений:
 #	v1.8.8
 # - Для скрипта whoisip добавлена поддержка национальных доменов
+# - Добавлена поддержка функции putnow
 #	v1.8.7
 # - В модуле regban добавлена проверка при смене ника и присутствие, в правиле, хостмаски
 # - Добавлен параметр выбора IRC сети, который помогает облегчить конфигурацию.
@@ -165,8 +166,8 @@ namespace eval ::ccs {
 	################################################################################################
 	# Версия и автор скрипта
 	variable author		"Buster <buster@buster-net.ru> (c)"
-	variable version	"1.8.7"
-	variable date		"17-Mar-2010"
+	variable version	"1.8.8"
+	variable date		"24-Jul-2010"
 	
 	set time_up [clock clicks -milliseconds]
 	
@@ -1987,8 +1988,12 @@ namespace eval ::ccs {
 			if {$opts(-type) == "dcc"} {
 				putdcc $dest $msg
 			} elseif {$options(fast) || $opts(-speed) == 0} {
-				append msg "\n"
-				putdccraw 0 [string length $msg] $msg
+				if {[compare_version [lindex $::version 0] 1.6.20]} {
+					append msg "\n"
+					putdccraw 0 [string length $msg] $msg
+				} else {
+					putnow $msg
+				}
 			} elseif {$opts(-speed) == 1} {
 				putquick $msg
 			} elseif {$opts(-speed) == 2} {
